@@ -1,0 +1,119 @@
+{
+  "identity": {
+    "name": "Guerrero Academy",
+    "mission": "To forge the next generation of football talent in the Dominican Republic with discipline, passion, and elite training.",
+    "tone": "Premium, Athletic, Trustworthy, Family-Oriented",
+    "theme_mode": "light",
+    "keywords": ["Elite", "Discipline", "Future", "Strength", "Family"]
+  },
+  "typography": {
+    "heading_font": "Oswald, sans-serif",
+    "body_font": "Manrope, sans-serif",
+    "scale": {
+      "h1": "text-5xl md:text-7xl font-bold uppercase tracking-tight",
+      "h2": "text-4xl md:text-5xl font-bold uppercase tracking-tight",
+      "h3": "text-2xl md:text-3xl font-semibold uppercase tracking-wide",
+      "body": "text-base md:text-lg leading-relaxed text-slate-600",
+      "label": "text-sm font-bold uppercase tracking-widest text-slate-500"
+    }
+  },
+  "colors": {
+    "palette": {
+      "primary": {
+        "DEFAULT": "#020617",
+        "foreground": "#FFFFFF",
+        "description": "Deep Navy - The anchor. Use for backgrounds in hero, footers, and primary text."
+      },
+      "secondary": {
+        "DEFAULT": "#F1F5F9",
+        "foreground": "#0F172A",
+        "description": "Slate 100 - Use for section backgrounds to break up white space."
+      },
+      "accent": {
+        "DEFAULT": "#22C55E",
+        "foreground": "#FFFFFF",
+        "description": "Turf Green - Use for 'Success', 'Sign Up' buttons, and active states."
+      },
+      "highlight": {
+        "DEFAULT": "#F59E0B",
+        "description": "Champion Gold - Use sparingly for trophies, 'Pro' tags, and special offers."
+      },
+      "destructive": {
+        "DEFAULT": "#EF4444",
+        "foreground": "#FFFFFF"
+      }
+    },
+    "gradients": {
+      "hero_overlay": "linear-gradient(to bottom, rgba(2,6,23,0.4), rgba(2,6,23,0.8))",
+      "gold_shine": "linear-gradient(135deg, #F59E0B 0%, #FBBF24 50%, #F59E0B 100%)"
+    }
+  },
+  "layout": {
+    "container": "container mx-auto px-4 md:px-6 lg:px-8 max-w-7xl",
+    "section_spacing": "py-20 md:py-32",
+    "grid_gap": "gap-8 md:gap-12",
+    "radius": {
+      "default": "rounded-lg",
+      "button": "rounded-md",
+      "card": "rounded-xl"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-primary-foreground hover:bg-slate-800 shadow-lg hover:shadow-xl transition-all duration-300 font-bold uppercase tracking-wider px-8 py-4 rounded-md",
+      "secondary": "bg-white text-primary border-2 border-primary hover:bg-slate-50 font-bold uppercase tracking-wider px-8 py-4 rounded-md",
+      "accent": "bg-accent text-white hover:bg-green-600 shadow-lg hover:shadow-green-500/30 transition-all font-bold uppercase tracking-wider px-8 py-4 rounded-md"
+    },
+    "cards": {
+      "feature": "bg-white p-8 border border-slate-100 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 rounded-xl group",
+      "dashboard": "bg-white border border-slate-200 shadow-sm rounded-lg p-6"
+    },
+    "inputs": {
+      "default": "h-12 border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-md bg-slate-50 focus:bg-white transition-all"
+    }
+  },
+  "visual_enhancers": {
+    "textures": "Use subtle noise overlays on dark backgrounds to prevent banding.",
+    "glassmorphism": "backdrop-blur-xl bg-white/80 border border-white/20 shadow-lg",
+    "shadows": {
+      "card": "0 20px 40px -10px rgba(2,6,23,0.08)",
+      "float": "0 30px 60px -12px rgba(2,6,23,0.15)"
+    }
+  },
+  "image_urls": {
+    "hero_background": "https://images.unsplash.com/photo-1765372674571-afef5d3771b2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHx5b3V0aCUyMGZvb3RiYWxsJTIwYWNhZGVteSUyMHRyYWluaW5nfGVufDB8fHx8MTc3MzEzNDcyNXww&ixlib=rb-4.1.0&q=85",
+    "textures_soccer_balls": "https://images.unsplash.com/photo-1760177379323-2b22f8d41707?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwyfHx5b3V0aCUyMGZvb3RiYWxsJTIwYWNhZGVteSUyMHRyYWluaW5nfGVufDB8fHx8MTc3MzEzNDcyNXww&ixlib=rb-4.1.0&q=85",
+    "action_shot": "https://images.unsplash.com/photo-1625990637351-ee0e5e9ba5e5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwzfHx5b3V0aCUyMGZvb3RiYWxsJTIwYWNhZGVteSUyMHRyYWluaW5nfGVufDB8fHx8MTc3MzEzNDcyNXww&ixlib=rb-4.1.0&q=85",
+    "coach_talking": "https://images.unsplash.com/photo-1636718419846-b1953bf34e71?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njd8MHwxfHNlYXJjaHwxfHxzb2NjZXIlMjBjb2FjaCUyMHRlYWNoaW5nJTIwa2lkc3xlbnwwfHx8fDE3NzMxMzQ3MjZ8MA&ixlib=rb-4.1.0&q=85",
+    "team_uniforms": "https://images.unsplash.com/photo-1652318696037-8d34c4d2f378?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njd8MHwxfHNlYXJjaHwzfHxzb2NjZXIlMjBjb2FjaCUyMHRlYWNoaW5nJTIwa2lkc3xlbnwwfHx8fDE3NzMxMzQ3MjZ8MA&ixlib=rb-4.1.0&q=85",
+    "happy_kid_yellow": "https://images.unsplash.com/photo-1772510284813-0e8f4f54400d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MDV8MHwxfHNlYXJjaHwzfHxoYXBweSUyMGtpZCUyMHNvY2NlciUyMHBsYXllciUyMHBvcnRyYWl0fGVufDB8fHx8MTc3MzEzNDcyN3ww&ixlib=rb-4.1.0&q=85",
+    "happy_kid_red": "https://images.unsplash.com/photo-1770914701397-74ec4efabbd2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MDV8MHwxfHNlYXJjaHwyfHxoYXBweSUyMGtpZCUyMHNvY2NlciUyMHBsYXllciUyMHBvcnRyYWl0fGVufDB8fHx8MTc3MzEzNDcyN3ww&ixlib=rb-4.1.0&q=85",
+    "happy_kid_thumbs_up": "https://images.unsplash.com/photo-1739525123573-b7c446693f6a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MDV8MHwxfHNlYXJjaHwxfHxoYXBweSUyMGtpZCUyMHNvY2NlciUyMHBsYXllciUyMHBvcnRyYWl0fGVufDB8fHx8MTc3MzEzNDcyN3ww&ixlib=rb-4.1.0&q=85",
+    "abstract_sunlight": "https://images.unsplash.com/photo-1634111849474-c8cc5425b000?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAxODF8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBmb290YmFsbCUyMHN0YWRpdW0lMjBzdW5saWdodHxlbnwwfHx8fDE3NzMxMzQ3Mjh8MA&ixlib=rb-4.1.0&q=85"
+  },
+  "instructions_to_main_agent": [
+    "INSTALL FONTS: Add '@import url(\"https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap\");' to index.css.",
+    "THEME SETUP: Use the Deep Navy (#020617) as the primary brand color in tailwind.config.js.",
+    "LANDING PAGE: Build a high-impact 'Hero' section with the 'hero_background' image, dark overlay, and 'Oswald' typography.",
+    "LANDING PAGE: Use 'Bento Grid' layout for the 'Why Choose Us' section.",
+    "FORMS: Use Shadcn components but style them with the 'premium' input styles defined in guidelines.",
+    "DASHBOARD: Keep it clean, white backgrounds, 'Manrope' font for high legibility, and use 'Badge' components for status (Active/Pending).",
+    "ANIMATION: Use 'framer-motion' for entrance animations on the landing page (fade-up, stagger-children).",
+    "ACCESSIBILITY: Ensure all text on top of images has a semi-transparent black overlay or text-shadow.",
+    "DO NOT use gradient text for headings unless it is a very specific 'Gold' highlight.",
+    "DO NOT make the site look like a 'Video Game'. It should look like a 'Professional Institution'."
+  ],
+  "UNIVERSAL_GUIDELINES": {
+    "principles": [
+      "No generic centered layouts.",
+      "Use depth (z-index, shadows) over flatness.",
+      "Micro-interactions on every button/link.",
+      "Mobile-first always."
+    ],
+    "forbidden": [
+      "AI Emoji slop (🚀, 🏆 everywhere)",
+      "Default Blue/Purple gradients",
+      "Inter font for headings"
+    ]
+  }
+}
