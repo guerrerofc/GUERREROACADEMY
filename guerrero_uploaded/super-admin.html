@@ -490,6 +490,8 @@
 
         <div class="nav-section">Sistema</div>
         <button class="nav-link" data-view="users"><span class="nav-icon">🔐</span>Usuarios</button>
+        <button class="nav-link" data-view="requests"><span class="nav-icon">📋</span>Solicitudes</button>
+
         <button class="nav-link" data-view="announcements"><span class="nav-icon">📢</span>Anuncios</button>
       </nav>
 
@@ -820,6 +822,34 @@
           <div id="announcementsList"></div>
         </div>
       </div>
+
+
+      <!-- SOLICITUDES DE INSCRIPCIÓN -->
+      <div class="view" id="view-requests">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">📋 Solicitudes de Inscripción</h1>
+            <p class="page-subtitle">Gestiona las solicitudes recibidas desde el formulario web</p>
+          </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filters-bar" style="margin-bottom: 20px; display: flex; gap: 10px;">
+          <button id="btnPendientes" class="btn btn-warning">⏳ Pendientes</button>
+          <button id="btnAprobadas" class="btn btn-success">✓ Aprobadas</button>
+          <button id="btnRechazadas" class="btn btn-danger">✗ Rechazadas</button>
+          <button id="btnTodas" class="btn btn-secondary">📊 Todas</button>
+        </div>
+
+        <!-- Tabla de solicitudes -->
+        <div class="card">
+          <div id="tablaSolicitudes">
+            <p style="color: rgba(255,255,255,0.5);">Cargando solicitudes...</p>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 
@@ -1484,6 +1514,10 @@
           <span>Total Pagos</span>
           <strong>${(allPayments || []).length}</strong>
         </div>
+
+  <!-- Sistema de Solicitudes -->
+  <script src="solicitudes.js"></script>
+
         <div style="display: flex; justify-content: space-between; padding: 12px 0;">
           <span>Promedio por Pago</span>
           <strong>${formatMoney(total / ((allPayments || []).length || 1))}</strong>

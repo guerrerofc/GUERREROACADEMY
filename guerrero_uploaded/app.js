@@ -452,6 +452,31 @@ const ENR_PATCH_MAP = {
       fSubmit.disabled = true;
       fSubmit.textContent = "Enviando...";
 
+
+      // Guardar en nueva tabla de solicitudes para el Super Admin
+      try {
+        const requestPayload = {
+          tutor_nombre: padre,
+          tutor_whatsapp: whatsapp,
+          jugador_nombre: jugador,
+          jugador_edad: edad,
+          category_name: categoria,
+          status: 'pending'
+        };
+        
+        const { error: requestError } = await supabaseClient
+          .from('inscription_requests')
+          .insert([requestPayload]);
+
+        if (requestError) {
+          console.warn('No se pudo guardar en inscription_requests:', requestError);
+        } else {
+          console.log('✅ Solicitud guardada en inscription_requests');
+        }
+      } catch (err) {
+        console.warn('Error guardando solicitud:', err);
+      }
+
       await createInscripcion(payload);
 
       inscForm.style.display = "none";
