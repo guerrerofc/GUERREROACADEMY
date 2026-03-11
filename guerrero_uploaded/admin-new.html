@@ -19,8 +19,8 @@
       --stroke-hover: rgba(255,255,255,.15);
       --text: rgba(255,255,255,.92);
       --muted: rgba(255,255,255,.55);
-      --accent: #22c55e;
-      --accent-soft: rgba(34,197,94,.15);
+      --accent: #D87093;
+      --accent-soft: rgba(216,112,147,.15);
       --pink: #ec4899;
       --pink-soft: rgba(236,72,153,.15);
       --gold: #f59e0b;
@@ -91,12 +91,12 @@
       width: 44px;
       height: 44px;
       border-radius: 14px;
-      background: linear-gradient(135deg, var(--accent), #16a34a);
+      background: linear-gradient(135deg, var(--accent), #C75B7A);
       display: grid;
       place-items: center;
       font-weight: 900;
       font-size: 16px;
-      box-shadow: 0 8px 24px rgba(34,197,94,.3);
+      box-shadow: 0 8px 24px rgba(216,112,147,.3);
     }
 
     .brand-info h1 {
@@ -151,7 +151,7 @@
 
     .nav-link.active {
       background: var(--accent-soft);
-      border-color: rgba(34,197,94,.3);
+      border-color: rgba(216,112,147,.3);
       color: var(--accent);
     }
 
@@ -289,8 +289,8 @@
     }
 
     .btn-primary:hover {
-      background: #16a34a;
-      border-color: #16a34a;
+      background: #C75B7A;
+      border-color: #C75B7A;
     }
 
     .btn-danger {
@@ -631,7 +631,7 @@
 
     .status-bar.success {
       background: var(--accent-soft);
-      border-color: rgba(34,197,94,.3);
+      border-color: rgba(216,112,147,.3);
       color: var(--accent);
     }
 
@@ -642,7 +642,7 @@
       place-items: center;
       padding: 20px;
       background: 
-        radial-gradient(800px 600px at 30% 20%, rgba(34,197,94,.08), transparent),
+        radial-gradient(800px 600px at 30% 20%, rgba(216,112,147,.08), transparent),
         radial-gradient(800px 600px at 70% 80%, rgba(236,72,153,.06), transparent),
         var(--bg);
     }
@@ -725,7 +725,7 @@
       background: var(--panel-hover);
     }
 
-    .att-btn.present { background: var(--accent-soft); color: var(--accent); border-color: rgba(34,197,94,.3); }
+    .att-btn.present { background: var(--accent-soft); color: var(--accent); border-color: rgba(216,112,147,.3); }
     .att-btn.absent { background: var(--danger-soft); color: var(--danger); border-color: rgba(239,68,68,.3); }
     .att-btn.late { background: var(--gold-soft); color: var(--gold); border-color: rgba(245,158,11,.3); }
 
@@ -1547,8 +1547,8 @@
           datasets: [{
             label: "Ingresos",
             data: Object.values(monthMap),
-            backgroundColor: "rgba(34, 197, 94, 0.6)",
-            borderColor: "rgb(34, 197, 94)",
+            backgroundColor: "rgba(216, 112, 147, 0.6)",
+            borderColor: "rgb(216, 112, 147)",
             borderWidth: 1,
             borderRadius: 6
           }]
@@ -1589,7 +1589,7 @@
             {
               label: "Activos",
               data: allCats.map(c => activeByCategory[c] || 0),
-              backgroundColor: "rgba(34, 197, 94, 0.7)",
+              backgroundColor: "rgba(216, 112, 147, 0.7)",
               borderRadius: 6
             },
             {
