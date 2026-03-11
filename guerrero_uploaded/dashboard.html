@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Guerrero Academy - Dashboard</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg: #05070d;
+      --bg-soft: #0e1220;
+      --card: rgba(255,255,255,.05);
+      --stroke: rgba(255,255,255,.12);
+      --text: rgba(245,247,255,.95);
+      --muted: rgba(245,247,255,.65);
+      --accent: #49c4a8;
+      --accent2: #f4a261;
+      --danger: #ef476f;
+      --ok: #6ee7b7;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(900px 500px at 10% 0%, rgba(73,196,168,.16), transparent 60%),
+        radial-gradient(900px 500px at 90% 0%, rgba(244,162,97,.14), transparent 60%),
+        var(--bg);
+      font-family: "Segoe UI", "Trebuchet MS", "Verdana", sans-serif;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(8px);
+      background: rgba(5,7,13,.72);
+      border-bottom: 1px solid var(--stroke);
+    }
+
+    .wrap {
+      width: min(1220px, 94%);
+      margin: 0 auto;
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 0;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: .2px;
+    }
+
+    .title p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .btn {
+      border: 1px solid var(--stroke);
+      color: var(--text);
+      background: rgba(255,255,255,.05);
+      border-radius: 10px;
+      padding: 8px 10px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .main { padding: 16px 0 26px; }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: 14px;
+      padding: 11px;
+    }
+
+    .kpi .label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .kpi .value {
+      margin-top: 4px;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0,1fr));
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .sub {
+      margin: 6px 0 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .span-8 { grid-column: span 8; }
+    .span-6 { grid-column: span 6; }
+    .span-4 { grid-column: span 4; }
+    .span-12 { grid-column: span 12; }
+
+    canvas {
+      width: 100% !important;
+      height: 260px !important;
+    }
+
+    .small canvas { height: 230px !important; }
+
+    .status {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+
+    .status.ok { color: var(--ok); }
+    .status.error { color: #ff9aa2; }
+
+    @media (max-width: 980px) {
+      .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .span-8, .span-6, .span-4 { grid-column: span 12; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="title">
+        <h1>Dashboard Guerrero Academy</h1>
+        <p>Supabase + Chart.js</p>
+      </div>
+      <a href="./Untitled-1.html#admin" class="btn">Volver al admin</a>
+    </div>
+  </header>
+
+  <main class="main wrap">
+    <section class="kpis">
+      <article class="kpi"><div class="label">Ingresos este mes</div><div class="value" id="kpiMonthRevenue">-</div></article>
+      <article class="kpi"><div class="label">Pagos este mes</div><div class="value" id="kpiMonthPayments">-</div></article>
+      <article class="kpi"><div class="label">Jugadores activos</div><div class="value" id="kpiActivePlayers">-</div></article>
+      <article class="kpi"><div class="label">Membresias activas</div><div class="value" id="kpiActiveMemberships">-</div></article>
+    </section>
+
+    <section class="grid">
+      <article class="card span-8">
+        <h2>Ingresos por mes (12 meses)</h2>
+        <div class="sub">payments.status = paid</div>
+        <canvas id="chartRevenueByMonth"></canvas>
+      </article>
+
+      <article class="card span-4 small">
+        <h2>Estado de membresias</h2>
+        <div class="sub">memberships.estado</div>
+        <canvas id="chartMembershipStatus"></canvas>
+      </article>
+
+      <article class="card span-6">
+        <h2>Ingresos por categoria (mes actual)</h2>
+        <div class="sub">payments.month = mes actual</div>
+        <canvas id="chartRevenueByCategory"></canvas>
+      </article>
+
+      <article class="card span-6">
+        <h2>Asistencia por sabado (ultimas 8 sesiones)</h2>
+        <div class="sub">attendance.estado = present</div>
+        <canvas id="chartAttendanceBySession"></canvas>
+      </article>
+
+      <article class="card span-12">
+        <h2>Jugadores activos vs cupos por categoria</h2>
+        <div class="sub">players/memberships + cupos</div>
+        <canvas id="chartCapacityByCategory"></canvas>
+      </article>
+
+      <article class="card span-12">
+        <h2>Estado</h2>
+        <div id="statusBox" class="status">Cargando...</div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const SUPABASE_URL = "https://daijiuqqafvjofafwqck.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g";
+
+    const TABLES = {
+      payments: "payments",
+      players: "players",
+      memberships: "memberships",
+      sessions: "sessions",
+      attendance: "attendance",
+      cupos: "cupos"
+    };
+
+    const statusBox = document.getElementById("statusBox");
+    const charts = {};
+
+    function setStatus(msg, type = "") {
+      statusBox.className = `status ${type}`.trim();
+      statusBox.textContent = msg;
+    }
+
+    function monthStartISO(date = new Date()) {
+      const d = new Date(date);
+      d.setDate(1);
+      d.setHours(0,0,0,0);
+      return d.toISOString().slice(0,10);
+    }
+
+    function addMonthsISO(isoDate, deltaMonths) {
+      const d = new Date(`${isoDate}T00:00:00Z`);
+      d.setMonth(d.getMonth() + deltaMonths);
+      d.setDate(1);
+      d.setHours(0,0,0,0);
+      return d.toISOString().slice(0,10);
+    }
+
+    function formatMoney(n) {
+      const num = Number(n || 0);
+      return new Intl.NumberFormat("es-DO", {
+        style: "currency",
+        currency: "DOP",
+        maximumFractionDigits: 0
+      }).format(num);
+    }
+
+    function baseScales() {
+      return {
+        x: { ticks: { color: "rgba(245,247,255,.74)" }, grid: { color: "rgba(255,255,255,.06)" } },
+        y: { ticks: { color: "rgba(245,247,255,.74)" }, grid: { color: "rgba(255,255,255,.06)" }, beginAtZero: true }
+      };
+    }
+
+    function renderLineChart(id, labels, values, label, color = "#49c4a8") {
+      const ctx = document.getElementById(id);
+      if (!ctx) return;
+      if (charts[id]) charts[id].destroy();
+      charts[id] = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label,
+            data: values,
+            borderColor: color,
+            backgroundColor: `${color}33`,
+            fill: true,
+            tension: 0.28
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: true, labels: { color: "rgba(245,247,255,.84)" } } },
+          scales: baseScales()
+        }
+      });
+    }
+
+    function renderBarChart(id, labels, values, label, color = "#f4a261") {
+      const ctx = document.getElementById(id);
+      if (!ctx) return;
+      if (charts[id]) charts[id].destroy();
+      charts[id] = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{ label, data: values, backgroundColor: `${color}cc`, borderRadius: 8 }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: true, labels: { color: "rgba(245,247,255,.84)" } } },
+          scales: baseScales()
+        }
+      });
+    }
+
+    function renderDoughnutChart(id, labels, values) {
+      const ctx = document.getElementById(id);
+      if (!ctx) return;
+      if (charts[id]) charts[id].destroy();
+      charts[id] = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels,
+          datasets: [{
+            data: values,
+            backgroundColor: ["#49c4a8", "#f4a261", "#ef476f", "#8ecae6", "#ffd166", "#bdb2ff"]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: "bottom", labels: { color: "rgba(245,247,255,.84)" } } }
+        }
+      });
+    }
+
+    async function safeSelect(client, table, select, handler) {
+      const { data, error } = await client.from(table).select(select);
+      if (error) throw new Error(`${table}: ${error.message || JSON.stringify(error)}`);
+      return handler ? handler(data || []) : (data || []);
+    }
+
+    async function runDashboard() {
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+        setStatus("Falta SUPABASE_URL o SUPABASE_ANON_KEY", "error");
+        return;
+      }
+
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const monthISO = monthStartISO();
+      const start12 = addMonthsISO(monthISO, -11);
+
+      try {
+        const { data: authData, error: authErr } = await supabase.auth.getSession();
+        if (authErr) throw new Error(`auth: ${authErr.message}`);
+        if (!authData?.session) {
+          setStatus(
+            "No hay sesion activa. Con RLS en modo authenticated, el dashboard puede cargar vacio sin error.\n" +
+            "Entra primero a Untitled-1.html#admin con tu usuario y luego abre dashboard.html en el mismo navegador.",
+            "error"
+          );
+          return;
+        }
+
+        setStatus("Consultando datos en Supabase...");
+
+        const [{ data: payments, error: ePay }, { data: memberships, error: eMem }, { data: cupos, error: eCup }] = await Promise.all([
+          supabase.from(TABLES.payments)
+            .select("id,amount,month,status,category_id,paid_at")
+            .eq("status", "paid")
+            .gte("month", start12)
+            .order("month", { ascending: true }),
+          supabase.from(TABLES.memberships)
+            .select("id,player_id,categoria,estado,monto,created_at")
+            .order("created_at", { ascending: false }),
+          supabase.from(TABLES.cupos)
+            .select("categoria,cupo_total")
+        ]);
+
+        if (ePay) throw new Error(`payments: ${ePay.message}`);
+        if (eMem) throw new Error(`memberships: ${eMem.message}`);
+        if (eCup) throw new Error(`cupos: ${eCup.message}`);
+
+        // Players puede no existir o no tener permisos; dashboard sigue con memberships.
+        let players = [];
+        {
+          const { data, error } = await supabase
+            .from(TABLES.players)
+            .select("id,status,category_id,nombre,tutor_whatsapp");
+          if (!error) players = data || [];
+        }
+
+        // Sessions + attendance puede faltar; si falla, se grafica en cero.
+        let sessions = [];
+        let attendance = [];
+        {
+          const sixtyDaysAgo = new Date();
+          sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+          const { data: sData, error: sErr } = await supabase
+            .from(TABLES.sessions)
+            .select("id,fecha")
+            .gte("fecha", sixtyDaysAgo.toISOString().slice(0,10))
+            .order("fecha", { ascending: false })
+            .limit(8);
+
+          if (!sErr) sessions = sData || [];
+
+          const ids = sessions.map(s => s.id);
+          if (ids.length) {
+            const { data: aData, error: aErr } = await supabase
+              .from(TABLES.attendance)
+              .select("session_id,estado")
+              .in("session_id", ids);
+            if (!aErr) attendance = aData || [];
+          }
+        }
+
+        // KPIs
+        const monthPayments = (payments || []).filter(p => p.month === monthISO);
+        const monthRevenue = monthPayments.reduce((s, r) => s + Number(r.amount || 0), 0);
+        const activePlayers = players.filter(p => String(p.status || "").toLowerCase() === "activo").length;
+        const activeMemberships = memberships.filter(m => String(m.estado || "").toLowerCase() === "activa").length;
+
+        document.getElementById("kpiMonthRevenue").textContent = formatMoney(monthRevenue);
+        document.getElementById("kpiMonthPayments").textContent = String(monthPayments.length);
+        document.getElementById("kpiActivePlayers").textContent = String(activePlayers || activeMemberships);
+        document.getElementById("kpiActiveMemberships").textContent = String(activeMemberships);
+
+        // 1) Ingresos por mes (12 meses)
+        const monthMap = {};
+        for (let i = 0; i < 12; i++) monthMap[addMonthsISO(start12, i)] = 0;
+        (payments || []).forEach(p => {
+          if (monthMap[p.month] !== undefined) monthMap[p.month] += Number(p.amount || 0);
+        });
+
+        const labelsMonth = Object.keys(monthMap).map(iso => {
+          const d = new Date(`${iso}T00:00:00`);
+          return d.toLocaleDateString("es-DO", { month: "short", year: "2-digit" });
+        });
+        const valuesMonth = Object.values(monthMap);
+        renderLineChart("chartRevenueByMonth", labelsMonth, valuesMonth, "Ingresos");
+
+        // 2) Estado membresias
+        const statusCounts = {};
+        (memberships || []).forEach(m => {
+          const k = String(m.estado || "sin_estado").toLowerCase();
+          statusCounts[k] = (statusCounts[k] || 0) + 1;
+        });
+        renderDoughnutChart("chartMembershipStatus", Object.keys(statusCounts), Object.values(statusCounts));
+
+        // 3) Ingresos por categoria (mes actual)
+        const catRevenue = {};
+        monthPayments.forEach(p => {
+          const key = p.category_id || "Sin categoria";
+          catRevenue[key] = (catRevenue[key] || 0) + Number(p.amount || 0);
+        });
+        renderBarChart(
+          "chartRevenueByCategory",
+          Object.keys(catRevenue),
+          Object.values(catRevenue),
+          "Ingresos mes",
+          "#49c4a8"
+        );
+
+        // 4) Asistencia por sesion
+        const sessionsSorted = (sessions || []).slice().sort((a, b) => (a.fecha > b.fecha ? 1 : -1));
+        const attBySession = {};
+        sessions.forEach(s => { attBySession[s.id] = { present: 0, total: 0 }; });
+        attendance.forEach(a => {
+          if (!attBySession[a.session_id]) return;
+          attBySession[a.session_id].total += 1;
+          if (String(a.estado || "").toLowerCase() === "present") attBySession[a.session_id].present += 1;
+        });
+
+        const attLabels = sessionsSorted.map(s => {
+          const d = new Date(`${s.fecha}T00:00:00`);
+          return d.toLocaleDateString("es-DO", { day: "2-digit", month: "short" });
+        });
+        const attValues = sessionsSorted.map(s => {
+          const v = attBySession[s.id] || { present: 0, total: 0 };
+          return v.total ? Math.round((v.present / v.total) * 100) : 0;
+        });
+        renderLineChart("chartAttendanceBySession", attLabels, attValues, "% asistencia", "#f4a261");
+
+        // 5) Activos vs cupos por categoria
+        const cupoByCat = {};
+        (cupos || []).forEach(c => { cupoByCat[c.categoria] = Number(c.cupo_total || 0); });
+
+        const activeByCat = {};
+        if (players.length) {
+          players.forEach(p => {
+            if (String(p.status || "").toLowerCase() !== "activo") return;
+            const cat = p.category_id || "Sin categoria";
+            activeByCat[cat] = (activeByCat[cat] || 0) + 1;
+          });
+        } else {
+          memberships.forEach(m => {
+            if (String(m.estado || "").toLowerCase() !== "activa") return;
+            const cat = m.categoria || "Sin categoria";
+            activeByCat[cat] = (activeByCat[cat] || 0) + 1;
+          });
+        }
+
+        const allCats = Array.from(new Set([...Object.keys(cupoByCat), ...Object.keys(activeByCat)])).sort();
+        const activos = allCats.map(c => activeByCat[c] || 0);
+        const cuposVals = allCats.map(c => cupoByCat[c] || 0);
+
+        const ctxCap = document.getElementById("chartCapacityByCategory");
+        if (charts.chartCapacityByCategory) charts.chartCapacityByCategory.destroy();
+        charts.chartCapacityByCategory = new Chart(ctxCap, {
+          type: "bar",
+          data: {
+            labels: allCats,
+            datasets: [
+              { label: "Activos", data: activos, backgroundColor: "#49c4a8cc", borderRadius: 8 },
+              { label: "Cupos", data: cuposVals, backgroundColor: "#f4a261aa", borderRadius: 8 }
+            ]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: "rgba(245,247,255,.84)" } } },
+            scales: baseScales()
+          }
+        });
+
+        setStatus("Listo. Dashboard cargado correctamente.", "ok");
+      } catch (err) {
+        setStatus(
+          "Error cargando dashboard.\n\n" +
+          (err?.message || JSON.stringify(err, null, 2)) +
+          "\n\nTip: si dice RLS/policies, crea policy SELECT para authenticated en las tablas usadas.",
+          "error"
+        );
+      }
+    }
+
+    runDashboard();
+  </script>
+</body>
+</html>
