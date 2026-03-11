@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guerrero Academy - Super Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #030305;
+      --bg-card: rgba(15, 15, 25, 0.8);
+      --bg-glass: rgba(255, 255, 255, 0.03);
+      --border: rgba(255, 255, 255, 0.06);
+      --border-glow: rgba(216, 112, 147, 0.4);
+      --text: #ffffff;
+      --text-dim: rgba(255, 255, 255, 0.6);
+      --text-muted: rgba(255, 255, 255, 0.4);
+      --accent: #D87093;
+      --accent-glow: rgba(216, 112, 147, 0.3);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --gradient: linear-gradient(135deg, #D87093, #9333ea);
+      --gradient-blue: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse 800px 600px at 10% 10%, rgba(216, 112, 147, 0.06), transparent),
+        radial-gradient(ellipse 600px 400px at 90% 20%, rgba(147, 51, 234, 0.05), transparent),
+        radial-gradient(ellipse 1000px 800px at 50% 100%, rgba(59, 130, 246, 0.04), transparent);
+      pointer-events: none;
+      z-index: -1;
+      animation: bgPulse 15s ease-in-out infinite;
+    }
+
+    @keyframes bgPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+
+    .app {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh;
+    }
+
+    @media (max-width: 1024px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { position: fixed; left: -300px; z-index: 100; transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+      .sidebar.open { left: 0; }
+    }
+
+    .sidebar {
+      background: var(--bg-card);
+      backdrop-filter: blur(30px);
+      border-right: 1px solid var(--border);
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px;
+      margin-bottom: 32px;
+    }
+
+    .logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      background: var(--gradient);
+      display: grid;
+      place-items: center;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      box-shadow: 0 8px 40px var(--accent-glow);
+      position: relative;
+    }
+
+    .logo::before {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 21px;
+      background: var(--gradient);
+      opacity: 0.4;
+      filter: blur(15px);
+      z-index: -1;
+      animation: logoGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes logoGlow {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.05); }
+    }
+
+    .brand-text h1 { font-size: 18px; }
+    .brand-text span { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.2em; font-weight: 700; }
+
+    .nav { flex: 1; }
+    .nav-section { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.25em; color: var(--text-muted); padding: 24px 12px 10px; }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-dim);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      width: 100%;
+      text-align: left;
+      margin-bottom: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-link::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 0;
+      background: var(--gradient);
+      border-radius: 2px;
+      transition: height 0.3s ease;
+    }
+
+    .nav-link:hover { background: var(--bg-glass); color: var(--text); }
+    .nav-link:hover::before { height: 60%; }
+
+    .nav-link.active {
+      background: rgba(216, 112, 147, 0.08);
+      border-color: rgba(216, 112, 147, 0.15);
+      color: var(--accent);
+    }
+
+    .nav-link.active::before { height: 70%; }
+
+    .nav-icon { font-size: 18px; min-width: 24px; text-align: center; }
+
+    .user-card {
+      background: linear-gradient(135deg, rgba(216, 112, 147, 0.1), rgba(147, 51, 234, 0.05));
+      border: 1px solid rgba(216, 112, 147, 0.2);
+      border-radius: 18px;
+      padding: 18px;
+      margin-top: auto;
+    }
+
+    .user-info { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+
+    .avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: var(--gradient);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .user-details strong { display: block; font-size: 14px; margin-bottom: 2px; }
+    .user-details span { font-size: 11px; color: var(--accent); font-weight: 600; }
+
+    .btn-logout {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg-glass);
+      color: var(--text-dim);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-logout:hover { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: var(--danger); }
+
+    .main { padding: 32px; overflow-y: auto; }
+
+    .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 32px; flex-wrap: wrap; }
+    .page-title { font-size: 32px; letter-spacing: -0.03em; margin-bottom: 6px; }
+    .page-subtitle { font-size: 14px; color: var(--text-dim); }
+
+    .mobile-menu { display: none; width: 48px; height: 48px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg-glass); color: var(--text); font-size: 22px; cursor: pointer; }
+    @media (max-width: 1024px) { .mobile-menu { display: grid; place-items: center; } }
+
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(30px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .card:hover { border-color: var(--border-glow); box-shadow: 0 30px 80px rgba(216, 112, 147, 0.08); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .card-title { font-size: 18px; font-weight: 700; }
+
+    .grid { display: grid; gap: 20px; }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    @media (max-width: 1200px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .grid-4 { grid-template-columns: 1fr; } }
+
+    .stat-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(30px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .stat-card:hover { transform: translateY(-8px); border-color: var(--border-glow); }
+    .stat-card:hover::before { opacity: 1; }
+
+    .stat-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      font-size: 26px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .stat-icon::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      background: inherit;
+      opacity: 0.5;
+      filter: blur(12px);
+      z-index: -1;
+    }
+
+    .stat-icon.pink { background: rgba(216, 112, 147, 0.2); }
+    .stat-icon.green { background: rgba(16, 185, 129, 0.2); }
+    .stat-icon.blue { background: rgba(59, 130, 246, 0.2); }
+    .stat-icon.purple { background: rgba(139, 92, 246, 0.2); }
+    .stat-icon.gold { background: rgba(245, 158, 11, 0.2); }
+
+    .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em; font-weight: 700; margin-bottom: 8px; }
+    .stat-value { font-family: 'Space Grotesk', sans-serif; font-size: 36px; font-weight: 700; letter-spacing: -0.02em; }
+    .stat-hint { font-size: 12px; color: var(--text-dim); margin-top: 6px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 28px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--bg-glass);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn:hover { border-color: var(--border-glow); transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    .btn-primary { background: var(--gradient); border: none; box-shadow: 0 8px 32px var(--accent-glow); }
+    .btn-primary:hover { box-shadow: 0 12px 40px var(--accent-glow); }
+    .btn-sm { padding: 10px 16px; font-size: 12px; border-radius: 10px; }
+    .btn-danger { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: var(--danger); }
+
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+    .badge-success { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .badge-warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .badge-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+    .badge-info { background: rgba(216, 112, 147, 0.15); color: var(--accent); }
+    .badge-blue { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
+
+    .view { display: none; }
+    .view.active { display: block; animation: viewFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes viewFadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 18px 16px; font-size: 14px; border-bottom: 1px solid var(--border); }
+    th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-muted); }
+    tr { transition: background 0.2s ease; }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+    .input, .select, .textarea {
+      width: 100%;
+      padding: 16px 18px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .input:focus, .select:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
+    .input::placeholder { color: var(--text-muted); }
+
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--text-dim); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
+
+    .chip { display: inline-flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg-glass); }
+    .chip .input, .chip .select { border: none; background: transparent; padding: 0; min-width: 140px; }
+    .chip .input:focus, .chip .select:focus { box-shadow: none; }
+
+    .login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 20px; }
+
+    .login-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--bg-card);
+      backdrop-filter: blur(30px);
+      border: 1px solid var(--border);
+      border-radius: 32px;
+      padding: 48px;
+      box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5);
+    }
+
+    .login-card .logo { width: 72px; height: 72px; margin: 0 auto 28px; font-size: 26px; }
+    .login-card h1 { text-align: center; font-size: 28px; margin-bottom: 10px; }
+    .login-card > p { text-align: center; color: var(--text-dim); font-size: 14px; margin-bottom: 36px; }
+
+    .status-msg { padding: 14px 18px; border-radius: 14px; font-size: 13px; margin-top: 20px; display: none; }
+    .status-msg.error { display: block; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger); }
+    .status-msg.success { display: block; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--success); }
+
+    .overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); z-index: 99; display: none; }
+    .overlay.show { display: block; }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 200;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+    }
+
+    .modal.show { display: flex; }
+
+    .modal-content {
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: var(--bg-card);
+      backdrop-filter: blur(30px);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      animation: modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 24px 28px; border-bottom: 1px solid var(--border); }
+    .modal-header h3 { font-size: 20px; }
+    .modal-body { padding: 28px; }
+    .modal-footer { padding: 20px 28px; border-top: 1px solid var(--border); display: flex; gap: 12px; justify-content: flex-end; }
+
+    .empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-icon { font-size: 56px; margin-bottom: 20px; opacity: 0.4; }
+
+    .chart-container { position: relative; height: 300px; }
+    .chart-container canvas { width: 100% !important; height: 100% !important; }
+
+    .progress-bar { height: 10px; background: var(--bg-glass); border-radius: 5px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--gradient); border-radius: 5px; transition: width 0.5s ease; }
+
+    .tabs { display: flex; gap: 4px; padding: 6px; background: var(--bg-glass); border-radius: 16px; margin-bottom: 24px; }
+    .tab { flex: 1; padding: 14px 20px; border-radius: 12px; border: none; background: transparent; color: var(--text-dim); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+    .tab:hover { color: var(--text); }
+    .tab.active { background: var(--bg-card); color: var(--text); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.15); }
+  </style>
+</head>
+<body>
+  <!-- LOGIN -->
+  <div id="loginView" class="login-wrap">
+    <div class="login-card">
+      <div class="logo">GA</div>
+      <h1>Super Admin</h1>
+      <p>Panel de control total de la academia</p>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" class="input" placeholder="admin@guerreroacademy.com">
+      </div>
+
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="loginPassword" class="input" placeholder="••••••••">
+      </div>
+
+      <button class="btn btn-primary" style="width: 100%;" id="btnLogin">Acceder al Sistema</button>
+      <div id="loginStatus" class="status-msg"></div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="appView" class="app" style="display: none;">
+    <div class="overlay" id="overlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="logo">GA</div>
+        <div class="brand-text">
+          <h1>Guerrero Academy</h1>
+          <span>Super Admin</span>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-section">Principal</div>
+        <button class="nav-link active" data-view="dashboard"><span class="nav-icon">📊</span>Dashboard</button>
+
+        <div class="nav-section">Gestión</div>
+        <button class="nav-link" data-view="players"><span class="nav-icon">👥</span>Jugadores</button>
+        <button class="nav-link" data-view="categories"><span class="nav-icon">📁</span>Categorías</button>
+        <button class="nav-link" data-view="payments"><span class="nav-icon">💰</span>Pagos</button>
+        <button class="nav-link" data-view="attendance"><span class="nav-icon">📋</span>Asistencia</button>
+
+        <div class="nav-section">Reportes</div>
+        <button class="nav-link" data-view="morosos"><span class="nav-icon">⚠️</span>Morosos</button>
+        <button class="nav-link" data-view="reports"><span class="nav-icon">📈</span>Reportes</button>
+
+        <div class="nav-section">Sistema</div>
+        <button class="nav-link" data-view="users"><span class="nav-icon">🔐</span>Usuarios</button>
+        <button class="nav-link" data-view="announcements"><span class="nav-icon">📢</span>Anuncios</button>
+      </nav>
+
+      <div class="user-card">
+        <div class="user-info">
+          <div class="avatar" id="userAvatar">A</div>
+          <div class="user-details">
+            <strong id="userName">Admin</strong>
+            <span>Super Administrador</span>
+          </div>
+        </div>
+        <button class="btn-logout" id="btnLogout">Cerrar Sesión</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <!-- DASHBOARD -->
+      <div class="view active" id="view-dashboard">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu" id="menuBtn">☰</button>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Resumen general de Guerrero Academy</p>
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <div class="chip">
+              <span>📅</span>
+              <input type="month" id="dashMonth" class="input">
+            </div>
+            <button class="btn" id="btnRefresh">🔄 Actualizar</button>
+          </div>
+        </div>
+
+        <div class="grid grid-4" style="margin-bottom: 24px;">
+          <div class="stat-card">
+            <div class="stat-icon pink">💰</div>
+            <div class="stat-label">Ingresos del Mes</div>
+            <div class="stat-value" id="kpiRevenue">RD$ 0</div>
+            <div class="stat-hint" id="kpiRevenueHint">0 pagos</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">👥</div>
+            <div class="stat-label">Jugadores Activos</div>
+            <div class="stat-value" id="kpiPlayers">0</div>
+            <div class="stat-hint">Total registrados</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon gold">⚠️</div>
+            <div class="stat-label">Morosos</div>
+            <div class="stat-value" id="kpiMorosos">0</div>
+            <div class="stat-hint">Sin pago este mes</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">✅</div>
+            <div class="stat-label">Asistencia Prom.</div>
+            <div class="stat-value" id="kpiAttendance">0%</div>
+            <div class="stat-hint">Últimas 4 semanas</div>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-bottom: 24px;">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Ingresos Mensuales</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="chartRevenue"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Ocupación por Categoría</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="chartOccupancy"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Morosos del Mes</h3>
+              <button class="btn btn-sm" onclick="showView('morosos')">Ver todos →</button>
+            </div>
+            <div id="dashMorosos"></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Últimos Pagos</h3>
+              <button class="btn btn-sm" onclick="showView('payments')">Ver todos →</button>
+            </div>
+            <div id="dashPayments"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PLAYERS -->
+      <div class="view" id="view-players">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">Jugadores</h1>
+            <p class="page-subtitle">Gestión completa de jugadores</p>
+          </div>
+          <button class="btn btn-primary" id="btnAddPlayer">+ Nuevo Jugador</button>
+        </div>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px;">
+          <div class="chip">
+            <span>🔍</span>
+            <input type="text" id="searchPlayers" class="input" placeholder="Buscar...">
+          </div>
+          <div class="chip">
+            <span>📁</span>
+            <select id="filterCategory" class="select">
+              <option value="">Todas las categorías</option>
+            </select>
+          </div>
+          <div class="chip">
+            <span>📊</span>
+            <select id="filterStatus" class="select">
+              <option value="">Todos los estados</option>
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+              <option value="becado">Becado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="overflow-x: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Jugador</th>
+                  <th>Categoría</th>
+                  <th>Tutor</th>
+                  <th>WhatsApp</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="playersTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- CATEGORIES -->
+      <div class="view" id="view-categories">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">Categorías</h1>
+            <p class="page-subtitle">Gestión de categorías y cupos</p>
+          </div>
+        </div>
+
+        <div class="grid grid-3" id="categoriesGrid"></div>
+      </div>
+
+      <!-- PAYMENTS -->
+      <div class="view" id="view-payments">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">Pagos</h1>
+            <p class="page-subtitle">Control de mensualidades</p>
+          </div>
+          <button class="btn btn-primary" id="btnAddPayment">+ Registrar Pago Manual</button>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" data-tab="pending">Pendientes</button>
+          <button class="tab" data-tab="history">Historial</button>
+        </div>
+
+        <div class="card" id="paymentsPending">
+          <table>
+            <thead>
+              <tr>
+                <th>Jugador</th>
+                <th>Categoría</th>
+                <th>WhatsApp</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="pendingTable"></tbody>
+          </table>
+        </div>
+
+        <div class="card" id="paymentsHistory" style="display: none;">
+          <div style="margin-bottom: 20px;">
+            <input type="month" id="paymentsMonth" class="input" style="max-width: 200px;">
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Jugador</th>
+                <th>Monto</th>
+                <th>Método</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="historyTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MOROSOS -->
+      <div class="view" id="view-morosos">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">Morosos</h1>
+            <p class="page-subtitle">Jugadores con pagos pendientes</p>
+          </div>
+          <button class="btn" id="btnWhatsappAll">📱 Enviar recordatorio masivo</button>
+        </div>
+
+        <div class="card">
+          <table>
+            <thead>
+              <tr>
+                <th>Jugador</th>
+                <th>Categoría</th>
+                <th>Tutor</th>
+                <th>WhatsApp</th>
+                <th>Meses Pendientes</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="morososTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ATTENDANCE -->
+      <div class="view" id="view-attendance">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">Asistencia</h1>
+            <p class="page-subtitle">Historial de asistencia por categoría</p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+          <div class="chip">
+            <span>📁</span>
+            <select id="attCategory" class="select">
+              <option value="">Seleccionar categoría</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card" id="attendanceContent">
+          <div class="empty">
+            <div class="empty-icon">📋</div>
+            <p>Selecciona una categoría para ver el historial</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div class="view" id="view-reports">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">Reportes</h1>
+            <p class="page-subtitle">Estadísticas y análisis</p>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom: 20px;">Resumen Financiero</h3>
+            <div id="financialSummary"></div>
+          </div>
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom: 20px;">Estadísticas de Jugadores</h3>
+            <div id="playerStats"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- USERS -->
+      <div class="view" id="view-users">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">Usuarios</h1>
+            <p class="page-subtitle">Gestión de accesos al sistema</p>
+          </div>
+          <button class="btn btn-primary" id="btnAddUser">+ Nuevo Usuario</button>
+        </div>
+
+        <div class="card">
+          <table>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Nombre</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="usersTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ANNOUNCEMENTS -->
+      <div class="view" id="view-announcements">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">Anuncios</h1>
+            <p class="page-subtitle">Comunicados para padres</p>
+          </div>
+          <button class="btn btn-primary" id="btnAddAnnouncement">+ Nuevo Anuncio</button>
+        </div>
+
+        <div class="card">
+          <div id="announcementsList"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- PLAYER MODAL -->
+  <div class="modal" id="playerModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="playerModalTitle">Nuevo Jugador</h3>
+        <button class="btn btn-sm" onclick="closeModal('playerModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editPlayerId">
+        <div class="form-group">
+          <label>Nombre del Jugador</label>
+          <input type="text" id="playerName" class="input" placeholder="Nombre completo">
+        </div>
+        <div class="form-group">
+          <label>Nombre del Tutor</label>
+          <input type="text" id="tutorName" class="input" placeholder="Padre/Madre">
+        </div>
+        <div class="form-group">
+          <label>WhatsApp</label>
+          <input type="text" id="tutorWhatsapp" class="input" placeholder="8291234567">
+        </div>
+        <div class="form-group">
+          <label>Categoría</label>
+          <select id="playerCategory" class="select"></select>
+        </div>
+        <div class="form-group">
+          <label>Estado</label>
+          <select id="playerStatus" class="select">
+            <option value="activo">Activo</option>
+            <option value="inactivo">Inactivo</option>
+            <option value="becado">Becado</option>
+            <option value="suspendido">Suspendido</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('playerModal')">Cancelar</button>
+        <button class="btn btn-primary" id="savePlayer">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYMENT MODAL -->
+  <div class="modal" id="paymentModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Registrar Pago Manual</h3>
+        <button class="btn btn-sm" onclick="closeModal('paymentModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Buscar Jugador</label>
+          <input type="text" id="paymentSearch" class="input" placeholder="Nombre del jugador...">
+          <div id="paymentSearchResults" style="margin-top: 8px;"></div>
+        </div>
+        <div class="form-group">
+          <label>Monto (RD$)</label>
+          <input type="number" id="paymentAmount" class="input" value="3500">
+        </div>
+        <div class="form-group">
+          <label>Método</label>
+          <select id="paymentMethod" class="select">
+            <option value="cash">Efectivo</option>
+            <option value="transfer">Transferencia</option>
+            <option value="card">Tarjeta</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nota</label>
+          <input type="text" id="paymentNote" class="input" placeholder="Opcional...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('paymentModal')">Cancelar</button>
+        <button class="btn btn-primary" id="savePayment">Registrar Pago</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANNOUNCEMENT MODAL -->
+  <div class="modal" id="announcementModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Nuevo Anuncio</h3>
+        <button class="btn btn-sm" onclick="closeModal('announcementModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Título</label>
+          <input type="text" id="annTitle" class="input" placeholder="Título del anuncio">
+        </div>
+        <div class="form-group">
+          <label>Contenido</label>
+          <textarea id="annContent" class="input" rows="5" placeholder="Escribe el contenido..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('announcementModal')">Cancelar</button>
+        <button class="btn btn-primary" id="saveAnnouncement">Publicar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://daijiuqqafvjofafwqck.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g";
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let currentUser = null;
+    let players = [];
+    let categories = [];
+    let charts = {};
+    let selectedPaymentPlayer = null;
+
+    function $(id) { return document.getElementById(id); }
+    function $$(sel) { return document.querySelectorAll(sel); }
+
+    function formatMoney(n) {
+      return new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP', maximumFractionDigits: 0 }).format(n || 0);
+    }
+
+    function monthISO(d = new Date()) {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+    }
+
+    function waLink(phone, msg) {
+      const p = String(phone || '').replace(/\D/g, '');
+      return `https://wa.me/1${p}?text=${encodeURIComponent(msg)}`;
+    }
+
+    function openModal(id) { $(id).classList.add('show'); }
+    function closeModal(id) { $(id).classList.remove('show'); }
+
+    // Auth
+    async function checkAuth() {
+      const { data } = await sb.auth.getSession();
+      if (data.session) {
+        currentUser = data.session.user;
+        showApp();
+      }
+    }
+
+    function showApp() {
+      $('loginView').style.display = 'none';
+      $('appView').style.display = 'grid';
+      $('userName').textContent = currentUser?.user_metadata?.nombre || 'Admin';
+      $('userAvatar').textContent = (currentUser?.email || 'A')[0].toUpperCase();
+      
+      const now = new Date();
+      $('dashMonth').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      
+      loadDashboard();
+    }
+
+    $('btnLogin').addEventListener('click', async () => {
+      const email = $('loginEmail').value.trim();
+      const password = $('loginPassword').value;
+      try {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        currentUser = data.session.user;
+        showApp();
+      } catch (e) {
+        $('loginStatus').textContent = e.message;
+        $('loginStatus').className = 'status-msg error';
+      }
+    });
+
+    $('btnLogout').addEventListener('click', async () => {
+      await sb.auth.signOut();
+      location.reload();
+    });
+
+    // Navigation
+    $$('.nav-link').forEach(btn => {
+      btn.addEventListener('click', () => showView(btn.dataset.view));
+    });
+
+    function showView(view) {
+      $$('.nav-link').forEach(b => b.classList.remove('active'));
+      document.querySelector(`[data-view="${view}"]`)?.classList.add('active');
+      $$('.view').forEach(v => v.classList.remove('active'));
+      $(`view-${view}`).classList.add('active');
+
+      if (view === 'players') loadPlayers();
+      if (view === 'categories') loadCategories();
+      if (view === 'payments') loadPayments();
+      if (view === 'morosos') loadMorosos();
+      if (view === 'attendance') loadAttendanceView();
+      if (view === 'users') loadUsers();
+      if (view === 'announcements') loadAnnouncements();
+      if (view === 'reports') loadReports();
+    }
+
+    // Mobile
+    document.querySelectorAll('.mobile-menu').forEach(btn => {
+      btn.addEventListener('click', () => {
+        $('sidebar').classList.toggle('open');
+        $('overlay').classList.toggle('show');
+      });
+    });
+
+    $('overlay').addEventListener('click', () => {
+      $('sidebar').classList.remove('open');
+      $('overlay').classList.remove('show');
+    });
+
+    // Dashboard
+    async function loadDashboard() {
+      const currentMonth = monthISO();
+
+      const [catsRes, playersRes, paymentsRes] = await Promise.all([
+        sb.from('categories').select('*'),
+        sb.from('players').select('*, categories(name)'),
+        sb.from('payments').select('*').eq('month', currentMonth).eq('status', 'paid')
+      ]);
+
+      categories = catsRes.data || [];
+      players = playersRes.data || [];
+      const payments = paymentsRes.data || [];
+
+      const activePlayers = players.filter(p => p.status === 'activo' || p.status === 'becado');
+      const revenue = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+      const paidIds = new Set(payments.map(p => p.player_id));
+      const morosos = activePlayers.filter(p => !paidIds.has(p.id) && p.status !== 'becado');
+
+      $('kpiRevenue').textContent = formatMoney(revenue);
+      $('kpiRevenueHint').textContent = `${payments.length} pagos`;
+      $('kpiPlayers').textContent = activePlayers.length;
+      $('kpiMorosos').textContent = morosos.length;
+
+      // Charts
+      renderRevenueChart();
+      renderOccupancyChart();
+
+      // Morosos preview
+      $('dashMorosos').innerHTML = morosos.slice(0, 5).map(p => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+          <div>
+            <strong>${p.nombre}</strong>
+            <span style="font-size: 12px; color: var(--text-muted); margin-left: 8px;">${p.categories?.name || ''}</span>
+          </div>
+          <a class="btn btn-sm" href="${waLink(p.tutor_whatsapp, `Hola, recordatorio de pago de Guerrero Academy para ${p.nombre}`)}" target="_blank">📱</a>
+        </div>
+      `).join('') || '<p style="color: var(--text-muted); text-align: center; padding: 20px;">¡Sin morosos! 🎉</p>';
+
+      // Recent payments
+      $('dashPayments').innerHTML = payments.slice(0, 5).map(p => {
+        const player = players.find(pl => pl.id === p.player_id);
+        return `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+            <div>
+              <strong>${player?.nombre || '-'}</strong>
+              <span style="font-size: 12px; color: var(--text-muted); margin-left: 8px;">${p.paid_at || ''}</span>
+            </div>
+            <span style="color: var(--success); font-weight: 700;">${formatMoney(p.amount)}</span>
+          </div>
+        `;
+      }).join('') || '<p style="color: var(--text-muted); text-align: center; padding: 20px;">Sin pagos este mes</p>';
+    }
+
+    function renderRevenueChart() {
+      const ctx = $('chartRevenue');
+      if (charts.revenue) charts.revenue.destroy();
+
+      charts.revenue = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+          datasets: [{
+            label: 'Ingresos',
+            data: [45000, 52000, 48000, 61000, 55000, 67000],
+            backgroundColor: 'rgba(216, 112, 147, 0.6)',
+            borderColor: 'rgb(216, 112, 147)',
+            borderWidth: 1,
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' }, beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function renderOccupancyChart() {
+      const ctx = $('chartOccupancy');
+      if (charts.occupancy) charts.occupancy.destroy();
+
+      const catData = categories.map(c => {
+        const count = players.filter(p => p.category_id === c.id && (p.status === 'activo' || p.status === 'becado')).length;
+        return { name: c.name, count, max: c.max_players || 30 };
+      });
+
+      charts.occupancy = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: catData.map(c => c.name),
+          datasets: [{
+            data: catData.map(c => c.count),
+            backgroundColor: ['rgba(216, 112, 147, 0.7)', 'rgba(59, 130, 246, 0.7)', 'rgba(139, 92, 246, 0.7)', 'rgba(16, 185, 129, 0.7)'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'right', labels: { color: 'rgba(255,255,255,0.7)' } } }
+        }
+      });
+    }
+
+    // Players
+    async function loadPlayers() {
+      $('filterCategory').innerHTML = '<option value="">Todas las categorías</option>' +
+        categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+      renderPlayersTable();
+    }
+
+    function renderPlayersTable() {
+      const search = ($('searchPlayers').value || '').toLowerCase();
+      const catFilter = $('filterCategory').value;
+      const statusFilter = $('filterStatus').value;
+
+      let filtered = players;
+      if (search) filtered = filtered.filter(p => (p.nombre || '').toLowerCase().includes(search));
+      if (catFilter) filtered = filtered.filter(p => p.category_id === catFilter);
+      if (statusFilter) filtered = filtered.filter(p => p.status === statusFilter);
+
+      $('playersTable').innerHTML = filtered.map(p => `
+        <tr>
+          <td><strong>${p.nombre || '-'}</strong></td>
+          <td><span class="badge badge-info">${p.categories?.name || '-'}</span></td>
+          <td>${p.tutor_nombre || '-'}</td>
+          <td>${p.tutor_whatsapp || '-'}</td>
+          <td><span class="badge badge-${p.status === 'activo' ? 'success' : p.status === 'becado' ? 'blue' : 'warning'}">${p.status || '-'}</span></td>
+          <td>
+            <button class="btn btn-sm" onclick="editPlayer('${p.id}')">✏️</button>
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="6" style="text-align: center;">Sin jugadores</td></tr>';
+    }
+
+    $('searchPlayers')?.addEventListener('input', renderPlayersTable);
+    $('filterCategory')?.addEventListener('change', renderPlayersTable);
+    $('filterStatus')?.addEventListener('change', renderPlayersTable);
+
+    $('btnAddPlayer').addEventListener('click', () => {
+      $('playerModalTitle').textContent = 'Nuevo Jugador';
+      $('editPlayerId').value = '';
+      $('playerName').value = '';
+      $('tutorName').value = '';
+      $('tutorWhatsapp').value = '';
+      $('playerStatus').value = 'activo';
+      $('playerCategory').innerHTML = categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      openModal('playerModal');
+    });
+
+    window.editPlayer = async function(id) {
+      const player = players.find(p => p.id === id);
+      if (!player) return;
+
+      $('playerModalTitle').textContent = 'Editar Jugador';
+      $('editPlayerId').value = player.id;
+      $('playerName').value = player.nombre || '';
+      $('tutorName').value = player.tutor_nombre || '';
+      $('tutorWhatsapp').value = player.tutor_whatsapp || '';
+      $('playerStatus').value = player.status || 'activo';
+      $('playerCategory').innerHTML = categories.map(c => `<option value="${c.id}" ${c.id === player.category_id ? 'selected' : ''}>${c.name}</option>`).join('');
+      openModal('playerModal');
+    };
+
+    $('savePlayer').addEventListener('click', async () => {
+      const id = $('editPlayerId').value;
+      const data = {
+        nombre: $('playerName').value.trim(),
+        tutor_nombre: $('tutorName').value.trim(),
+        tutor_whatsapp: $('tutorWhatsapp').value.trim(),
+        category_id: $('playerCategory').value,
+        status: $('playerStatus').value
+      };
+
+      if (!data.nombre) return alert('Nombre requerido');
+
+      if (id) {
+        await sb.from('players').update(data).eq('id', id);
+      } else {
+        await sb.from('players').insert(data);
+      }
+
+      closeModal('playerModal');
+      const { data: newPlayers } = await sb.from('players').select('*, categories(name)');
+      players = newPlayers || [];
+      renderPlayersTable();
+    });
+
+    // Categories
+    async function loadCategories() {
+      const cuposRes = await sb.from('cupos').select('categoria, cupo_total');
+      const cupoMap = {};
+      (cuposRes.data || []).forEach(c => cupoMap[c.categoria] = c.cupo_total || 30);
+
+      $('categoriesGrid').innerHTML = categories.map(c => {
+        const count = players.filter(p => p.category_id === c.id && (p.status === 'activo' || p.status === 'becado')).length;
+        const max = cupoMap[c.name] || c.max_players || 30;
+        const pct = Math.round((count / max) * 100);
+
+        return `
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom: 16px;">${c.name}</h3>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+              <span style="color: var(--text-muted);">Ocupación</span>
+              <strong>${count} / ${max}</strong>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${pct}%;"></div>
+            </div>
+            <p style="margin-top: 16px; font-size: 32px; font-weight: 700; color: ${pct >= 90 ? 'var(--danger)' : 'var(--success)'};">
+              ${max - count} <span style="font-size: 14px; color: var(--text-muted); font-weight: 500;">disponibles</span>
+            </p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Payments
+    async function loadPayments() {
+      const currentMonth = monthISO();
+      $('paymentsMonth').value = currentMonth.slice(0, 7);
+
+      await loadPendingPayments();
+      await loadPaymentsHistory(currentMonth);
+    }
+
+    async function loadPendingPayments() {
+      const currentMonth = monthISO();
+      const { data: payments } = await sb.from('payments').select('player_id').eq('month', currentMonth).eq('status', 'paid');
+      const paidIds = new Set((payments || []).map(p => p.player_id));
+
+      const pending = players.filter(p => (p.status === 'activo') && !paidIds.has(p.id));
+
+      $('pendingTable').innerHTML = pending.map(p => `
+        <tr>
+          <td><strong>${p.nombre}</strong></td>
+          <td><span class="badge badge-info">${p.categories?.name || '-'}</span></td>
+          <td>${p.tutor_whatsapp || '-'}</td>
+          <td>
+            <a class="btn btn-sm" href="${waLink(p.tutor_whatsapp, `Recordatorio: Pago pendiente de ${p.nombre} en Guerrero Academy`)}" target="_blank">📱</a>
+            <button class="btn btn-sm btn-primary" onclick="quickPay('${p.id}', '${(p.nombre || '').replace(/'/g, "\\'")}')">💰</button>
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="4" style="text-align: center;">¡Todos al día! 🎉</td></tr>';
+    }
+
+    async function loadPaymentsHistory(month) {
+      const { data: payments } = await sb.from('payments').select('*').eq('month', month).order('created_at', { ascending: false });
+
+      $('historyTable').innerHTML = (payments || []).map(p => {
+        const player = players.find(pl => pl.id === p.player_id);
+        return `
+          <tr>
+            <td>${p.paid_at || '-'}</td>
+            <td>${player?.nombre || '-'}</td>
+            <td><strong>${formatMoney(p.amount)}</strong></td>
+            <td>${p.method || '-'}</td>
+            <td><span class="badge badge-success">Pagado</span></td>
+          </tr>
+        `;
+      }).join('') || '<tr><td colspan="5" style="text-align: center;">Sin pagos</td></tr>';
+    }
+
+    // Payment tabs
+    $$('.tabs .tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        $$('.tabs .tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        $('paymentsPending').style.display = tab.dataset.tab === 'pending' ? 'block' : 'none';
+        $('paymentsHistory').style.display = tab.dataset.tab === 'history' ? 'block' : 'none';
+      });
+    });
+
+    $('paymentsMonth').addEventListener('change', () => {
+      loadPaymentsHistory($('paymentsMonth').value + '-01');
+    });
+
+    // Payment modal
+    $('btnAddPayment').addEventListener('click', () => {
+      selectedPaymentPlayer = null;
+      $('paymentSearch').value = '';
+      $('paymentSearchResults').innerHTML = '';
+      $('paymentAmount').value = '3500';
+      $('paymentNote').value = '';
+      openModal('paymentModal');
+    });
+
+    $('paymentSearch').addEventListener('input', () => {
+      const q = $('paymentSearch').value.toLowerCase();
+      if (q.length < 2) { $('paymentSearchResults').innerHTML = ''; return; }
+
+      const matches = players.filter(p => (p.nombre || '').toLowerCase().includes(q)).slice(0, 5);
+      $('paymentSearchResults').innerHTML = matches.map(p => `
+        <button class="btn btn-sm" style="width: 100%; margin-bottom: 4px; justify-content: flex-start;" onclick="selectPaymentPlayer('${p.id}', '${(p.nombre || '').replace(/'/g, "\\'")}')">
+          ${p.nombre}
+        </button>
+      `).join('');
+    });
+
+    window.selectPaymentPlayer = function(id, name) {
+      selectedPaymentPlayer = { id, name };
+      $('paymentSearch').value = name;
+      $('paymentSearchResults').innerHTML = `<span class="badge badge-success">✓ ${name}</span>`;
+    };
+
+    window.quickPay = function(id, name) {
+      selectedPaymentPlayer = { id, name };
+      $('paymentSearch').value = name;
+      $('paymentSearchResults').innerHTML = `<span class="badge badge-success">✓ ${name}</span>`;
+      $('paymentAmount').value = '3500';
+      openModal('paymentModal');
+    };
+
+    $('savePayment').addEventListener('click', async () => {
+      if (!selectedPaymentPlayer) return alert('Selecciona un jugador');
+
+      const player = players.find(p => p.id === selectedPaymentPlayer.id);
+      
+      await sb.from('payments').insert({
+        player_id: selectedPaymentPlayer.id,
+        category_id: player?.category_id,
+        amount: Number($('paymentAmount').value),
+        currency: 'DOP',
+        method: $('paymentMethod').value,
+        month: monthISO(),
+        paid_at: new Date().toISOString().slice(0, 10),
+        status: 'paid',
+        note: $('paymentNote').value
+      });
+
+      closeModal('paymentModal');
+      loadPayments();
+      loadDashboard();
+    });
+
+    // Morosos
+    async function loadMorosos() {
+      const currentMonth = monthISO();
+      const { data: payments } = await sb.from('payments').select('player_id').eq('month', currentMonth).eq('status', 'paid');
+      const paidIds = new Set((payments || []).map(p => p.player_id));
+
+      const morosos = players.filter(p => p.status === 'activo' && !paidIds.has(p.id));
+
+      $('morososTable').innerHTML = morosos.map(p => `
+        <tr>
+          <td><strong>${p.nombre}</strong></td>
+          <td><span class="badge badge-info">${p.categories?.name || '-'}</span></td>
+          <td>${p.tutor_nombre || '-'}</td>
+          <td>${p.tutor_whatsapp || '-'}</td>
+          <td><span class="badge badge-danger">1 mes</span></td>
+          <td>
+            <a class="btn btn-sm" href="${waLink(p.tutor_whatsapp, `Hola, recordatorio de pago pendiente de ${p.nombre} en Guerrero Academy. Monto: RD$ 3,500`)}" target="_blank">📱 WhatsApp</a>
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="6" style="text-align: center;">¡Sin morosos! 🎉</td></tr>';
+    }
+
+    // Attendance
+    async function loadAttendanceView() {
+      $('attCategory').innerHTML = '<option value="">Seleccionar categoría</option>' +
+        categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    }
+
+    $('attCategory').addEventListener('change', async () => {
+      const catId = $('attCategory').value;
+      if (!catId) return;
+
+      const { data: sessions } = await sb.from('sessions').select('*, attendance(*)').eq('category_id', catId).order('fecha', { ascending: false }).limit(10);
+
+      $('attendanceContent').innerHTML = (sessions || []).map(s => {
+        const total = s.attendance?.length || 0;
+        const present = s.attendance?.filter(a => a.estado === 'present').length || 0;
+        return `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border);">
+            <div>
+              <strong>${new Date(s.fecha).toLocaleDateString('es-DO', { weekday: 'long', day: 'numeric', month: 'long' })}</strong>
+            </div>
+            <div style="display: flex; gap: 16px; align-items: center;">
+              <span style="color: var(--success);">${present} presentes</span>
+              <span style="color: var(--text-muted);">${total} total</span>
+              <span class="badge badge-${total ? (present/total >= 0.8 ? 'success' : 'warning') : 'info'}">${total ? Math.round(present/total*100) : 0}%</span>
+            </div>
+          </div>
+        `;
+      }).join('') || '<div class="empty"><p>Sin sesiones registradas</p></div>';
+    });
+
+    // Users
+    async function loadUsers() {
+      const { data: profiles } = await sb.from('profiles').select('*');
+
+      $('usersTable').innerHTML = (profiles || []).map(u => `
+        <tr>
+          <td>${u.email || '-'}</td>
+          <td>${u.nombre || '-'}</td>
+          <td><span class="badge badge-${u.role === 'admin' ? 'info' : u.role === 'coach' ? 'blue' : 'success'}">${u.role || 'parent'}</span></td>
+          <td><span class="badge badge-success">Activo</span></td>
+          <td><button class="btn btn-sm">✏️</button></td>
+        </tr>
+      `).join('') || '<tr><td colspan="5" style="text-align: center;">Sin usuarios</td></tr>';
+    }
+
+    // Announcements
+    async function loadAnnouncements() {
+      const { data: announcements } = await sb.from('announcements').select('*').order('created_at', { ascending: false });
+
+      $('announcementsList').innerHTML = (announcements || []).map(a => `
+        <div style="padding: 20px 0; border-bottom: 1px solid var(--border);">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <strong style="font-size: 16px;">${a.title}</strong>
+            <span style="font-size: 12px; color: var(--text-muted);">${new Date(a.created_at).toLocaleDateString('es-DO')}</span>
+          </div>
+          <p style="color: var(--text-dim); line-height: 1.6;">${a.content}</p>
+        </div>
+      `).join('') || '<div class="empty"><p>Sin anuncios</p></div>';
+    }
+
+    $('btnAddAnnouncement').addEventListener('click', () => {
+      $('annTitle').value = '';
+      $('annContent').value = '';
+      openModal('announcementModal');
+    });
+
+    $('saveAnnouncement').addEventListener('click', async () => {
+      const title = $('annTitle').value.trim();
+      const content = $('annContent').value.trim();
+      if (!title || !content) return alert('Completa todos los campos');
+
+      await sb.from('announcements').insert({ title, content });
+      closeModal('announcementModal');
+      loadAnnouncements();
+    });
+
+    // Reports
+    async function loadReports() {
+      const { data: allPayments } = await sb.from('payments').select('*').eq('status', 'paid');
+      const total = (allPayments || []).reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+      $('financialSummary').innerHTML = `
+        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+          <span>Total Recaudado (Histórico)</span>
+          <strong style="color: var(--success);">${formatMoney(total)}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+          <span>Total Pagos</span>
+          <strong>${(allPayments || []).length}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 0;">
+          <span>Promedio por Pago</span>
+          <strong>${formatMoney(total / ((allPayments || []).length || 1))}</strong>
+        </div>
+      `;
+
+      const activos = players.filter(p => p.status === 'activo').length;
+      const becados = players.filter(p => p.status === 'becado').length;
+      const inactivos = players.filter(p => p.status === 'inactivo').length;
+
+      $('playerStats').innerHTML = `
+        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+          <span>Jugadores Activos</span>
+          <strong style="color: var(--success);">${activos}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+          <span>Becados</span>
+          <strong style="color: var(--blue);">${becados}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 0;">
+          <span>Inactivos</span>
+          <strong style="color: var(--warning);">${inactivos}</strong>
+        </div>
+      `;
+    }
+
+    $('btnRefresh').addEventListener('click', loadDashboard);
+
+    checkAuth();
+  </script>
+</body>
+</html>
