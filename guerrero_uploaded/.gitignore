@@ -1,0 +1,25 @@
+# Archivos temporales
+*.zip
+*.tmp
+*.log
+
+# Node modules (si se usan en el futuro)
+node_modules/
+package-lock.json
+
+# Environment variables sensibles (aunque ya están en Supabase)
+.env.local
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos de backup
+*~
+*.bak
