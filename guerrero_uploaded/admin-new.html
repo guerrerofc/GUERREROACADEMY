@@ -1,0 +1,2222 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Guerrero Academy - Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg-soft: #12121a;
+      --panel: rgba(255,255,255,.03);
+      --panel-hover: rgba(255,255,255,.06);
+      --stroke: rgba(255,255,255,.08);
+      --stroke-hover: rgba(255,255,255,.15);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.55);
+      --accent: #22c55e;
+      --accent-soft: rgba(34,197,94,.15);
+      --pink: #ec4899;
+      --pink-soft: rgba(236,72,153,.15);
+      --gold: #f59e0b;
+      --gold-soft: rgba(245,158,11,.15);
+      --danger: #ef4444;
+      --danger-soft: rgba(239,68,68,.15);
+      --radius: 16px;
+      --shadow: 0 20px 50px rgba(0,0,0,.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ===== Layout ===== */
+    .app {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
+
+    @media (max-width: 1024px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { 
+        position: fixed;
+        left: -280px;
+        z-index: 100;
+        transition: left 0.3s ease;
+      }
+      .sidebar.open { left: 0; }
+      .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.6);
+        z-index: 99;
+      }
+      .sidebar-overlay.show { display: block; }
+    }
+
+    /* ===== Sidebar ===== */
+    .sidebar {
+      background: var(--bg-soft);
+      border-right: 1px solid var(--stroke);
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px;
+      margin-bottom: 24px;
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), #16a34a);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 16px;
+      box-shadow: 0 8px 24px rgba(34,197,94,.3);
+    }
+
+    .brand-info h1 {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-info p {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+    }
+
+    .nav-section {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      padding: 16px 12px 8px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: left;
+      width: 100%;
+    }
+
+    .nav-link:hover {
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    .nav-link.active {
+      background: var(--accent-soft);
+      border-color: rgba(34,197,94,.3);
+      color: var(--accent);
+    }
+
+    .nav-link svg {
+      width: 20px;
+      height: 20px;
+      opacity: 0.7;
+    }
+
+    .nav-link.active svg {
+      opacity: 1;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 16px;
+      border-top: 1px solid var(--stroke);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background: var(--panel);
+      margin-bottom: 12px;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--pink-soft);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--pink);
+    }
+
+    .user-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-details strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-details span {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ===== Main Content ===== */
+    .main {
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .topbar-left h2 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .topbar-left p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .topbar-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--stroke);
+      background: var(--panel);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    @media (max-width: 1024px) {
+      .mobile-menu-btn { display: grid; place-items: center; }
+    }
+
+    /* ===== Buttons ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--stroke);
+      background: var(--panel);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      background: var(--panel-hover);
+      border-color: var(--stroke-hover);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+    }
+
+    .btn-primary:hover {
+      background: #16a34a;
+      border-color: #16a34a;
+    }
+
+    .btn-danger {
+      background: var(--danger-soft);
+      border-color: rgba(239,68,68,.3);
+      color: var(--danger);
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    /* ===== Inputs ===== */
+    .input, .select {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--stroke);
+      background: var(--panel);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: all 0.15s ease;
+    }
+
+    .input:focus, .select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .input::placeholder {
+      color: var(--muted);
+    }
+
+    .chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--stroke);
+      background: var(--panel);
+    }
+
+    .chip .input, .chip .select {
+      border: none;
+      background: transparent;
+      padding: 0;
+      min-width: 120px;
+    }
+
+    .chip .input:focus, .chip .select:focus {
+      box-shadow: none;
+    }
+
+    /* ===== Cards ===== */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ===== KPIs ===== */
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 1200px) {
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 600px) {
+      .kpis { grid-template-columns: 1fr; }
+    }
+
+    .kpi {
+      background: var(--panel);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 16px;
+    }
+
+    .kpi-icon.green { background: var(--accent-soft); color: var(--accent); }
+    .kpi-icon.pink { background: var(--pink-soft); color: var(--pink); }
+    .kpi-icon.gold { background: var(--gold-soft); color: var(--gold); }
+    .kpi-icon.red { background: var(--danger-soft); color: var(--danger); }
+
+    .kpi-label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      margin-top: 4px;
+      letter-spacing: -0.5px;
+    }
+
+    .kpi-hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ===== Grid ===== */
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+    @media (max-width: 900px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* ===== Tables ===== */
+    .table-wrap {
+      overflow-x: auto;
+      margin: -4px;
+      padding: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px 14px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--stroke);
+    }
+
+    th {
+      font-weight: 700;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    tr:hover td {
+      background: rgba(255,255,255,.02);
+    }
+
+    /* ===== Badges ===== */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .badge-success { background: var(--accent-soft); color: var(--accent); }
+    .badge-warning { background: var(--gold-soft); color: var(--gold); }
+    .badge-danger { background: var(--danger-soft); color: var(--danger); }
+    .badge-info { background: var(--pink-soft); color: var(--pink); }
+
+    /* ===== Charts ===== */
+    .chart-container {
+      position: relative;
+      height: 280px;
+    }
+
+    .chart-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* ===== Tabs ===== */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      background: var(--panel);
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .tab:hover {
+      color: var(--text);
+    }
+
+    .tab.active {
+      background: var(--bg);
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+
+    /* ===== Modals ===== */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 200;
+    }
+
+    .modal.show { display: flex; }
+
+    .modal-content {
+      width: 100%;
+      max-width: 500px;
+      background: var(--bg-soft);
+      border: 1px solid var(--stroke);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px;
+      border-bottom: 1px solid var(--stroke);
+    }
+
+    .modal-header h3 {
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .modal-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--stroke);
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    /* ===== Empty State ===== */
+    .empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    /* ===== Status ===== */
+    .status-bar {
+      margin-top: 24px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: var(--panel);
+      border: 1px solid var(--stroke);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .status-bar.error {
+      background: var(--danger-soft);
+      border-color: rgba(239,68,68,.3);
+      color: var(--danger);
+    }
+
+    .status-bar.success {
+      background: var(--accent-soft);
+      border-color: rgba(34,197,94,.3);
+      color: var(--accent);
+    }
+
+    /* ===== Login ===== */
+    .login-wrap {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: 
+        radial-gradient(800px 600px at 30% 20%, rgba(34,197,94,.08), transparent),
+        radial-gradient(800px 600px at 70% 80%, rgba(236,72,153,.06), transparent),
+        var(--bg);
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--bg-soft);
+      border: 1px solid var(--stroke);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: var(--shadow);
+    }
+
+    .login-card .logo {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 20px;
+      font-size: 20px;
+    }
+
+    .login-card h1 {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .login-card > p {
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+
+    /* ===== Views ===== */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ===== Attendance ===== */
+    .attendance-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .attendance-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--panel);
+      border: 1px solid var(--stroke);
+      border-radius: 12px;
+    }
+
+    .attendance-row .name {
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .attendance-btns {
+      display: flex;
+      gap: 6px;
+    }
+
+    .att-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--stroke);
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .att-btn:hover {
+      background: var(--panel-hover);
+    }
+
+    .att-btn.present { background: var(--accent-soft); color: var(--accent); border-color: rgba(34,197,94,.3); }
+    .att-btn.absent { background: var(--danger-soft); color: var(--danger); border-color: rgba(239,68,68,.3); }
+    .att-btn.late { background: var(--gold-soft); color: var(--gold); border-color: rgba(245,158,11,.3); }
+
+    /* ===== Progress Bar ===== */
+    .progress {
+      height: 8px;
+      background: var(--panel);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    .progress-bar.warning { background: var(--gold); }
+    .progress-bar.danger { background: var(--danger); }
+
+    /* ===== Filters ===== */
+    .filters {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    /* ===== Skeleton ===== */
+    .skeleton {
+      background: linear-gradient(90deg, var(--panel) 25%, var(--panel-hover) 50%, var(--panel) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ===== Scrollbar ===== */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--stroke); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--stroke-hover); }
+
+    /* ===== Animations ===== */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-in {
+      animation: fadeIn 0.3s ease forwards;
+    }
+  </style>
+</head>
+<body>
+  <!-- LOGIN VIEW -->
+  <div id="loginView" class="login-wrap">
+    <div class="login-card">
+      <div class="logo">GA</div>
+      <h1>Guerrero Academy</h1>
+      <p>Ingresa al panel de administración</p>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" class="input" placeholder="tu@email.com" />
+      </div>
+
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="loginPassword" class="input" placeholder="••••••••" />
+      </div>
+
+      <button class="btn btn-primary" style="width:100%; margin-top:8px;" id="btnLogin">
+        Iniciar Sesión
+      </button>
+
+      <div id="loginStatus" class="status-bar" style="display:none; margin-top:16px;"></div>
+
+      <p style="margin-top:20px; text-align:center; font-size:12px; color:var(--muted);">
+        <a href="./Untitled-1.html" style="color:var(--accent);">← Volver al sitio público</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- APP VIEW -->
+  <div id="appView" class="app" style="display:none;">
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="logo">GA</div>
+        <div class="brand-info">
+          <h1>Guerrero Academy</h1>
+          <p>Panel Admin</p>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-section">Principal</div>
+        <button class="nav-link active" data-view="dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </button>
+
+        <div class="nav-section">Gestión</div>
+        <button class="nav-link" data-view="players">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Jugadores
+        </button>
+        <button class="nav-link" data-view="categories">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          Categorías
+        </button>
+        <button class="nav-link" data-view="attendance">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Asistencia
+        </button>
+        <button class="nav-link" data-view="payments">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Pagos
+        </button>
+
+        <div class="nav-section">Sistema</div>
+        <button class="nav-link" data-view="settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Configuración
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">A</div>
+          <div class="user-details">
+            <strong id="userEmail">admin@...</strong>
+            <span id="userRole">Administrador</span>
+          </div>
+        </div>
+        <button class="btn" style="width:100%;" id="btnLogout">Cerrar Sesión</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- ===== DASHBOARD VIEW ===== -->
+      <div class="view active" id="view-dashboard">
+        <div class="topbar">
+          <div class="topbar-left">
+            <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+            <h2>Dashboard</h2>
+            <p>Resumen general de la academia</p>
+          </div>
+          <div class="topbar-actions">
+            <div class="chip">
+              <span>📅</span>
+              <input type="month" id="monthPicker" class="input" />
+            </div>
+            <button class="btn" id="btnRefresh">🔄 Actualizar</button>
+          </div>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi animate-in">
+            <div class="kpi-icon green">💰</div>
+            <div class="kpi-label">Ingresos del Mes</div>
+            <div class="kpi-value" id="kpiRevenue">RD$ 0</div>
+            <div class="kpi-hint" id="kpiRevenueHint">-</div>
+          </div>
+          <div class="kpi animate-in" style="animation-delay:.1s">
+            <div class="kpi-icon pink">👥</div>
+            <div class="kpi-label">Jugadores Activos</div>
+            <div class="kpi-value" id="kpiPlayers">0</div>
+            <div class="kpi-hint">status = activo</div>
+          </div>
+          <div class="kpi animate-in" style="animation-delay:.2s">
+            <div class="kpi-icon gold">⚠️</div>
+            <div class="kpi-label">Morosos</div>
+            <div class="kpi-value" id="kpiMorosos">0</div>
+            <div class="kpi-hint">Sin pago este mes</div>
+          </div>
+          <div class="kpi animate-in" style="animation-delay:.3s">
+            <div class="kpi-icon green">✅</div>
+            <div class="kpi-label">Asistencia Promedio</div>
+            <div class="kpi-value" id="kpiAttendance">0%</div>
+            <div class="kpi-hint">Últimas 8 sesiones</div>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-bottom:16px;">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Ingresos por Mes</div>
+                <div class="card-subtitle">Últimos 12 meses</div>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="chartRevenue"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Cupos por Categoría</div>
+                <div class="card-subtitle">Activos vs Capacidad</div>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="chartCapacity"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Morosos del Mes</div>
+                <div class="card-subtitle">Jugadores sin pago registrado</div>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Jugador</th>
+                    <th>Categoría</th>
+                    <th>WhatsApp</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="tblMorosos"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Últimos Pagos</div>
+                <div class="card-subtitle">Registrados este mes</div>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Jugador</th>
+                    <th>Monto</th>
+                    <th>Método</th>
+                    <th>Fecha</th>
+                  </tr>
+                </thead>
+                <tbody id="tblRecentPayments"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="dashboardStatus" class="status-bar" style="margin-top:20px;">Listo</div>
+      </div>
+
+      <!-- ===== PLAYERS VIEW ===== -->
+      <div class="view" id="view-players">
+        <div class="topbar">
+          <div class="topbar-left">
+            <button class="mobile-menu-btn" id="mobileMenuBtn2">☰</button>
+            <h2>Jugadores</h2>
+            <p>Gestión de jugadores registrados</p>
+          </div>
+          <div class="topbar-actions">
+            <button class="btn btn-primary" id="btnAddPlayer">+ Nuevo Jugador</button>
+          </div>
+        </div>
+
+        <div class="filters">
+          <div class="chip">
+            <span>🔍</span>
+            <input type="text" id="searchPlayers" class="input" placeholder="Buscar jugador..." />
+          </div>
+          <div class="chip">
+            <span>📁</span>
+            <select id="filterCategory" class="select">
+              <option value="">Todas las categorías</option>
+            </select>
+          </div>
+          <div class="chip">
+            <span>📊</span>
+            <select id="filterStatus" class="select">
+              <option value="">Todos los estados</option>
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+              <option value="suspendido">Suspendido</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Jugador</th>
+                  <th>Categoría</th>
+                  <th>Tutor</th>
+                  <th>WhatsApp</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tblPlayers"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== CATEGORIES VIEW ===== -->
+      <div class="view" id="view-categories">
+        <div class="topbar">
+          <div class="topbar-left">
+            <button class="mobile-menu-btn">☰</button>
+            <h2>Categorías</h2>
+            <p>Gestión de categorías y cupos</p>
+          </div>
+        </div>
+
+        <div class="grid grid-3" id="categoriesGrid"></div>
+      </div>
+
+      <!-- ===== ATTENDANCE VIEW ===== -->
+      <div class="view" id="view-attendance">
+        <div class="topbar">
+          <div class="topbar-left">
+            <button class="mobile-menu-btn">☰</button>
+            <h2>Asistencia</h2>
+            <p>Registro de asistencia por sesión</p>
+          </div>
+          <div class="topbar-actions">
+            <button class="btn btn-primary" id="btnNewSession">+ Nueva Sesión</button>
+          </div>
+        </div>
+
+        <div class="filters">
+          <div class="chip">
+            <span>📁</span>
+            <select id="attCategoryFilter" class="select">
+              <option value="">Selecciona categoría</option>
+            </select>
+          </div>
+          <div class="chip">
+            <span>📅</span>
+            <select id="attSessionFilter" class="select">
+              <option value="">Selecciona sesión</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="btnSaveAttendance" style="display:none;">💾 Guardar Asistencia</button>
+        </div>
+
+        <div class="card">
+          <div id="attendanceContent">
+            <div class="empty">
+              <div class="empty-icon">📋</div>
+              <p>Selecciona una categoría y sesión para registrar asistencia</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PAYMENTS VIEW ===== -->
+      <div class="view" id="view-payments">
+        <div class="topbar">
+          <div class="topbar-left">
+            <button class="mobile-menu-btn">☰</button>
+            <h2>Pagos</h2>
+            <p>Control de mensualidades</p>
+          </div>
+          <div class="topbar-actions">
+            <button class="btn btn-primary" id="btnAddPayment">+ Registrar Pago</button>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" data-tab="pending">Pendientes</button>
+          <button class="tab" data-tab="history">Historial</button>
+        </div>
+
+        <div id="paymentsPending" class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Pagos Pendientes</div>
+              <div class="card-subtitle">Jugadores activos sin pago este mes</div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Jugador</th>
+                  <th>Categoría</th>
+                  <th>WhatsApp</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tblPending"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="paymentsHistory" class="card" style="display:none;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Historial de Pagos</div>
+              <div class="card-subtitle">Todos los pagos registrados</div>
+            </div>
+            <div class="chip">
+              <span>📅</span>
+              <input type="month" id="paymentsMonthFilter" class="input" />
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Jugador</th>
+                  <th>Categoría</th>
+                  <th>Monto</th>
+                  <th>Método</th>
+                  <th>Nota</th>
+                </tr>
+              </thead>
+              <tbody id="tblPayments"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SETTINGS VIEW ===== -->
+      <div class="view" id="view-settings">
+        <div class="topbar">
+          <div class="topbar-left">
+            <button class="mobile-menu-btn">☰</button>
+            <h2>Configuración</h2>
+            <p>Ajustes del sistema</p>
+          </div>
+        </div>
+
+        <div class="card" style="max-width:600px;">
+          <div class="card-header">
+            <div class="card-title">Base de Datos</div>
+          </div>
+          <div id="dbHealth" style="font-family:monospace; font-size:12px; color:var(--muted); white-space:pre-wrap;"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ===== MODALS ===== -->
+  
+  <!-- Payment Modal -->
+  <div class="modal" id="paymentModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Registrar Pago</h3>
+        <button class="btn btn-sm" id="closePaymentModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Buscar Jugador</label>
+          <input type="text" id="paymentPlayerSearch" class="input" placeholder="Nombre del jugador..." />
+          <div id="paymentPlayerList" style="margin-top:8px; max-height:150px; overflow-y:auto;"></div>
+        </div>
+        <div class="form-group">
+          <label>Monto (RD$)</label>
+          <input type="number" id="paymentAmount" class="input" value="3500" />
+        </div>
+        <div class="form-group">
+          <label>Método</label>
+          <select id="paymentMethod" class="select">
+            <option value="cash">Efectivo</option>
+            <option value="transfer">Transferencia</option>
+            <option value="card">Tarjeta</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nota (opcional)</label>
+          <input type="text" id="paymentNote" class="input" placeholder="Ej: Pago parcial..." />
+        </div>
+        <div id="paymentStatus" class="status-bar" style="display:none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="cancelPayment">Cancelar</button>
+        <button class="btn btn-primary" id="savePayment">Guardar Pago</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player Modal -->
+  <div class="modal" id="playerModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="playerModalTitle">Nuevo Jugador</h3>
+        <button class="btn btn-sm" id="closePlayerModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editPlayerId" />
+        <div class="form-group">
+          <label>Nombre del Jugador</label>
+          <input type="text" id="playerName" class="input" placeholder="Nombre completo" />
+        </div>
+        <div class="form-group">
+          <label>Nombre del Tutor</label>
+          <input type="text" id="tutorName" class="input" placeholder="Padre/Madre/Tutor" />
+        </div>
+        <div class="form-group">
+          <label>WhatsApp</label>
+          <input type="text" id="tutorWhatsapp" class="input" placeholder="8291234567" />
+        </div>
+        <div class="form-group">
+          <label>Categoría</label>
+          <select id="playerCategory" class="select"></select>
+        </div>
+        <div class="form-group">
+          <label>Estado</label>
+          <select id="playerStatus" class="select">
+            <option value="activo">Activo</option>
+            <option value="inactivo">Inactivo</option>
+            <option value="suspendido">Suspendido</option>
+          </select>
+        </div>
+        <div id="playerFormStatus" class="status-bar" style="display:none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="cancelPlayer">Cancelar</button>
+        <button class="btn btn-primary" id="savePlayer">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session Modal -->
+  <div class="modal" id="sessionModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Nueva Sesión</h3>
+        <button class="btn btn-sm" id="closeSessionModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Fecha</label>
+          <input type="date" id="sessionDate" class="input" />
+        </div>
+        <div class="form-group">
+          <label>Categoría</label>
+          <select id="sessionCategory" class="select"></select>
+        </div>
+        <div id="sessionFormStatus" class="status-bar" style="display:none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="cancelSession">Cancelar</button>
+        <button class="btn btn-primary" id="saveSession">Crear Sesión</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== CONFIG =====
+    const SUPABASE_URL = "https://daijiuqqafvjofafwqck.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g";
+
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ===== STATE =====
+    let currentUser = null;
+    let categoriesCache = [];
+    let playersCache = [];
+    let charts = {};
+    let selectedPaymentPlayer = null;
+    let attendanceState = {};
+
+    // ===== HELPERS =====
+    function $(id) { return document.getElementById(id); }
+    function $$(sel) { return document.querySelectorAll(sel); }
+
+    function formatMoney(n) {
+      return new Intl.NumberFormat("es-DO", { style: "currency", currency: "DOP", maximumFractionDigits: 0 }).format(n || 0);
+    }
+
+    function monthISO(date = new Date()) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-01`;
+    }
+
+    function showStatus(el, msg, type = "") {
+      el.style.display = "block";
+      el.textContent = msg;
+      el.className = `status-bar ${type}`;
+    }
+
+    function waLink(phone, msg) {
+      const digits = String(phone || "").replace(/\D/g, "");
+      let p = digits.length === 10 ? "1" + digits : digits;
+      return `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;
+    }
+
+    // ===== AUTH =====
+    async function checkAuth() {
+      const { data } = await sb.auth.getSession();
+      if (data.session) {
+        currentUser = data.session.user;
+        showApp();
+      } else {
+        showLogin();
+      }
+    }
+
+    function showLogin() {
+      $("loginView").style.display = "grid";
+      $("appView").style.display = "none";
+    }
+
+    function showApp() {
+      $("loginView").style.display = "none";
+      $("appView").style.display = "grid";
+      $("userEmail").textContent = currentUser?.email || "-";
+      $("userAvatar").textContent = (currentUser?.email || "A")[0].toUpperCase();
+      
+      const now = new Date();
+      $("monthPicker").value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+      
+      loadDashboard();
+    }
+
+    $("btnLogin").addEventListener("click", async () => {
+      const email = $("loginEmail").value.trim();
+      const password = $("loginPassword").value;
+      const status = $("loginStatus");
+
+      if (!email || !password) {
+        showStatus(status, "Completa todos los campos", "error");
+        return;
+      }
+
+      showStatus(status, "Iniciando sesión...", "");
+
+      try {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        currentUser = data.session.user;
+        showApp();
+      } catch (e) {
+        showStatus(status, e.message || "Error de autenticación", "error");
+      }
+    });
+
+    $("btnLogout").addEventListener("click", async () => {
+      await sb.auth.signOut();
+      currentUser = null;
+      showLogin();
+    });
+
+    // ===== NAVIGATION =====
+    $$(".nav-link").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const view = btn.dataset.view;
+        $$(".nav-link").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        $$(".view").forEach(v => v.classList.remove("active"));
+        $(`view-${view}`).classList.add("active");
+
+        // Load view data
+        if (view === "dashboard") loadDashboard();
+        if (view === "players") loadPlayers();
+        if (view === "categories") loadCategories();
+        if (view === "attendance") loadAttendanceView();
+        if (view === "payments") loadPayments();
+        if (view === "settings") loadSettings();
+      });
+    });
+
+    // Mobile menu
+    document.querySelectorAll(".mobile-menu-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        $("sidebar").classList.toggle("open");
+        $("sidebarOverlay").classList.toggle("show");
+      });
+    });
+
+    $("sidebarOverlay").addEventListener("click", () => {
+      $("sidebar").classList.remove("open");
+      $("sidebarOverlay").classList.remove("show");
+    });
+
+    // ===== DATA LOADERS =====
+    async function loadCategoriesCache() {
+      const { data, error } = await sb.from("categories").select("id, name, max_players").order("name");
+      if (error) throw error;
+      categoriesCache = data || [];
+      return categoriesCache;
+    }
+
+    async function loadPlayersCache() {
+      const { data, error } = await sb.from("players").select("id, nombre, tutor_nombre, tutor_whatsapp, status, category_id, created_at");
+      if (error) throw error;
+      playersCache = data || [];
+      return playersCache;
+    }
+
+    // ===== DASHBOARD =====
+    async function loadDashboard() {
+      const status = $("dashboardStatus");
+      showStatus(status, "Cargando...", "");
+
+      try {
+        const currentMonth = monthISO();
+        const start12 = new Date();
+        start12.setMonth(start12.getMonth() - 11);
+        start12.setDate(1);
+        const start12ISO = monthISO(start12);
+
+        // Load data
+        const [categories, players, cupos] = await Promise.all([
+          loadCategoriesCache(),
+          loadPlayersCache(),
+          sb.from("cupos").select("categoria, cupo_total")
+        ]);
+
+        const { data: payments12 } = await sb.from("payments")
+          .select("id, amount, month, category_id, player_id, method, paid_at")
+          .eq("status", "paid")
+          .gte("month", start12ISO)
+          .order("month");
+
+        const { data: sessions } = await sb.from("sessions")
+          .select("id, fecha")
+          .order("fecha", { ascending: false })
+          .limit(8);
+
+        const sessionIds = (sessions || []).map(s => s.id);
+        const { data: attendance } = sessionIds.length 
+          ? await sb.from("attendance").select("session_id, estado").in("session_id", sessionIds)
+          : { data: [] };
+
+        // Calculate KPIs
+        const monthPayments = (payments12 || []).filter(p => p.month === currentMonth);
+        const revenue = monthPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+        const activePlayers = players.filter(p => (p.status || "").toLowerCase() === "activo");
+        
+        const paidIds = new Set(monthPayments.map(p => p.player_id));
+        const morosos = activePlayers.filter(p => !paidIds.has(p.id));
+
+        // Attendance average
+        const attBySession = {};
+        (sessions || []).forEach(s => attBySession[s.id] = { present: 0, total: 0 });
+        (attendance || []).forEach(a => {
+          if (attBySession[a.session_id]) {
+            attBySession[a.session_id].total++;
+            if ((a.estado || "").toLowerCase() === "present") attBySession[a.session_id].present++;
+          }
+        });
+        const attPcts = Object.values(attBySession).map(v => v.total ? Math.round(v.present / v.total * 100) : 0);
+        const avgAtt = attPcts.length ? Math.round(attPcts.reduce((s, v) => s + v, 0) / attPcts.length) : 0;
+
+        // Update KPIs
+        $("kpiRevenue").textContent = formatMoney(revenue);
+        $("kpiRevenueHint").textContent = `${monthPayments.length} pagos`;
+        $("kpiPlayers").textContent = activePlayers.length;
+        $("kpiMorosos").textContent = morosos.length;
+        $("kpiAttendance").textContent = `${avgAtt}%`;
+
+        // Revenue Chart
+        renderRevenueChart(payments12 || [], start12ISO);
+
+        // Capacity Chart
+        renderCapacityChart(categories, players, cupos.data || []);
+
+        // Morosos Table
+        renderMorososTable(morosos, categories);
+
+        // Recent Payments Table
+        renderRecentPaymentsTable(monthPayments, players, categories);
+
+        showStatus(status, "Dashboard actualizado", "success");
+      } catch (e) {
+        showStatus(status, `Error: ${e.message}`, "error");
+      }
+    }
+
+    function renderRevenueChart(payments, startISO) {
+      const ctx = $("chartRevenue");
+      if (charts.revenue) charts.revenue.destroy();
+
+      const monthMap = {};
+      for (let i = 0; i < 12; i++) {
+        const d = new Date(startISO);
+        d.setMonth(d.getMonth() + i);
+        const key = monthISO(d);
+        monthMap[key] = 0;
+      }
+
+      payments.forEach(p => {
+        if (monthMap[p.month] !== undefined) {
+          monthMap[p.month] += Number(p.amount || 0);
+        }
+      });
+
+      const labels = Object.keys(monthMap).map(iso => {
+        const d = new Date(iso);
+        return d.toLocaleDateString("es-DO", { month: "short" });
+      });
+
+      charts.revenue = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Ingresos",
+            data: Object.values(monthMap),
+            backgroundColor: "rgba(34, 197, 94, 0.6)",
+            borderColor: "rgb(34, 197, 94)",
+            borderWidth: 1,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "rgba(255,255,255,0.6)" } },
+            y: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "rgba(255,255,255,0.6)" }, beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function renderCapacityChart(categories, players, cupos) {
+      const ctx = $("chartCapacity");
+      if (charts.capacity) charts.capacity.destroy();
+
+      const cupoMap = {};
+      cupos.forEach(c => cupoMap[c.categoria] = c.cupo_total || 0);
+
+      const activeByCategory = {};
+      players.filter(p => (p.status || "").toLowerCase() === "activo").forEach(p => {
+        const cat = categories.find(c => c.id === p.category_id);
+        const name = cat?.name || "Sin categoría";
+        activeByCategory[name] = (activeByCategory[name] || 0) + 1;
+      });
+
+      const allCats = [...new Set([...Object.keys(cupoMap), ...Object.keys(activeByCategory)])].sort();
+
+      charts.capacity = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: allCats,
+          datasets: [
+            {
+              label: "Activos",
+              data: allCats.map(c => activeByCategory[c] || 0),
+              backgroundColor: "rgba(34, 197, 94, 0.7)",
+              borderRadius: 6
+            },
+            {
+              label: "Cupos",
+              data: allCats.map(c => cupoMap[c] || 0),
+              backgroundColor: "rgba(255, 255, 255, 0.15)",
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: "rgba(255,255,255,0.7)" } } },
+          scales: {
+            x: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "rgba(255,255,255,0.6)" } },
+            y: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "rgba(255,255,255,0.6)" }, beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function renderMorososTable(morosos, categories) {
+      const tbody = $("tblMorosos");
+      tbody.innerHTML = "";
+
+      if (!morosos.length) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--muted);">¡Sin morosos! 🎉</td></tr>`;
+        return;
+      }
+
+      morosos.slice(0, 8).forEach(p => {
+        const cat = categories.find(c => c.id === p.category_id);
+        const msg = `Hola! Recordatorio de pago de Guerrero Academy para ${p.nombre}.`;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${p.nombre || "-"}</strong></td>
+          <td><span class="badge badge-info">${cat?.name || "-"}</span></td>
+          <td>${p.tutor_whatsapp || "-"}</td>
+          <td><a class="btn btn-sm" href="${waLink(p.tutor_whatsapp, msg)}" target="_blank">WhatsApp</a></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderRecentPaymentsTable(payments, players, categories) {
+      const tbody = $("tblRecentPayments");
+      tbody.innerHTML = "";
+
+      if (!payments.length) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--muted);">Sin pagos este mes</td></tr>`;
+        return;
+      }
+
+      const playerMap = Object.fromEntries(players.map(p => [p.id, p]));
+      const catMap = Object.fromEntries(categories.map(c => [c.id, c]));
+
+      payments.slice(0, 8).forEach(p => {
+        const player = playerMap[p.player_id];
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${player?.nombre || "-"}</td>
+          <td><strong>${formatMoney(p.amount)}</strong></td>
+          <td>${p.method || "-"}</td>
+          <td>${p.paid_at || "-"}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ===== PLAYERS =====
+    async function loadPlayers() {
+      const players = await loadPlayersCache();
+      const categories = await loadCategoriesCache();
+      
+      // Populate filter
+      const filterCat = $("filterCategory");
+      filterCat.innerHTML = `<option value="">Todas las categorías</option>` + 
+        categories.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+
+      renderPlayersTable(players, categories);
+    }
+
+    function renderPlayersTable(players, categories) {
+      const tbody = $("tblPlayers");
+      const catMap = Object.fromEntries(categories.map(c => [c.id, c]));
+      const search = ($("searchPlayers").value || "").toLowerCase();
+      const filterCat = $("filterCategory").value;
+      const filterStatus = $("filterStatus").value;
+
+      let filtered = players;
+      if (search) filtered = filtered.filter(p => 
+        (p.nombre || "").toLowerCase().includes(search) ||
+        (p.tutor_nombre || "").toLowerCase().includes(search)
+      );
+      if (filterCat) filtered = filtered.filter(p => p.category_id === filterCat);
+      if (filterStatus) filtered = filtered.filter(p => (p.status || "").toLowerCase() === filterStatus);
+
+      tbody.innerHTML = "";
+      filtered.forEach(p => {
+        const cat = catMap[p.category_id];
+        const statusClass = (p.status || "").toLowerCase() === "activo" ? "badge-success" : 
+                           (p.status || "").toLowerCase() === "suspendido" ? "badge-danger" : "badge-warning";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${p.nombre || "-"}</strong></td>
+          <td><span class="badge badge-info">${cat?.name || "-"}</span></td>
+          <td>${p.tutor_nombre || "-"}</td>
+          <td>${p.tutor_whatsapp || "-"}</td>
+          <td><span class="badge ${statusClass}">${p.status || "-"}</span></td>
+          <td>
+            <button class="btn btn-sm" onclick="editPlayer('${p.id}')">✏️</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    $("searchPlayers").addEventListener("input", () => renderPlayersTable(playersCache, categoriesCache));
+    $("filterCategory").addEventListener("change", () => renderPlayersTable(playersCache, categoriesCache));
+    $("filterStatus").addEventListener("change", () => renderPlayersTable(playersCache, categoriesCache));
+
+    // ===== CATEGORIES =====
+    async function loadCategories() {
+      const categories = await loadCategoriesCache();
+      const players = await loadPlayersCache();
+      const { data: cupos } = await sb.from("cupos").select("categoria, cupo_total");
+      const cupoMap = {};
+      (cupos || []).forEach(c => cupoMap[c.categoria] = c.cupo_total || 0);
+
+      const grid = $("categoriesGrid");
+      grid.innerHTML = "";
+
+      categories.forEach(cat => {
+        const active = players.filter(p => p.category_id === cat.id && (p.status || "").toLowerCase() === "activo").length;
+        const max = cupoMap[cat.name] || cat.max_players || 30;
+        const pct = Math.round((active / max) * 100);
+        const barClass = pct >= 90 ? "danger" : pct >= 70 ? "warning" : "";
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="card-title">${cat.name}</div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+              <span style="font-size:12px; color:var(--muted);">Ocupación</span>
+              <span style="font-size:12px; font-weight:700;">${active} / ${max}</span>
+            </div>
+            <div class="progress">
+              <div class="progress-bar ${barClass}" style="width:${pct}%"></div>
+            </div>
+          </div>
+          <div style="font-size:24px; font-weight:800; color:${pct >= 90 ? 'var(--danger)' : 'var(--accent)'};">
+            ${max - active} <span style="font-size:12px; color:var(--muted); font-weight:600;">cupos disponibles</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // ===== ATTENDANCE =====
+    async function loadAttendanceView() {
+      const categories = await loadCategoriesCache();
+      
+      const catFilter = $("attCategoryFilter");
+      catFilter.innerHTML = `<option value="">Selecciona categoría</option>` +
+        categories.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+
+      $("attSessionFilter").innerHTML = `<option value="">Selecciona sesión</option>`;
+      $("attendanceContent").innerHTML = `<div class="empty"><div class="empty-icon">📋</div><p>Selecciona una categoría y sesión</p></div>`;
+    }
+
+    $("attCategoryFilter").addEventListener("change", async () => {
+      const catId = $("attCategoryFilter").value;
+      const sessionFilter = $("attSessionFilter");
+      
+      if (!catId) {
+        sessionFilter.innerHTML = `<option value="">Selecciona sesión</option>`;
+        return;
+      }
+
+      const { data: sessions } = await sb.from("sessions")
+        .select("id, fecha")
+        .eq("category_id", catId)
+        .order("fecha", { ascending: false })
+        .limit(20);
+
+      sessionFilter.innerHTML = `<option value="">Selecciona sesión</option>` +
+        (sessions || []).map(s => `<option value="${s.id}">${new Date(s.fecha).toLocaleDateString("es-DO", { weekday: "long", day: "numeric", month: "long" })}</option>`).join("");
+    });
+
+    $("attSessionFilter").addEventListener("change", async () => {
+      const sessionId = $("attSessionFilter").value;
+      const catId = $("attCategoryFilter").value;
+      
+      if (!sessionId || !catId) return;
+
+      const players = await loadPlayersCache();
+      const catPlayers = players.filter(p => p.category_id === catId && (p.status || "").toLowerCase() === "activo");
+
+      const { data: existing } = await sb.from("attendance").select("player_id, estado").eq("session_id", sessionId);
+      const existingMap = {};
+      (existing || []).forEach(a => existingMap[a.player_id] = a.estado);
+
+      attendanceState = {};
+      catPlayers.forEach(p => {
+        attendanceState[p.id] = existingMap[p.id] || null;
+      });
+
+      renderAttendanceList(catPlayers);
+      $("btnSaveAttendance").style.display = "inline-flex";
+    });
+
+    function renderAttendanceList(players) {
+      const content = $("attendanceContent");
+      content.innerHTML = "";
+
+      if (!players.length) {
+        content.innerHTML = `<div class="empty"><p>No hay jugadores activos en esta categoría</p></div>`;
+        return;
+      }
+
+      const grid = document.createElement("div");
+      grid.className = "attendance-grid";
+
+      players.forEach(p => {
+        const state = attendanceState[p.id];
+        const row = document.createElement("div");
+        row.className = "attendance-row";
+        row.innerHTML = `
+          <span class="name">${p.nombre}</span>
+          <div class="attendance-btns">
+            <button class="att-btn ${state === "present" ? "present" : ""}" data-player="${p.id}" data-state="present">Presente</button>
+            <button class="att-btn ${state === "late" ? "late" : ""}" data-player="${p.id}" data-state="late">Tarde</button>
+            <button class="att-btn ${state === "absent" ? "absent" : ""}" data-player="${p.id}" data-state="absent">Ausente</button>
+          </div>
+        `;
+        grid.appendChild(row);
+      });
+
+      content.appendChild(grid);
+
+      // Event delegation for attendance buttons
+      grid.addEventListener("click", (e) => {
+        const btn = e.target.closest(".att-btn");
+        if (!btn) return;
+
+        const playerId = btn.dataset.player;
+        const state = btn.dataset.state;
+
+        attendanceState[playerId] = state;
+
+        // Update UI
+        const row = btn.closest(".attendance-row");
+        row.querySelectorAll(".att-btn").forEach(b => {
+          b.classList.remove("present", "late", "absent");
+          if (b.dataset.state === state) {
+            b.classList.add(state);
+          }
+        });
+      });
+    }
+
+    $("btnSaveAttendance").addEventListener("click", async () => {
+      const sessionId = $("attSessionFilter").value;
+      if (!sessionId) return;
+
+      const btn = $("btnSaveAttendance");
+      btn.disabled = true;
+      btn.textContent = "Guardando...";
+
+      try {
+        for (const [playerId, estado] of Object.entries(attendanceState)) {
+          if (!estado) continue;
+
+          await sb.from("attendance").upsert({
+            session_id: sessionId,
+            player_id: playerId,
+            estado
+          }, { onConflict: "session_id,player_id" });
+        }
+
+        btn.textContent = "✅ Guardado!";
+        setTimeout(() => {
+          btn.textContent = "💾 Guardar Asistencia";
+          btn.disabled = false;
+        }, 2000);
+      } catch (e) {
+        alert("Error: " + e.message);
+        btn.textContent = "💾 Guardar Asistencia";
+        btn.disabled = false;
+      }
+    });
+
+    // ===== PAYMENTS =====
+    async function loadPayments() {
+      const currentMonth = monthISO();
+      $("paymentsMonthFilter").value = currentMonth.slice(0, 7);
+
+      await loadPendingPayments();
+      await loadPaymentsHistory(currentMonth);
+    }
+
+    async function loadPendingPayments() {
+      const players = await loadPlayersCache();
+      const categories = await loadCategoriesCache();
+      const currentMonth = monthISO();
+
+      const { data: payments } = await sb.from("payments")
+        .select("player_id")
+        .eq("status", "paid")
+        .eq("month", currentMonth);
+
+      const paidIds = new Set((payments || []).map(p => p.player_id));
+      const activePlayers = players.filter(p => (p.status || "").toLowerCase() === "activo");
+      const pending = activePlayers.filter(p => !paidIds.has(p.id));
+
+      const tbody = $("tblPending");
+      tbody.innerHTML = "";
+
+      if (!pending.length) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--muted);">¡Todos al día! 🎉</td></tr>`;
+        return;
+      }
+
+      const catMap = Object.fromEntries(categories.map(c => [c.id, c]));
+
+      pending.forEach(p => {
+        const cat = catMap[p.category_id];
+        const msg = `Hola! Recordatorio de pago de Guerrero Academy para ${p.nombre}.`;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${p.nombre || "-"}</strong></td>
+          <td><span class="badge badge-info">${cat?.name || "-"}</span></td>
+          <td>${p.tutor_whatsapp || "-"}</td>
+          <td>
+            <a class="btn btn-sm" href="${waLink(p.tutor_whatsapp, msg)}" target="_blank">📱</a>
+            <button class="btn btn-sm btn-primary" onclick="quickPay('${p.id}', '${(p.nombre || '').replace(/'/g, "\\'")}')">💰</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadPaymentsHistory(month) {
+      const players = await loadPlayersCache();
+      const categories = await loadCategoriesCache();
+
+      const { data: payments } = await sb.from("payments")
+        .select("*")
+        .eq("status", "paid")
+        .eq("month", month)
+        .order("created_at", { ascending: false });
+
+      const tbody = $("tblPayments");
+      tbody.innerHTML = "";
+
+      if (!payments?.length) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--muted);">Sin pagos</td></tr>`;
+        return;
+      }
+
+      const playerMap = Object.fromEntries(players.map(p => [p.id, p]));
+      const catMap = Object.fromEntries(categories.map(c => [c.id, c]));
+
+      payments.forEach(p => {
+        const player = playerMap[p.player_id];
+        const cat = catMap[p.category_id];
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${p.paid_at || "-"}</td>
+          <td>${player?.nombre || "-"}</td>
+          <td><span class="badge badge-info">${cat?.name || "-"}</span></td>
+          <td><strong>${formatMoney(p.amount)}</strong></td>
+          <td>${p.method || "-"}</td>
+          <td>${p.note || "-"}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Payment tabs
+    $$(".tabs .tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        $$(".tabs .tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+
+        if (tab.dataset.tab === "pending") {
+          $("paymentsPending").style.display = "block";
+          $("paymentsHistory").style.display = "none";
+        } else {
+          $("paymentsPending").style.display = "none";
+          $("paymentsHistory").style.display = "block";
+        }
+      });
+    });
+
+    $("paymentsMonthFilter").addEventListener("change", () => {
+      const month = $("paymentsMonthFilter").value + "-01";
+      loadPaymentsHistory(month);
+    });
+
+    // ===== SETTINGS =====
+    async function loadSettings() {
+      const { data: players } = await sb.from("players").select("id");
+      const { data: categories } = await sb.from("categories").select("id");
+      const { data: payments } = await sb.from("payments").select("id");
+      const { data: sessions } = await sb.from("sessions").select("id");
+
+      $("dbHealth").textContent = `
+Tablas conectadas:
+- players: ${(players || []).length} registros
+- categories: ${(categories || []).length} registros
+- payments: ${(payments || []).length} registros
+- sessions: ${(sessions || []).length} registros
+
+Supabase URL: ${SUPABASE_URL}
+      `;
+    }
+
+    // ===== MODALS =====
+    
+    // Payment Modal
+    $("btnAddPayment").addEventListener("click", () => {
+      selectedPaymentPlayer = null;
+      $("paymentPlayerSearch").value = "";
+      $("paymentPlayerList").innerHTML = "";
+      $("paymentAmount").value = "3500";
+      $("paymentNote").value = "";
+      $("paymentStatus").style.display = "none";
+      $("paymentModal").classList.add("show");
+    });
+
+    $("closePaymentModal").addEventListener("click", () => $("paymentModal").classList.remove("show"));
+    $("cancelPayment").addEventListener("click", () => $("paymentModal").classList.remove("show"));
+
+    $("paymentPlayerSearch").addEventListener("input", () => {
+      const q = $("paymentPlayerSearch").value.toLowerCase();
+      if (q.length < 2) {
+        $("paymentPlayerList").innerHTML = "";
+        return;
+      }
+
+      const matches = playersCache.filter(p => (p.nombre || "").toLowerCase().includes(q)).slice(0, 5);
+      $("paymentPlayerList").innerHTML = matches.map(p => `
+        <button class="btn btn-sm" style="width:100%; margin-bottom:4px; justify-content:flex-start;" onclick="selectPaymentPlayer('${p.id}', '${(p.nombre || '').replace(/'/g, "\\'")}')">
+          ${p.nombre} - ${p.tutor_whatsapp || ""}
+        </button>
+      `).join("");
+    });
+
+    window.selectPaymentPlayer = function(id, name) {
+      selectedPaymentPlayer = { id, name };
+      $("paymentPlayerSearch").value = name;
+      $("paymentPlayerList").innerHTML = `<span class="badge badge-success">✓ ${name}</span>`;
+    };
+
+    window.quickPay = function(id, name) {
+      selectedPaymentPlayer = { id, name };
+      $("paymentPlayerSearch").value = name;
+      $("paymentPlayerList").innerHTML = `<span class="badge badge-success">✓ ${name}</span>`;
+      $("paymentAmount").value = "3500";
+      $("paymentNote").value = "";
+      $("paymentStatus").style.display = "none";
+      $("paymentModal").classList.add("show");
+    };
+
+    $("savePayment").addEventListener("click", async () => {
+      if (!selectedPaymentPlayer) {
+        showStatus($("paymentStatus"), "Selecciona un jugador", "error");
+        return;
+      }
+
+      const amount = Number($("paymentAmount").value);
+      if (!amount || amount <= 0) {
+        showStatus($("paymentStatus"), "Monto inválido", "error");
+        return;
+      }
+
+      showStatus($("paymentStatus"), "Guardando...", "");
+
+      try {
+        const player = playersCache.find(p => p.id === selectedPaymentPlayer.id);
+        
+        const { error } = await sb.from("payments").insert({
+          player_id: selectedPaymentPlayer.id,
+          category_id: player?.category_id || null,
+          amount,
+          currency: "DOP",
+          method: $("paymentMethod").value,
+          month: monthISO(),
+          paid_at: new Date().toISOString().slice(0, 10),
+          status: "paid",
+          note: $("paymentNote").value || null
+        });
+
+        if (error) throw error;
+
+        showStatus($("paymentStatus"), "¡Pago registrado!", "success");
+        setTimeout(() => {
+          $("paymentModal").classList.remove("show");
+          loadPayments();
+          loadDashboard();
+        }, 1000);
+      } catch (e) {
+        showStatus($("paymentStatus"), e.message, "error");
+      }
+    });
+
+    // Player Modal
+    $("btnAddPlayer").addEventListener("click", async () => {
+      $("playerModalTitle").textContent = "Nuevo Jugador";
+      $("editPlayerId").value = "";
+      $("playerName").value = "";
+      $("tutorName").value = "";
+      $("tutorWhatsapp").value = "";
+      $("playerStatus").value = "activo";
+      $("playerFormStatus").style.display = "none";
+
+      const categories = await loadCategoriesCache();
+      $("playerCategory").innerHTML = categories.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+
+      $("playerModal").classList.add("show");
+    });
+
+    window.editPlayer = async function(id) {
+      const player = playersCache.find(p => p.id === id);
+      if (!player) return;
+
+      $("playerModalTitle").textContent = "Editar Jugador";
+      $("editPlayerId").value = player.id;
+      $("playerName").value = player.nombre || "";
+      $("tutorName").value = player.tutor_nombre || "";
+      $("tutorWhatsapp").value = player.tutor_whatsapp || "";
+      $("playerStatus").value = player.status || "activo";
+
+      const categories = await loadCategoriesCache();
+      $("playerCategory").innerHTML = categories.map(c => `<option value="${c.id}" ${c.id === player.category_id ? "selected" : ""}>${c.name}</option>`).join("");
+
+      $("playerFormStatus").style.display = "none";
+      $("playerModal").classList.add("show");
+    };
+
+    $("closePlayerModal").addEventListener("click", () => $("playerModal").classList.remove("show"));
+    $("cancelPlayer").addEventListener("click", () => $("playerModal").classList.remove("show"));
+
+    $("savePlayer").addEventListener("click", async () => {
+      const id = $("editPlayerId").value;
+      const data = {
+        nombre: $("playerName").value.trim(),
+        tutor_nombre: $("tutorName").value.trim(),
+        tutor_whatsapp: $("tutorWhatsapp").value.trim(),
+        category_id: $("playerCategory").value,
+        status: $("playerStatus").value
+      };
+
+      if (!data.nombre) {
+        showStatus($("playerFormStatus"), "El nombre es requerido", "error");
+        return;
+      }
+
+      showStatus($("playerFormStatus"), "Guardando...", "");
+
+      try {
+        if (id) {
+          const { error } = await sb.from("players").update(data).eq("id", id);
+          if (error) throw error;
+        } else {
+          const { error } = await sb.from("players").insert(data);
+          if (error) throw error;
+        }
+
+        showStatus($("playerFormStatus"), "¡Guardado!", "success");
+        setTimeout(() => {
+          $("playerModal").classList.remove("show");
+          loadPlayers();
+        }, 1000);
+      } catch (e) {
+        showStatus($("playerFormStatus"), e.message, "error");
+      }
+    });
+
+    // Session Modal
+    $("btnNewSession").addEventListener("click", async () => {
+      $("sessionDate").value = new Date().toISOString().slice(0, 10);
+      const categories = await loadCategoriesCache();
+      $("sessionCategory").innerHTML = categories.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+      $("sessionFormStatus").style.display = "none";
+      $("sessionModal").classList.add("show");
+    });
+
+    $("closeSessionModal").addEventListener("click", () => $("sessionModal").classList.remove("show"));
+    $("cancelSession").addEventListener("click", () => $("sessionModal").classList.remove("show"));
+
+    $("saveSession").addEventListener("click", async () => {
+      const fecha = $("sessionDate").value;
+      const category_id = $("sessionCategory").value;
+
+      if (!fecha || !category_id) {
+        showStatus($("sessionFormStatus"), "Completa todos los campos", "error");
+        return;
+      }
+
+      showStatus($("sessionFormStatus"), "Creando...", "");
+
+      try {
+        const { error } = await sb.from("sessions").insert({ fecha, category_id });
+        if (error) throw error;
+
+        showStatus($("sessionFormStatus"), "¡Sesión creada!", "success");
+        setTimeout(() => {
+          $("sessionModal").classList.remove("show");
+          loadAttendanceView();
+        }, 1000);
+      } catch (e) {
+        showStatus($("sessionFormStatus"), e.message, "error");
+      }
+    });
+
+    // ===== REFRESH =====
+    $("btnRefresh").addEventListener("click", loadDashboard);
+    $("monthPicker").addEventListener("change", loadDashboard);
+
+    // ===== INIT =====
+    checkAuth();
+  </script>
+</body>
+</html>
