@@ -1,0 +1,123 @@
+<!-- ========================================
+     PANEL DE SOLICITUDES PARA SUPER ADMIN
+     ======================================== -->
+     
+<!-- Añade esto en super-admin.html donde quieras que aparezca el panel de solicitudes -->
+
+<section class="admin-section">
+  <div class="section-header">
+    <h2>📋 Solicitudes de Inscripción</h2>
+    <p>Gestiona las solicitudes recibidas desde el formulario web</p>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-bar" style="margin-bottom: 20px; display: flex; gap: 10px;">
+    <button id="btnPendientes" class="btn btn-warning">
+      ⏳ Pendientes
+    </button>
+    <button id="btnAprobadas" class="btn btn-success">
+      ✓ Aprobadas
+    </button>
+    <button id="btnRechazadas" class="btn btn-danger">
+      ✗ Rechazadas
+    </button>
+    <button id="btnTodas" class="btn btn-secondary">
+      📊 Todas
+    </button>
+  </div>
+
+  <!-- Tabla de solicitudes -->
+  <div id="tablaSolicitudes">
+    <p class="text-muted">Cargando solicitudes...</p>
+  </div>
+</section>
+
+<!-- Estilos adicionales -->
+<style>
+.table-responsive {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.table thead {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.table th,
+.table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.table th {
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-warning {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+}
+
+.badge-success {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.badge-danger {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+  margin-right: 6px;
+}
+
+.btn-link {
+  color: #D87093;
+  text-decoration: none;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+.text-muted {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.filters-bar button {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filters-bar button:hover {
+  transform: translateY(-2px);
+}
+</style>
+
+<!-- Script necesario -->
+<script src="solicitudes.js"></script>
