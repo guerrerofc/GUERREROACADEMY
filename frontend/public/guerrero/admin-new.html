@@ -45,12 +45,17 @@
       display: grid;
       grid-template-columns: 260px 1fr;
       min-height: 100vh;
-      direction: ltr;
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.6);
+      z-index: 99;
     }
     
-    .app > * {
-      direction: ltr;
-    }
+    .sidebar-overlay.show { display: block; }
 
     @media (max-width: 1024px) {
       .app { grid-template-columns: 1fr; }
@@ -61,14 +66,6 @@
         transition: left 0.3s ease;
       }
       .sidebar.open { left: 0; }
-      .sidebar-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,.6);
-        z-index: 99;
-      }
-      .sidebar-overlay.show { display: block; }
     }
 
     /* ===== Sidebar ===== */
@@ -822,11 +819,8 @@
 
   <!-- APP VIEW -->
   <div id="appView" class="app" style="display:none;">
-    <!-- Sidebar Overlay (mobile) -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-    <!-- Sidebar (PRIMERO en el DOM = IZQUIERDA) -->
-    <aside class="sidebar" id="sidebar" style="order: 1;">
+    <!-- Sidebar (IZQUIERDA - primer elemento del grid) -->
+    <aside class="sidebar" id="sidebar">
       <div class="brand">
         <div class="logo">GA</div>
         <div class="brand-info">
@@ -879,8 +873,11 @@
       </div>
     </aside>
 
-    <!-- Main Content (SEGUNDO = DERECHA) -->
-    <main class="main" style="order: 2;">
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Main Content (DERECHA - segundo elemento del grid) -->
+    <main class="main">
       <!-- ===== DASHBOARD VIEW ===== -->
       <div class="view active" id="view-dashboard">
         <div class="topbar">
