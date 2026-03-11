@@ -1,24 +1,224 @@
 /* ==========================================
-   SUPER ADMIN - MODERN REDESIGN
-   Applied on top of existing styles
+   SUPER ADMIN - MODERN REDESIGN (DARK THEME)
+   Professional look, original colors
    ========================================== */
 
-/* Import modern design system */
-@import url('modern-design.css');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* Override existing styles */
+/* Keep original dark theme but make it cleaner */
 body {
   font-family: 'Inter', -apple-system, sans-serif !important;
-  background: #F9FAFB !important;
 }
+
+/* Sidebar - cleaner look */
+.sidebar,
+.nav {
+  backdrop-filter: blur(20px) !important;
+}
+
+.nav-link {
+  border-radius: 8px !important;
+  margin: 4px 8px !important;
+  padding: 10px 16px !important;
+  transition: all 0.2s !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+}
+
+.nav-section {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 16px 16px 8px !important;
+  opacity: 0.7 !important;
+}
+
+/* Cards - more professional */
+.card,
+.stat-card,
+.dashboard-card {
+  border-radius: 12px !important;
+  padding: 24px !important;
+  backdrop-filter: blur(20px) !important;
+  margin-bottom: 20px !important;
+}
+
+/* Page headers - cleaner */
+.topbar,
+.page-header {
+  padding: 24px 32px !important;
+  margin-bottom: 24px !important;
+  border-radius: 12px !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+.page-title {
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  margin-bottom: 6px !important;
+  letter-spacing: -0.02em !important;
+}
+
+.page-subtitle {
+  font-size: 14px !important;
+  opacity: 0.7 !important;
+  font-weight: 400 !important;
+}
+
+/* Stat values - more refined */
+.stat-value,
+.metric-value {
+  font-size: 36px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  margin: 8px 0 !important;
+}
+
+.stat-label,
+.metric-label {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  opacity: 0.7 !important;
+}
+
+/* Buttons - more professional */
+.btn,
+button {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  padding: 10px 20px !important;
+  font-size: 14px !important;
+  transition: all 0.2s !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* Forms - cleaner inputs */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+select,
+textarea {
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
+  font-size: 14px !important;
+  transition: all 0.2s !important;
+  font-family: inherit !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* Tables - more professional */
+table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+th {
+  padding: 14px 20px !important;
+  text-align: left !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  opacity: 0.7 !important;
+}
+
+td {
+  padding: 14px 20px !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+}
+
+/* Badges - cleaner look */
+.badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 4px 12px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  border-radius: 6px !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* Modal - more refined */
+.modal,
+.dialog {
+  border-radius: 12px !important;
+  backdrop-filter: blur(40px) !important;
+}
+
+.modal-header {
+  padding: 24px !important;
+}
+
+.modal-title {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.modal-body {
+  padding: 24px !important;
+}
+
+.modal-footer {
+  padding: 20px 24px !important;
+}
+
+/* Spacing improvements */
+.grid,
+.stats-grid {
+  display: grid !important;
+  gap: 20px !important;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+}
+
+/* Remove game-like elements */
+.glow,
+.neon,
+.pulse {
+  animation: none !important;
+}
+
+/* More professional shadows */
+.shadow {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Clean hover states */
+.nav-link:hover,
+.btn:hover,
+tr:hover {
+  transform: none !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Typography improvements */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.02em !important;
+  font-weight: 600 !important;
+}
+
+p {
+  line-height: 1.6 !important;
+}
+
+/* Remove unnecessary animations */
+* {
+  animation-duration: 0.2s !important;
+}
+
 
 /* Sidebar improvements */
 .sidebar,
 .nav {
-  background: white !important;
-  border-right: 1px solid #E5E7EB !important;
-  box-shadow: none !important;
+  backdrop-filter: blur(20px) !important;
 }
 
 .nav-link {
