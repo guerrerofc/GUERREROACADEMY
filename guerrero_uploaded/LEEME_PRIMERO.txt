@@ -1,0 +1,131 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║               GUERRERO ACADEMY - INSTRUCCIONES DE USO                        ║
+╔══════════════════════════════════════════════════════════════════════════════╗
+
+📦 CONTENIDO DEL ZIP:
+
+✅ Archivos HTML (Paneles):
+   - parent-panel.html        → Panel de Padres (CON PAGOS STRIPE)
+   - staff-panel.html         → Panel de Staff/Coaches
+   - super-admin.html         → Panel de Super Administrador
+   - admin-new.html           → Panel Admin alternativo
+   - landing-mejorado.html    → Página de inicio
+
+✅ Estilos:
+   - style.css                → Estilos principales
+   - style-new.css            → Estilos nuevos
+
+✅ JavaScript:
+   - app.js                   → Lógica principal
+
+✅ Edge Functions de Supabase:
+   - supabase/functions/create-checkout-session/index.ts
+   - supabase/functions/stripe-webhook/index.ts
+   - supabase/functions/check-payment-status/index.ts
+
+✅ SQL:
+   - EJECUTAR_ESTE_SQL.sql    → SQL para crear tablas de pagos
+
+✅ Documentación:
+   - CONFIGURACION_STRIPE.md   → Tus claves y configuración
+   - GUIA_PASO_A_PASO_STRIPE.md → Guía completa paso a paso
+   - LEEME_PRIMERO.txt         → Este archivo
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                        CÓMO PROBAR LOCALMENTE                                ║
+╔══════════════════════════════════════════════════════════════════════════════╗
+
+📋 PASO 1: EXTRAE EL ZIP
+   - Descomprime guerrero_academy_completo.zip en una carpeta
+
+📋 PASO 2: CREA DATOS DE PRUEBA EN SUPABASE
+
+   A. Ve a Supabase → Authentication → Users
+      - Click en "Add user"
+      - Email: padre@test.com
+      - Password: test123456
+      - GUARDA EL ID DEL USUARIO
+
+   B. Ve a Supabase → SQL Editor → New Query
+      Ejecuta esto (reemplaza los IDs):
+
+      -- Crear jugador de prueba
+      INSERT INTO players (id, nombre, category_id, tutor_nombre, status) 
+      VALUES (gen_random_uuid(), 'Juan Pérez', NULL, 'Padre Test', 'activo')
+      RETURNING id;
+
+      -- COPIA EL ID QUE APARECE y úsalo abajo
+      
+      -- Relacionar padre con jugador
+      INSERT INTO player_parents (player_id, parent_id)
+      VALUES ('ID_DEL_JUGADOR', 'ID_DEL_USUARIO_PADRE');
+
+📋 PASO 3: ABRE EL ARCHIVO EN TU NAVEGADOR
+
+   1. Busca el archivo: parent-panel.html
+   2. Doble click para abrirlo en el navegador
+   3. Inicia sesión con:
+      Email: padre@test.com
+      Password: test123456
+
+📋 PASO 4: PRUEBA EL PAGO
+
+   1. Ve a "Pagar Mensualidad"
+   2. Selecciona el hijo
+   3. Click en "💳 Pagar con Stripe"
+   4. Serás redirigido a Stripe
+   5. Usa esta tarjeta de prueba:
+      
+      Número: 4242 4242 4242 4242
+      Fecha: 12/26 (cualquier fecha futura)
+      CVV: 123
+      Código postal: 10000
+
+   6. Completa el pago
+   7. Deberías volver a la app con mensaje de éxito
+   8. Verifica en "Historial de Pagos"
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                            DATOS IMPORTANTES                                 ║
+╔══════════════════════════════════════════════════════════════════════════════╗
+
+🔑 Supabase URL:
+   https://daijiuqqafvjofafwqck.supabase.co
+
+🔑 Tus claves de Stripe (en CONFIGURACION_STRIPE.md):
+   - Publishable Key: pk_test_51T9hfDGr4koxh8Of...
+   - Secret Key: sk_test_51T9hfDGr4koxh8Of...
+
+📌 Edge Functions desplegadas:
+   ✅ create-checkout-session
+   ✅ stripe-webhook
+   ✅ check-payment-status
+
+📌 Variables configuradas en Supabase:
+   ✅ STRIPE_API_KEY
+   ✅ SUPABASE_URL
+   ✅ SUPABASESERVICE_ROLE_KEY
+   ✅ STRIPE_WEBHOOK_SECRET
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          SIGUIENTES PASOS                                    ║
+╔══════════════════════════════════════════════════════════════════════════════╗
+
+Una vez que los pagos funcionen:
+
+1. 🎨 Construir Panel de Staff/Coach
+2. 🎨 Construir Panel de Super Admin
+3. 🎨 Diseño Futurista 2030
+4. 📱 Integración WhatsApp (envío automático de facturas)
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                              SOPORTE                                         ║
+╔══════════════════════════════════════════════════════════════════════════════╗
+
+Si tienes problemas:
+- Revisa GUIA_PASO_A_PASO_STRIPE.md
+- Verifica que todas las Edge Functions estén desplegadas
+- Verifica que las variables de entorno estén configuradas
+- Verifica que tengas datos de prueba en la base de datos
+
+¡Éxito con tu proyecto! 🚀
