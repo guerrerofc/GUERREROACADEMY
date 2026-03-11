@@ -1515,9 +1515,6 @@
           <strong>${(allPayments || []).length}</strong>
         </div>
 
-  <!-- Sistema de Solicitudes -->
-  <script src="solicitudes.js"></script>
-
         <div style="display: flex; justify-content: space-between; padding: 12px 0;">
           <span>Promedio por Pago</span>
           <strong>${formatMoney(total / ((allPayments || []).length || 1))}</strong>
@@ -1550,3 +1547,7 @@
   </script>
 </body>
 </html>
+
+  <!-- Sistema de Solicitudes -->
+  <script src="solicitudes.js"></script>
+
