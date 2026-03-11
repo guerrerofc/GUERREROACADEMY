@@ -45,6 +45,11 @@
       display: grid;
       grid-template-columns: 260px 1fr;
       min-height: 100vh;
+      direction: ltr;
+    }
+    
+    .app > * {
+      direction: ltr;
     }
 
     @media (max-width: 1024px) {
@@ -820,8 +825,8 @@
     <!-- Sidebar Overlay (mobile) -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
+    <!-- Sidebar (PRIMERO en el DOM = IZQUIERDA) -->
+    <aside class="sidebar" id="sidebar" style="order: 1;">
       <div class="brand">
         <div class="logo">GA</div>
         <div class="brand-info">
@@ -874,8 +879,8 @@
       </div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="main">
+    <!-- Main Content (SEGUNDO = DERECHA) -->
+    <main class="main" style="order: 2;">
       <!-- ===== DASHBOARD VIEW ===== -->
       <div class="view active" id="view-dashboard">
         <div class="topbar">
