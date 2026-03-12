@@ -17,7 +17,7 @@ async function guardarSolicitudInscripcion(datos) {
   };
 
   try {
-    const { data, error } = await supabaseClient
+    const { data, error } = await sb
       .from('inscription_requests')
       .insert([payload])
       .select();
@@ -47,15 +47,15 @@ async function guardarSolicitudInscripcion(datos) {
 async function cargarSolicitudes(filtro = 'pending') {
   console.log(`📡 Cargando solicitudes con filtro: ${filtro}`);
   
-  // Verificar que supabaseClient exista
-  if (typeof supabaseClient === 'undefined') {
-    console.error('❌ supabaseClient no está definido');
+  // Verificar que sb exista
+  if (typeof sb === 'undefined') {
+    console.error('❌ sb no está definido');
     alert('Error: Supabase no está configurado correctamente');
     return [];
   }
 
   try {
-    let query = supabaseClient
+    let query = sb
       .from('inscription_requests')
       .select('*')
       .order('created_at', { ascending: false });
@@ -84,7 +84,7 @@ async function cargarSolicitudes(filtro = 'pending') {
 // Función para aprobar solicitud
 async function aprobarSolicitud(id) {
   try {
-    const { data, error } = await supabaseClient
+    const { data, error } = await sb
       .from('inscription_requests')
       .update({
         status: 'approved',
@@ -106,7 +106,7 @@ async function aprobarSolicitud(id) {
 // Función para rechazar solicitud
 async function rechazarSolicitud(id, razon = '') {
   try {
-    const { data, error } = await supabaseClient
+    const { data, error } = await sb
       .from('inscription_requests')
       .update({
         status: 'rejected',
@@ -215,7 +215,7 @@ async function aprobarYCrearJugador(solicitudId) {
 
   try {
     // 1. Obtener datos de la solicitud
-    const { data: solicitud, error: fetchError } = await supabaseClient
+    const { data: solicitud, error: fetchError } = await sb
       .from('inscription_requests')
       .select('*')
       .eq('id', solicitudId)
@@ -224,7 +224,7 @@ async function aprobarYCrearJugador(solicitudId) {
     if (fetchError) throw fetchError;
 
     // 2. Crear jugador en la tabla players
-    const { data: jugador, error: playerError } = await supabaseClient
+    const { data: jugador, error: playerError } = await sb
       .from('players')
       .insert([{
         nombre: solicitud.jugador_nombre,
