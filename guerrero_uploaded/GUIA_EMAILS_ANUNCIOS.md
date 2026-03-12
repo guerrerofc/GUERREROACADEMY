@@ -45,7 +45,7 @@ Para empezar, usa **Opción A** (más rápido).
 4. Añade:
    ```
    Name:  RESEND_API_KEY
-   Value: re_tu_api_key_aqui
+   Value: re_JfGK7vw5_AnaLJTPkWbcvCmVosBGDti8g
    ```
 
 ---

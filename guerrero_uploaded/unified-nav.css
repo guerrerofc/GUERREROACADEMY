@@ -1,0 +1,108 @@
+/* ==========================================
+   NAVEGACIÓN UNIFICADA - Guerrero Academy
+   ========================================== */
+
+/* Header unificado para todos los paneles */
+.unified-header {
+  background: var(--bg-secondary, #0A0A0A);
+  border-bottom: 1px solid var(--border, #222);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.unified-nav {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.unified-nav-link {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary, #A0A0A0);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.unified-nav-link:hover {
+  background: var(--bg-hover, #1A1A1A);
+  color: var(--text-primary, #FFF);
+}
+
+.unified-nav-link.active {
+  background: var(--accent, #8B5CF6);
+  color: white;
+}
+
+.unified-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--text-primary, #FFF);
+}
+
+.unified-logo-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #8B5CF6, #EC4899);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  color: white;
+}
+
+.unified-logo-text {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* User menu */
+.unified-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.unified-user-name {
+  font-size: 14px;
+  color: var(--text-primary, #FFF);
+  font-weight: 500;
+}
+
+.unified-logout {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--border, #222);
+  border-radius: 6px;
+  color: var(--text-secondary, #A0A0A0);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.unified-logout:hover {
+  background: var(--bg-hover, #1A1A1A);
+  color: var(--text-primary, #FFF);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .unified-nav {
+    display: none;
+  }
+  
+  .unified-header {
+    padding: 12px 16px;
+  }
+}
