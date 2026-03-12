@@ -78,9 +78,17 @@ function bindCategoryEvents() {
 }
 
 async function saveCategory() {
-  const sb = window.sb;
+  // Esperar a que sb esté disponible
+  let sb = window.sb;
+  let attempts = 0;
+  while (!sb && attempts < 10) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    sb = window.sb;
+    attempts++;
+  }
+
   if (!sb) {
-    alert('Error: Supabase no disponible');
+    alert('Error: Supabase no disponible después de esperar');
     return;
   }
 
@@ -124,9 +132,19 @@ async function saveCategory() {
 
 window.editCategory = async function(id) {
   console.log('✏️ Editando categoría:', id);
-  const sb = window.sb;
+  
+  // Esperar a que sb esté disponible
+  let sb = window.sb;
+  let attempts = 0;
+  while (!sb && attempts < 10) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    sb = window.sb;
+    attempts++;
+  }
+
   if (!sb) {
-    alert('Error: Supabase no disponible');
+    alert('Error: Supabase no disponible después de esperar');
+    console.error('window.sb sigue siendo undefined');
     return;
   }
   
@@ -154,9 +172,17 @@ window.deleteCategory = async function(id) {
   console.log('🗑️ Intentando eliminar categoría:', id);
   if (!confirm('¿Eliminar esta categoría? Los jugadores de esta categoría quedarán sin categoría asignada.')) return;
 
-  const sb = window.sb;
+  // Esperar a que sb esté disponible
+  let sb = window.sb;
+  let attempts = 0;
+  while (!sb && attempts < 10) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    sb = window.sb;
+    attempts++;
+  }
+
   if (!sb) {
-    alert('Error: Supabase no disponible');
+    alert('Error: Supabase no disponible después de esperar');
     return;
   }
 
@@ -178,11 +204,26 @@ window.deleteCategory = async function(id) {
 
 async function loadCategoryReports() {
   console.log('📊 Cargando reportes por categoría...');
-  const sb = window.sb;
+  
+  // Esperar a que sb esté disponible
+  let sb = window.sb;
+  let attempts = 0;
+  while (!sb && attempts < 10) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    sb = window.sb;
+    attempts++;
+  }
+
   if (!sb) {
-    console.error('❌ Supabase no disponible');
+    console.error('❌ Supabase no disponible después de esperar');
+    const container = document.getElementById('categoryReports');
+    if (container) {
+      container.innerHTML = '<div class="card"><p style="color: var(--danger);">Error: No se pudo conectar con Supabase</p></div>';
+    }
     return;
   }
+
+  console.log('✅ Supabase disponible, procediendo...');
 
   try {
     // Cargar todas las categorías
