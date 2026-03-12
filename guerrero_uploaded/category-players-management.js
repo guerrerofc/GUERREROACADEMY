@@ -109,9 +109,9 @@ async function loadCategoryPlayers(categoryId, categoryName) {
     // Obtener jugadores de la categoría
     const { data: players, error } = await sb
       .from('players')
-      .select('*, parents(name, email)')
+      .select('*')
       .eq('category_id', categoryId)
-      .order('name');
+      .order('nombre');
 
     if (error) throw error;
 
@@ -177,14 +177,14 @@ async function loadCategoryPlayers(categoryId, categoryName) {
           font-weight: 700; 
           font-size: 18px;
         ">
-          ${player.name ? player.name.charAt(0).toUpperCase() : '?'}
+          ${player.nombre ? player.nombre.charAt(0).toUpperCase() : '?'}
         </div>
         
         <div>
-          <div style="font-weight: 600; margin-bottom: 4px;">${player.name || 'Sin nombre'}</div>
+          <div style="font-weight: 600; margin-bottom: 4px;">${player.nombre || 'Sin nombre'}</div>
           <div style="font-size: 12px; color: var(--text-dim);">
             ${player.age ? `${player.age} años` : 'Edad no registrada'} • 
-            Padre: ${player.parents?.name || 'No asignado'}
+            Padre: ${player.tutor_nombre || 'No asignado'}
           </div>
         </div>
         
@@ -356,9 +356,9 @@ async function exportCategoryPlayers(categoryId, categoryName) {
   try {
     const { data: players, error } = await sb
       .from('players')
-      .select('name, age, parents(name, email, phone)')
+      .select('nombre, age, tutor_nombre, tutor_email, tutor_whatsapp')
       .eq('category_id', categoryId)
-      .order('name');
+      .order('nombre');
 
     if (error) throw error;
 
@@ -371,11 +371,11 @@ async function exportCategoryPlayers(categoryId, categoryName) {
     let csv = 'Nombre Jugador,Edad,Nombre Padre,Email Padre,Teléfono Padre\n';
     
     players.forEach(player => {
-      csv += `"${player.name || ''}",`;
+      csv += `"${player.nombre || ''}",`;
       csv += `"${player.age || ''}",`;
-      csv += `"${player.parents?.name || ''}",`;
-      csv += `"${player.parents?.email || ''}",`;
-      csv += `"${player.parents?.phone || ''}"\n`;
+      csv += `"${player.tutor_nombre || ''}",`;
+      csv += `"${player.tutor_email || ''}",`;
+      csv += `"${player.tutor_whatsapp || ''}"\n`;
     });
 
     // Descargar archivo
