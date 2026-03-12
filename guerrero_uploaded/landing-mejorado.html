@@ -335,6 +335,14 @@
                     <select class="select" id="fCategoria" required></select>
                     <div class="hint" id="fCupoHint">Cargando cupos…</div>
                   </div>
+
+                  <div class="field span-2" style="padding: 16px; background: rgba(216, 112, 147, 0.08); border-radius: 12px; border: 1px solid rgba(216, 112, 147, 0.2);">
+                    <label class="check" style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                      <input type="checkbox" id="fPortero" style="width: 20px; height: 20px; cursor: pointer;" />
+                      <span style="font-size: 16px; font-weight: 600;">🧤 ¿Es portero?</span>
+                    </label>
+                    <div class="hint" style="margin-top: 8px; margin-left: 32px;">Los porteros reciben entrenamiento especializado además de su categoría por edad</div>
+                  </div>
                 </div>
 
                 <div class="pro-actions two">
@@ -371,6 +379,10 @@
                   <div class="confirm-row">
                     <div class="confirm-k">Categoría</div>
                     <div class="confirm-v" id="cfCat">—</div>
+                  </div>
+                  <div class="confirm-row" id="cfPorteroRow" style="display: none;">
+                    <div class="confirm-k">Posición</div>
+                    <div class="confirm-v" style="color: #D87093; font-weight: 700;">🧤 Portero</div>
                   </div>
 
                   <div class="confirm-extra">
@@ -688,6 +700,76 @@
     }
   </script>
 
+  <!-- Script para manejo del formulario de inscripción -->
+  <script>
+    // Actualizar confirmación cuando cambia el checkbox de portero
+    const fPortero = document.getElementById('fPortero');
+    const cfPorteroRow = document.getElementById('cfPorteroRow');
+    
+    if (fPortero && cfPorteroRow) {
+      fPortero.addEventListener('change', () => {
+        if (fPortero.checked) {
+          cfPorteroRow.style.display = 'flex';
+        } else {
+          cfPorteroRow.style.display = 'none';
+        }
+      });
+    }
+
+    // Agregar campo de portero al envío del formulario
+    const formInscripcion = document.querySelector('form');
+    if (formInscripcion) {
+      formInscripcion.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const esPortero = document.getElementById('fPortero')?.checked || false;
+        const padre = document.getElementById('fTutor')?.value;
+        const whatsapp = document.getElementById('fWhatsapp')?.value;
+        const jugador = document.getElementById('fJugador')?.value;
+        const edad = parseInt(document.getElementById('fEdad')?.value);
+        const categoriaSelect = document.getElementById('fCategoria');
+        const categoria = categoriaSelect?.options[categoriaSelect.selectedIndex]?.text;
+        
+        if (!padre || !whatsapp || !jugador || !edad || !categoria) {
+          alert('Por favor completa todos los campos requeridos');
+          return;
+        }
+
+        const datos = {
+          padre,
+          whatsapp,
+          jugador,
+          edad,
+          categoria,
+          esPortero
+        };
+
+        try {
+          const resultado = await guardarSolicitudInscripcion(datos);
+          
+          if (resultado.success) {
+            // Mostrar mensaje de éxito
+            const inscSuccess = document.getElementById('inscSuccess');
+            if (inscSuccess) {
+              inscSuccess.style.display = 'block';
+              formInscripcion.style.display = 'none';
+            }
+            
+            // Opcional: Redirigir a WhatsApp
+            setTimeout(() => {
+              const mensaje = `Hola, acabo de enviar una solicitud de inscripción para ${jugador}${esPortero ? ' (Portero)' : ''}`;
+              window.open(`https://wa.me/18296396001?text=${encodeURIComponent(mensaje)}`, '_blank');
+            }, 2000);
+          } else {
+            alert('Hubo un error al enviar la solicitud. Por favor intenta de nuevo o contáctanos por WhatsApp.');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error al enviar la solicitud.');
+        }
+      });
+    }
+  </script>
 
   <a class="wa-float"
     href="https://wa.me/18296396001?text=Hola%20Guerrero%20Academy%20%E2%9A%BD%20quiero%20informaci%C3%B3n%20para%20inscribir."

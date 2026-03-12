@@ -5,7 +5,7 @@
 
 // Función para guardar solicitudes en la nueva tabla
 async function guardarSolicitudInscripcion(datos) {
-  const { padre, whatsapp, jugador, edad, categoria } = datos;
+  const { padre, whatsapp, jugador, edad, categoria, esPortero } = datos;
   
   const payload = {
     tutor_nombre: padre,
@@ -13,6 +13,7 @@ async function guardarSolicitudInscripcion(datos) {
     jugador_nombre: jugador,
     jugador_edad: edad,
     category_name: categoria,
+    es_portero: esPortero || false,
     status: 'pending'
   };
 
@@ -179,7 +180,7 @@ function renderizarTablaSolicitudes(solicitudes, contenedor) {
               </td>
               <td><strong>${s.jugador_nombre}</strong></td>
               <td>${s.jugador_edad} años</td>
-              <td>${s.category_name}</td>
+              <td>${s.category_name}${s.es_portero ? ' <span style="color: #D87093; font-weight: 700;">🧤 Portero</span>' : ''}</td>
               <td>
                 <span class="badge badge-${
                   s.status === 'pending' ? 'warning' : 
@@ -231,12 +232,13 @@ async function aprobarYCrearJugador(solicitudId) {
     }
 
     // 2. Crear jugador en la tabla players
-    const { data: jugador, error: playerError } = await sb
+    const { data: jugador, error: playerError} = await sb
       .from('players')
       .insert([{
         nombre: solicitud.jugador_nombre,
         tutor_nombre: solicitud.tutor_nombre,
         tutor_whatsapp: solicitud.tutor_whatsapp,
+        es_portero: solicitud.es_portero || false,
         status: 'activo'
       }])
       .select();
