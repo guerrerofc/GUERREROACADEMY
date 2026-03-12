@@ -136,10 +136,30 @@ input, select, textarea {
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2) !important;
 }
 
+.brand {
+  cursor: pointer !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.brand:hover {
+  transform: scale(1.02) !important;
+  opacity: 0.9 !important;
+}
+
+.brand:hover .logo img {
+  filter: drop-shadow(0 8px 16px rgba(216, 112, 147, 0.6)) !important;
+}
+
 .brand-name {
   font-size: 20px !important;
   font-weight: 800 !important;
   letter-spacing: -0.02em !important;
+}
+
+.brand-sub {
+  font-size: 12px !important;
+  opacity: 0.6 !important;
+  font-weight: 500 !important;
 }
 
 .nav a {
