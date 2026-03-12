@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="theme-color" content="#030305">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Guerrero Academy - Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  
+  <style>
+    :root {
+      --bg: #030305;
+      --bg-card: rgba(15, 15, 25, 0.8);
+      --bg-glass: rgba(255, 255, 255, 0.03);
+      --border: rgba(255, 255, 255, 0.06);
+      --border-glow: rgba(216, 112, 147, 0.3);
+      --text: #ffffff;
+      --text-dim: rgba(255, 255, 255, 0.6);
+      --text-muted: rgba(255, 255, 255, 0.4);
+      --accent: #D87093;
+      --accent-glow: rgba(216, 112, 147, 0.4);
+      --gradient: linear-gradient(135deg, #D87093, #9333ea);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse 800px 600px at 20% 20%, rgba(216, 112, 147, 0.08), transparent),
+        radial-gradient(ellipse 600px 400px at 80% 80%, rgba(147, 51, 234, 0.06), transparent);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .login-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 32px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .logo {
+      width: 120px;
+      height: 120px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 32px;
+    }
+
+    .logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 20px rgba(216, 112, 147, 0.4));
+    }
+
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 32px;
+      text-align: center;
+      margin-bottom: 12px;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .input {
+      width: 100%;
+      padding: 16px 18px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(216, 112, 147, 0.1);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 18px;
+      background: var(--gradient);
+      border: none;
+      border-radius: 16px;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 12px;
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: 0.5px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px var(--accent-glow);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      margin-top: 20px;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      margin-top: 16px;
+      display: none;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 24px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.3s ease;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 32px 24px;
+        border-radius: 24px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .logo {
+        width: 96px;
+        height: 96px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="logo">
+      <img src="assets/logo-guerrero.png" alt="Guerrero Academy">
+    </div>
+    <h1>Guerrero Academy</h1>
+    <p class="subtitle">Ingresa tus credenciales para acceder</p>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="email" class="input" placeholder="tu@email.com" required>
+      </div>
+
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="password" class="input" placeholder="••••••••" required>
+      </div>
+
+      <button type="submit" class="btn" id="btnLogin">
+        Iniciar Sesión
+      </button>
+
+      <div class="loading" id="loading">
+        <span class="spinner"></span>
+        Verificando credenciales...
+      </div>
+
+      <div class="error" id="error"></div>
+    </form>
+
+    <a href="landing-mejorado.html" class="back-link">← Volver al inicio</a>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://daijiuqqafvjofafwqck.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g";
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const form = document.getElementById('loginForm');
+    const btnLogin = document.getElementById('btnLogin');
+    const loading = document.getElementById('loading');
+    const errorDiv = document.getElementById('error');
+
+    function showError(message) {
+      errorDiv.textContent = message;
+      errorDiv.classList.add('show');
+    }
+
+    function hideError() {
+      errorDiv.classList.remove('show');
+    }
+
+    async function detectUserRole(userId, userEmail) {
+      console.log('🔍 Detectando rol del usuario:', userEmail);
+
+      // Verificar si es super admin (existe en auth.users con rol específico o email específico)
+      // Por ahora, verificamos si tiene acceso a ciertas tablas
+      
+      try {
+        // 1. Verificar si es padre (tiene registro en parents o players)
+        const { data: parentData, error: parentError } = await sb
+          .from('parents')
+          .select('id')
+          .eq('email', userEmail)
+          .single();
+
+        if (parentData && !parentError) {
+          console.log('✅ Usuario identificado como: PADRE');
+          return 'parent';
+        }
+
+        // 2. Verificar si es staff (existe en tabla staff o coaches)
+        const { data: staffData, error: staffError } = await sb
+          .from('staff')
+          .select('id')
+          .eq('email', userEmail)
+          .single();
+
+        if (staffData && !staffError) {
+          console.log('✅ Usuario identificado como: STAFF');
+          return 'staff';
+        }
+
+        // 3. Si no es ni padre ni staff, asumimos que es super admin
+        // También podríamos verificar metadata del usuario
+        const { data: { user } } = await sb.auth.getUser();
+        
+        // Si el usuario tiene metadata específico o permisos especiales
+        if (user && user.user_metadata && user.user_metadata.role === 'super_admin') {
+          console.log('✅ Usuario identificado como: SUPER ADMIN (metadata)');
+          return 'super_admin';
+        }
+
+        // Por defecto, si no está en parents ni staff, asumimos super admin
+        console.log('✅ Usuario identificado como: SUPER ADMIN (por defecto)');
+        return 'super_admin';
+
+      } catch (error) {
+        console.error('❌ Error detectando rol:', error);
+        // En caso de error, asumir super admin para no bloquear acceso
+        return 'super_admin';
+      }
+    }
+
+    function redirectToPanel(role) {
+      console.log('🚀 Redirigiendo a panel:', role);
+      
+      const panels = {
+        'parent': 'parent-panel.html',
+        'staff': 'staff-panel.html',
+        'super_admin': 'super-admin.html'
+      };
+
+      const targetPanel = panels[role] || 'super-admin.html';
+      
+      // Pequeña animación antes de redirigir
+      loading.innerHTML = '<span class="spinner"></span>¡Acceso concedido! Redirigiendo...';
+      
+      setTimeout(() => {
+        window.location.href = targetPanel;
+      }, 800);
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        showError('Por favor completa todos los campos');
+        return;
+      }
+
+      btnLogin.disabled = true;
+      loading.classList.add('show');
+
+      try {
+        console.log('🔐 Intentando login con:', email);
+
+        // Autenticar con Supabase
+        const { data, error } = await sb.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+
+        if (error) {
+          console.error('❌ Error de autenticación:', error);
+          throw new Error(error.message || 'Credenciales incorrectas');
+        }
+
+        if (!data.user) {
+          throw new Error('No se pudo obtener información del usuario');
+        }
+
+        console.log('✅ Autenticación exitosa');
+
+        // Detectar rol del usuario
+        const role = await detectUserRole(data.user.id, email);
+
+        // Redirigir al panel correspondiente
+        redirectToPanel(role);
+
+      } catch (error) {
+        console.error('❌ Error:', error);
+        
+        let errorMessage = 'Email o contraseña incorrectos';
+        
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'Email o contraseña incorrectos';
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'Por favor verifica tu email antes de iniciar sesión';
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        showError(errorMessage);
+        btnLogin.disabled = false;
+        loading.classList.remove('show');
+      }
+    });
+
+    // Verificar si ya hay sesión activa
+    (async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        console.log('🔄 Sesión activa detectada, redirigiendo...');
+        const role = await detectUserRole(session.user.id, session.user.email);
+        redirectToPanel(role);
+      }
+    })();
+  </script>
+</body>
+</html>
