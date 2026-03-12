@@ -323,3 +323,4 @@ window.categoriesReportsSystem = {
   init: initCategoriesAndReports,
   loadReports: loadCategoryReports
 };
+// Force redeploy
