@@ -145,29 +145,43 @@ function bindOfferEvents() {
       document.getElementById('offerEndDate').value = '';
       document.getElementById('offerIsActive').checked = true;
       window.selectedOfferPlayers = [];
-      renderSelectedPlayers();
+      document.getElementById('offerPlayerSearch').value = '';
+      document.getElementById('offerPlayerSearchResults').innerHTML = '';
+      document.getElementById('selectedPlayersList').innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">Ningún jugador seleccionado</p>';
       openModal('offerModal');
+      
+      // Vincular evento del checkbox DESPUÉS de abrir el modal
+      setTimeout(() => {
+        const checkbox = document.getElementById('offerAssignPlayers');
+        if (checkbox) {
+          // Remover listeners previos clonando el elemento
+          const newCheckbox = checkbox.cloneNode(true);
+          checkbox.parentNode.replaceChild(newCheckbox, checkbox);
+          
+          newCheckbox.addEventListener('change', function(e) {
+            console.log('Checkbox changed:', e.target.checked);
+            const section = document.getElementById('playerAssignmentSection');
+            if (section) {
+              section.style.display = e.target.checked ? 'block' : 'none';
+              console.log('Section display:', section.style.display);
+            }
+          });
+        }
+        
+        // Vincular búsqueda de jugadores
+        const searchInput = document.getElementById('offerPlayerSearch');
+        if (searchInput) {
+          const newSearchInput = searchInput.cloneNode(true);
+          searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+          newSearchInput.addEventListener('input', searchPlayersForOffer);
+        }
+      }, 100);
     });
   }
 
   const saveOfferBtn = document.getElementById('saveOffer');
   if (saveOfferBtn) {
     saveOfferBtn.addEventListener('click', saveOffer);
-  }
-
-  // Toggle de asignación de jugadores
-  const assignCheckbox = document.getElementById('offerAssignPlayers');
-  if (assignCheckbox) {
-    assignCheckbox.addEventListener('change', (e) => {
-      document.getElementById('playerAssignmentSection').style.display = 
-        e.target.checked ? 'block' : 'none';
-    });
-  }
-
-  // Búsqueda de jugadores
-  const searchInput = document.getElementById('offerPlayerSearch');
-  if (searchInput) {
-    searchInput.addEventListener('input', searchPlayersForOffer);
   }
 }
 
