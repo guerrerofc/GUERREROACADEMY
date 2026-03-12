@@ -1224,6 +1224,61 @@
     </div>
   </div>
 
+  <!-- MODAL: USUARIOS -->
+  <div class="modal" id="userModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="userModalTitle">Nuevo Usuario</h3>
+        <button class="btn btn-sm" onclick="closeModal('userModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editUserId">
+        
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" id="userEmail" class="input" placeholder="usuario@email.com" required>
+        </div>
+
+        <div class="form-group">
+          <label>Nombre Completo *</label>
+          <input type="text" id="userName" class="input" placeholder="Juan Pérez" required>
+        </div>
+
+        <div class="form-group" id="passwordGroup">
+          <label>Contraseña * <span style="font-size: 11px; color: var(--text-muted);">(mínimo 6 caracteres)</span></label>
+          <input type="password" id="userPassword" class="input" placeholder="••••••••" minlength="6">
+        </div>
+
+        <div class="form-group">
+          <label>Rol / Tipo de Usuario *</label>
+          <select id="userRole" class="input">
+            <option value="">Selecciona un rol...</option>
+            <option value="super_admin">🔐 Super Admin (acceso total)</option>
+            <option value="staff">👨‍🏫 Staff/Coach (asistencia y gestión)</option>
+            <option value="parent">👨‍👩‍👧 Padre (consulta y pagos)</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="phoneGroup" style="display:none;">
+          <label>Teléfono</label>
+          <input type="tel" id="userPhone" class="input" placeholder="+1 829-XXX-XXXX">
+        </div>
+
+        <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-top: 16px;">
+          <p style="font-size: 12px; color: var(--text-dim); line-height: 1.6;">
+            <strong>Nota:</strong> El usuario recibirá un email de confirmación. 
+            Si es <strong>Padre</strong>, también puedes asignarle jugadores después. 
+            Si es <strong>Staff</strong>, tendrá acceso al panel de asistencia.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('userModal')">Cancelar</button>
+        <button class="btn btn-primary" id="saveUser">Crear Usuario</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = "https://daijiuqqafvjofafwqck.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g";
@@ -1326,7 +1381,7 @@
       if (view === 'payments') loadPayments();
       if (view === 'morosos') loadMorosos();
       if (view === 'attendance') loadAttendanceView();
-      if (view === 'users') loadUsers();
+      if (view === 'users' && window.usersManagement) window.usersManagement.load();
       if (view === 'announcements') loadAnnouncements();
       if (view === 'reports') loadReports();
       if (view === 'offers' && window.offersSystem) window.offersSystem.load();
@@ -1876,6 +1931,7 @@
 
   <!-- Sistema de Categorías y Reportes -->
   <script src="categories-reports-system.js"></script>
+  <script src="users-management.js"></script>
 
   <!-- Inicializar nuevos sistemas -->
   <script>
@@ -1894,6 +1950,9 @@
         }
         if (window.categoriesReportsSystem) {
           window.categoriesReportsSystem.init();
+        }
+        if (window.usersManagement) {
+          window.usersManagement.init();
         }
       }, 500);
     });
