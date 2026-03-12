@@ -769,6 +769,8 @@
           <select id="roleSwitcher" class="input" style="width: 100%; font-size: 13px;">
             <option value="super_admin">🔐 Super Admin</option>
             <option value="director">👔 Director</option>
+            <option value="staff">👨‍🏫 Staff / Coach</option>
+            <option value="parent">👨‍👩‍👧 Padre</option>
           </select>
           <p style="font-size: 11px; color: var(--text-dim); margin-top: 8px; line-height: 1.4;">
             Cambia entre vistas para previsualizar permisos
@@ -1382,11 +1384,29 @@
       roleSwitcher.addEventListener('change', (e) => {
         const selectedRole = e.target.value;
         
-        if (selectedRole === 'director') {
-          // Redirigir al panel de director
-          if (confirm('¿Quieres ver el panel como Director?\n\nSe abrirá en una nueva pestaña.')) {
-            window.open('director-panel.html', '_blank');
+        if (selectedRole !== 'super_admin') {
+          let panelUrl = '';
+          let panelName = '';
+          
+          switch(selectedRole) {
+            case 'director':
+              panelUrl = 'director-panel.html';
+              panelName = 'Director';
+              break;
+            case 'staff':
+              panelUrl = 'staff-panel.html';
+              panelName = 'Staff';
+              break;
+            case 'parent':
+              panelUrl = 'parent-panel.html';
+              panelName = 'Padre';
+              break;
           }
+          
+          if (panelUrl && confirm(`¿Quieres ver el panel como ${panelName}?\n\nSe abrirá en una nueva pestaña.`)) {
+            window.open(panelUrl, '_blank');
+          }
+          
           // Resetear el selector
           roleSwitcher.value = 'super_admin';
         }
