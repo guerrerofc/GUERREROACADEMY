@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#030305">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Guerrero Academy - Super Admin</title>
+  <title>Guerrero Academy - Director</title>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="dark-theme.css">
@@ -696,7 +696,7 @@
       <div class="logo">
         <img src="assets/logo-guerrero.png" alt="Guerrero Academy Logo">
       </div>
-      <h1>Super Admin</h1>
+      <h1>Director</h1>
       <p>Panel de control total de la academia</p>
 
       <div class="form-group">
@@ -725,7 +725,7 @@
         </div>
         <div class="brand-text">
           <h1>Guerrero Academy</h1>
-          <span>Super Admin</span>
+          <span>Director</span>
         </div>
       </div>
 
@@ -759,7 +759,7 @@
           <div class="avatar" id="userAvatar">A</div>
           <div class="user-details">
             <strong id="userName">Admin</strong>
-            <span>Super Administrador</span>
+            <span>Directoristrador</span>
           </div>
         </div>
         <button class="btn-logout" id="btnLogout">Cerrar Sesión</button>
@@ -1253,8 +1253,7 @@
           <label>Rol / Tipo de Usuario *</label>
           <select id="newUserRole" class="input">
             <option value="">Selecciona un rol...</option>
-            <option value="super_admin">🔐 Super Admin (acceso total)</option>
-            <option value="director">👔 Director/Gerente (gestión completa sin crear admins)</option>
+            <option value="super_admin">🔐 Director (acceso total)</option>
             <option value="staff">👨‍🏫 Staff/Coach (asistencia y gestión)</option>
             <option value="parent">👨‍👩‍👧 Padre (consulta y pagos)</option>
           </select>
@@ -1933,6 +1932,7 @@
   <!-- Sistema de Categorías y Reportes -->
   <script src="categories-reports-system.js"></script>
   <script src="users-management.js"></script>
+  <script src="director-restrictions.js"></script>
 
   <!-- Inicializar nuevos sistemas -->
   <script>

@@ -284,12 +284,9 @@
 
     async function detectUserRole(userId, userEmail) {
       console.log('🔍 Detectando rol del usuario:', userEmail);
-
-      // Verificar si es super admin (existe en auth.users con rol específico o email específico)
-      // Por ahora, verificamos si tiene acceso a ciertas tablas
       
       try {
-        // 1. Verificar si es padre (tiene registro en parents o players)
+        // 1. Verificar si es padre (tiene registro en parents)
         const { data: parentData, error: parentError } = await sb
           .from('parents')
           .select('id')
@@ -301,7 +298,7 @@
           return 'parent';
         }
 
-        // 2. Verificar si es staff (existe en tabla staff o coaches)
+        // 2. Verificar si es staff (existe en tabla staff)
         const { data: staffData, error: staffError } = await sb
           .from('staff')
           .select('id')
@@ -313,23 +310,32 @@
           return 'staff';
         }
 
-        // 3. Si no es ni padre ni staff, asumimos que es super admin
-        // También podríamos verificar metadata del usuario
+        // 3. Verificar si es director (existe en tabla directors)
+        const { data: directorData, error: directorError } = await sb
+          .from('directors')
+          .select('id')
+          .eq('email', userEmail)
+          .single();
+
+        if (directorData && !directorError) {
+          console.log('✅ Usuario identificado como: DIRECTOR');
+          return 'director';
+        }
+
+        // 4. Si no es ni padre ni staff ni director, asumimos que es super admin
         const { data: { user } } = await sb.auth.getUser();
         
-        // Si el usuario tiene metadata específico o permisos especiales
         if (user && user.user_metadata && user.user_metadata.role === 'super_admin') {
           console.log('✅ Usuario identificado como: SUPER ADMIN (metadata)');
           return 'super_admin';
         }
 
-        // Por defecto, si no está en parents ni staff, asumimos super admin
+        // Por defecto, si no está en ninguna tabla, asumimos super admin
         console.log('✅ Usuario identificado como: SUPER ADMIN (por defecto)');
         return 'super_admin';
 
       } catch (error) {
         console.error('❌ Error detectando rol:', error);
-        // En caso de error, asumir super admin para no bloquear acceso
         return 'super_admin';
       }
     }
@@ -340,6 +346,7 @@
       const panels = {
         'parent': 'parent-panel.html',
         'staff': 'staff-panel.html',
+        'director': 'director-panel.html',
         'super_admin': 'super-admin.html'
       };
 

@@ -114,7 +114,27 @@ async function loadUsers() {
       });
     }
 
-    // 3. Super admins (estos solo están en auth, los detectamos por exclusión)
+    // 3. Cargar directores
+    const { data: directors, error: directorsError } = await sb
+      .from('directors')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (directors && !directorsError) {
+      directors.forEach(director => {
+        usersData.push({
+          id: director.id,
+          email: director.email,
+          name: director.name || 'Sin nombre',
+          role: 'director',
+          roleLabel: '👔 Director',
+          status: 'Activo',
+          source: 'directors'
+        });
+      });
+    }
+
+    // 4. Super admins (estos solo están en auth, los detectamos por exclusión)
     // Por ahora, mostraremos un mensaje si no hay usuarios
     
     if (usersData.length === 0) {
@@ -374,6 +394,19 @@ async function createUser(email, password, name, role, phone) {
     if (staffError) {
       console.error('❌ Error creando registro en staff:', staffError);
       throw new Error('Usuario creado pero error al guardar datos de staff: ' + staffError.message);
+    }
+  } else if (role === 'director') {
+    const { error: directorError } = await sb.from('directors').insert({
+      id: authData.user.id,
+      email: email,
+      name: name,
+      phone: phone || null,
+      created_at: new Date().toISOString()
+    });
+
+    if (directorError) {
+      console.error('❌ Error creando registro en directors:', directorError);
+      throw new Error('Usuario creado pero error al guardar datos de director: ' + directorError.message);
     }
   }
   // Si es super_admin, no necesita registro en otra tabla
