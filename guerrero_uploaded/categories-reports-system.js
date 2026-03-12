@@ -33,6 +33,18 @@ function addCategoryModal() {
             <textarea id="categoryDescription" class="input" rows="2" placeholder="Descripción opcional..."></textarea>
           </div>
 
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label>Edad Mínima</label>
+              <input type="number" id="categoryAgeMin" class="input" placeholder="8" min="1" max="99">
+            </div>
+
+            <div class="form-group">
+              <label>Edad Máxima</label>
+              <input type="number" id="categoryAgeMax" class="input" placeholder="10" min="1" max="99">
+            </div>
+          </div>
+
           <div class="form-group">
             <label>Cupo Máximo</label>
             <input type="number" id="categoryMaxPlayers" class="input" placeholder="30" min="1">
@@ -62,6 +74,8 @@ function bindCategoryEvents() {
       document.getElementById('editCategoryId').value = '';
       document.getElementById('categoryName').value = '';
       document.getElementById('categoryDescription').value = '';
+      document.getElementById('categoryAgeMin').value = '';
+      document.getElementById('categoryAgeMax').value = '';
       document.getElementById('categoryMaxPlayers').value = '30';
       document.getElementById('categoryColor').value = '#D87093';
       openModal('categoryModal');
@@ -95,6 +109,8 @@ async function saveCategory() {
   const id = document.getElementById('editCategoryId').value;
   const name = document.getElementById('categoryName').value.trim();
   const description = document.getElementById('categoryDescription').value.trim();
+  const ageMin = parseInt(document.getElementById('categoryAgeMin').value) || null;
+  const ageMax = parseInt(document.getElementById('categoryAgeMax').value) || null;
   const maxPlayers = parseInt(document.getElementById('categoryMaxPlayers').value) || 30;
   const color = document.getElementById('categoryColor').value;
 
@@ -103,9 +119,23 @@ async function saveCategory() {
     return;
   }
 
+  // Validar que si se proporciona edad mínima, también se proporcione edad máxima
+  if ((ageMin && !ageMax) || (!ageMin && ageMax)) {
+    alert('Si ingresas edad mínima, debes ingresar también edad máxima (y viceversa)');
+    return;
+  }
+
+  // Validar que edad mínima sea menor que edad máxima
+  if (ageMin && ageMax && ageMin >= ageMax) {
+    alert('La edad mínima debe ser menor que la edad máxima');
+    return;
+  }
+
   const data = {
     name,
     description,
+    age_min: ageMin,
+    age_max: ageMax,
     max_players: maxPlayers,
     color
   };
@@ -162,6 +192,8 @@ window.editCategory = async function(id) {
   document.getElementById('editCategoryId').value = category.id;
   document.getElementById('categoryName').value = category.name || '';
   document.getElementById('categoryDescription').value = category.description || '';
+  document.getElementById('categoryAgeMin').value = category.age_min || '';
+  document.getElementById('categoryAgeMax').value = category.age_max || '';
   document.getElementById('categoryMaxPlayers').value = category.max_players || 30;
   document.getElementById('categoryColor').value = category.color || '#D87093';
   
