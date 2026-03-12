@@ -86,14 +86,16 @@
     .logo {
       width: 52px;
       height: 52px;
-      border-radius: 16px;
-      background: var(--gradient);
       display: grid;
       place-items: center;
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      font-size: 18px;
-      box-shadow: 0 8px 32px var(--accent-glow);
+      position: relative;
+    }
+
+    .logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 12px rgba(216, 112, 147, 0.3));
     }
 
     .brand-text h1 { font-size: 16px; }
@@ -326,7 +328,9 @@
   <!-- LOGIN -->
   <div id="loginView" class="login-wrap">
     <div class="login-card">
-      <div class="logo">GA</div>
+      <div class="logo">
+        <img src="assets/logo-guerrero.png" alt="Guerrero Academy">
+      </div>
       <h1>Panel Staff</h1>
       <p>Acceso para coaches y asistentes</p>
 
@@ -351,7 +355,9 @@
 
     <aside class="sidebar" id="sidebar">
       <div class="brand">
-        <div class="logo">GA</div>
+        <div class="logo">
+          <img src="assets/logo-guerrero.png" alt="Guerrero Academy">
+        </div>
         <div class="brand-text">
           <h1>Guerrero Academy</h1>
           <span>Panel Staff</span>
