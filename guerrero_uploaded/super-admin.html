@@ -1331,6 +1331,10 @@
 
     function openModal(id) { $(id).classList.add('show'); }
     function closeModal(id) { $(id).classList.remove('show'); }
+    
+    // Exponer funciones globalmente para módulos externos
+    window.openModal = openModal;
+    window.closeModal = closeModal;
 
     // Auth
     async function checkAuth() {
@@ -1419,6 +1423,9 @@
       if (view === 'fees' && window.feesSystem) window.feesSystem.loadCategory();
       if (view === 'coupons' && window.couponsSystem) window.couponsSystem.load();
     }
+    
+    // Exponer showView globalmente
+    window.showView = showView;
 
     // Mobile
     document.querySelectorAll('.mobile-menu').forEach(btn => {
@@ -1796,12 +1803,17 @@
     });
 
     // Morosos
-    async function loadMorosos() {
+    async function loadMorosos(filterCategoryId = null) {
       const currentMonth = monthISO();
       const { data: payments } = await sb.from('payments').select('player_id').eq('month', currentMonth).eq('status', 'paid');
       const paidIds = new Set((payments || []).map(p => p.player_id));
 
-      const morosos = players.filter(p => p.status === 'activo' && !paidIds.has(p.id));
+      let morosos = players.filter(p => p.status === 'activo' && !paidIds.has(p.id));
+      
+      // Filtrar por categoría si se especifica
+      if (filterCategoryId) {
+        morosos = morosos.filter(p => p.category_id === filterCategoryId);
+      }
 
       $('morososTable').innerHTML = morosos.map(p => `
         <tr>
@@ -1816,6 +1828,9 @@
         </tr>
       `).join('') || '<tr><td colspan="6" style="text-align: center;">¡Sin morosos! 🎉</td></tr>';
     }
+    
+    // Exponer loadMorosos globalmente
+    window.loadMorosos = loadMorosos;
 
     // Attendance
     async function loadAttendanceView() {

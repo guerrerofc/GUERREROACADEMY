@@ -329,8 +329,21 @@ function bindCategoryActions(categoryId, categoryName) {
 // ENVIAR ANUNCIO A PADRES DE CATEGORÍA
 // ========================================
 async function sendCategoryAnnouncement(categoryId, categoryName) {
-  alert(`📢 Función de anuncio para ${categoryName}\n\nEsta función abrirá el modal de anuncios con los padres de esta categoría pre-seleccionados.`);
-  // TODO: Implementar integración con sistema de anuncios
+  console.log(`📢 Abriendo modal de anuncios para ${categoryName}`);
+  
+  // Cerrar modal de jugadores
+  if (window.closeModal) {
+    window.closeModal('categoryPlayersModal');
+  }
+  
+  // Abrir modal de anuncios
+  if (window.openModal) {
+    window.openModal('announcementModal');
+  } else {
+    alert('Error: Sistema de anuncios no disponible');
+  }
+  
+  // TODO: Pre-seleccionar padres de esta categoría
 }
 
 // ========================================
@@ -390,8 +403,24 @@ async function exportCategoryPlayers(categoryId, categoryName) {
 // VER MOROSOS DE CATEGORÍA
 // ========================================
 async function viewCategoryMorosos(categoryId, categoryName) {
-  alert(`⚠️ Morosos de ${categoryName}\n\nEsta función mostrará los jugadores de esta categoría con pagos pendientes.`);
-  // TODO: Implementar vista de morosos filtrada
+  console.log(`⚠️ Mostrando morosos de ${categoryName}`);
+  
+  // Cerrar modal de jugadores
+  if (window.closeModal) {
+    window.closeModal('categoryPlayersModal');
+  }
+  
+  // Cambiar a vista de morosos
+  if (window.showView) {
+    window.showView('morosos');
+  }
+  
+  // Cargar morosos filtrados por categoría
+  if (window.loadMorosos) {
+    await window.loadMorosos(categoryId);
+  } else {
+    alert('Error: Sistema de morosos no disponible');
+  }
 }
 
 // ========================================
@@ -399,10 +428,18 @@ async function viewCategoryMorosos(categoryId, categoryName) {
 // ========================================
 window.viewPlayerDetail = function(playerId) {
   console.log('Ver detalle de jugador:', playerId);
-  // Cerrar modal actual y abrir modal de jugador
-  closeModal('categoryPlayersModal');
-  // TODO: Abrir modal de edición de jugador existente
-  alert('Función de detalle de jugador - se integrará con el sistema existente');
+  
+  // Cerrar modal actual
+  if (window.closeModal) {
+    window.closeModal('categoryPlayersModal');
+  }
+  
+  // Abrir modal de edición de jugador
+  if (window.editPlayer) {
+    window.editPlayer(playerId);
+  } else {
+    alert('Error: Sistema de edición de jugadores no disponible');
+  }
 };
 
 console.log('✅ Módulo de jugadores por categoría listo');
