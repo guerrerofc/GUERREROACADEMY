@@ -992,6 +992,10 @@
     let charts = {};
     let selectedPaymentPlayer = null;
 
+    // Hacer disponibles globalmente para módulos externos
+    window.players = players;
+    window.categories = categories;
+
     function $(id) { return document.getElementById(id); }
     function $$(sel) { return document.querySelectorAll(sel); }
 
@@ -1101,6 +1105,10 @@
       categories = catsRes.data || [];
       players = playersRes.data || [];
       const payments = paymentsRes.data || [];
+
+      // Actualizar variables globales
+      window.categories = categories;
+      window.players = players;
 
       const activePlayers = players.filter(p => p.status === 'activo' || p.status === 'becado');
       const revenue = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
@@ -1284,7 +1292,7 @@
     });
 
     // Categories
-    async function loadCategories() {
+    window.loadCategories = async function loadCategories() {
       const cuposRes = await sb.from('cupos').select('categoria, cupo_total');
       const cupoMap = {};
       (cuposRes.data || []).forEach(c => cupoMap[c.categoria] = c.cupo_total || 30);

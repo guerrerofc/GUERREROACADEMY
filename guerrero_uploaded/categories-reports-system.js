@@ -122,8 +122,8 @@ async function saveCategory() {
     closeModal('categoryModal');
     alert('✅ Categoría guardada correctamente');
     
-    // Recargar categorías
-    location.reload();
+    // Recargar solo la vista de categorías sin reload completo
+    await loadCategoriesView();
   } catch (error) {
     alert('Error al guardar categoría: ' + error.message);
     console.error(error);
@@ -195,7 +195,7 @@ window.deleteCategory = async function(id) {
   }
 
   alert('✅ Categoría eliminada');
-  location.reload();
+  await loadCategoriesView();
 };
 
 // ========================================
@@ -357,6 +357,51 @@ function renderCategoryReports(reports) {
 
   container.innerHTML = html;
   console.log('✅ Reportes renderizados correctamente en el DOM');
+}
+
+// ========================================
+// FUNCIÓN PARA RECARGAR VISTA DE CATEGORÍAS
+// ========================================
+async function loadCategoriesView() {
+  console.log('🔄 Recargando vista de categorías...');
+  
+  const sb = window.sb;
+  if (!sb) {
+    console.error('❌ Supabase no disponible');
+    return;
+  }
+
+  try {
+    // Recargar categorías desde la base de datos
+    const { data: newCategories, error } = await sb.from('categories').select('*').order('name');
+    if (error) throw error;
+    
+    // Actualizar la variable global de categorías (si existe)
+    if (window.categories !== undefined) {
+      window.categories = newCategories || [];
+    }
+    
+    // Recargar jugadores para tener los datos actualizados
+    const { data: newPlayers } = await sb.from('players').select('*, categories(name)');
+    if (window.players !== undefined) {
+      window.players = newPlayers || [];
+    }
+    
+    // Llamar a la función loadCategories del archivo principal
+    if (typeof window.loadCategories === 'function') {
+      await window.loadCategories();
+    } else if (typeof loadCategories === 'function') {
+      await loadCategories();
+    } else {
+      console.warn('⚠️ Función loadCategories no disponible, recargando página...');
+      location.reload();
+    }
+    
+    console.log('✅ Vista de categorías recargada');
+  } catch (error) {
+    console.error('❌ Error recargando categorías:', error);
+    alert('Error al recargar categorías: ' + error.message);
+  }
 }
 
 // Exportar
