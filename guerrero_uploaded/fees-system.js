@@ -148,7 +148,10 @@ function bindFeeEvents() {
 }
 
 async function loadCategoryFees() {
-  const sb = window.sb;
+  const sb = window.sb || window.supabase?.createClient(
+    window.SUPABASE_URL || "https://daijiuqqafvjofafwqck.supabase.co",
+    window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g"
+  );
   if (!sb) return;
 
   try {
@@ -190,7 +193,10 @@ async function loadCategoryFees() {
 }
 
 async function saveCategoryFees() {
-  const sb = window.sb;
+  const sb = window.sb || window.supabase?.createClient(
+    window.SUPABASE_URL || "https://daijiuqqafvjofafwqck.supabase.co",
+    window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g"
+  );
   const inputs = document.querySelectorAll('#categoryFeesList input[data-category-id]');
   
   const btn = document.getElementById('saveCategoryFees');
@@ -229,7 +235,10 @@ async function saveCategoryFees() {
 }
 
 async function loadCustomFees() {
-  const sb = window.sb;
+  const sb = window.sb || window.supabase?.createClient(
+    window.SUPABASE_URL || "https://daijiuqqafvjofafwqck.supabase.co",
+    window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g"
+  );
   if (!sb) return;
 
   try {
@@ -284,7 +293,10 @@ async function loadCustomFees() {
 }
 
 async function searchPlayersForFee() {
-  const sb = window.sb;
+  const sb = window.sb || window.supabase?.createClient(
+    window.SUPABASE_URL || "https://daijiuqqafvjofafwqck.supabase.co",
+    window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g"
+  );
   const query = document.getElementById('feePlayerSearch').value.toLowerCase();
   
   if (query.length < 2) {
@@ -322,7 +334,10 @@ async function saveCustomFee() {
     return;
   }
 
-  const sb = window.sb;
+  const sb = window.sb || window.supabase?.createClient(
+    window.SUPABASE_URL || "https://daijiuqqafvjofafwqck.supabase.co",
+    window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g"
+  );
   const amount = parseFloat(document.getElementById('customFeeAmount').value);
   const reason = document.getElementById('customFeeReason').value.trim();
   const startDate = document.getElementById('customFeeStartDate').value;
@@ -359,7 +374,10 @@ async function saveCustomFee() {
 window.deactivateCustomFee = async function(id) {
   if (!confirm('¿Desactivar esta cuota personalizada? El jugador volverá a la cuota de su categoría.')) return;
 
-  const sb = window.sb;
+  const sb = window.sb || window.supabase?.createClient(
+    window.SUPABASE_URL || "https://daijiuqqafvjofafwqck.supabase.co",
+    window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g"
+  );
   const { error } = await sb
     .from('player_custom_fees')
     .update({ is_active: false })

@@ -139,7 +139,11 @@ function bindOfferEvents() {
 }
 
 async function loadOffers() {
-  const sb = window.sb;
+  const sb = window.sb || window.supabase?.createClient(
+    window.SUPABASE_URL || "https://daijiuqqafvjofafwqck.supabase.co",
+    window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g"
+  );
+  
   if (!sb) {
     console.error('Supabase client no disponible');
     return;
@@ -213,7 +217,10 @@ function renderOffers(offers) {
 }
 
 window.editOffer = async function(id) {
-  const sb = window.sb;
+  const sb = window.sb || window.supabase?.createClient(
+    window.SUPABASE_URL || "https://daijiuqqafvjofafwqck.supabase.co",
+    window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g"
+  );
   const { data: offer, error } = await sb.from('offers').select('*').eq('id', id).single();
   
   if (error || !offer) {
@@ -238,7 +245,10 @@ window.editOffer = async function(id) {
 window.deleteOffer = async function(id) {
   if (!confirm('¿Eliminar esta oferta?')) return;
 
-  const sb = window.sb;
+  const sb = window.sb || window.supabase?.createClient(
+    window.SUPABASE_URL || "https://daijiuqqafvjofafwqck.supabase.co",
+    window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g"
+  );
   const { error } = await sb.from('offers').delete().eq('id', id);
 
   if (error) {
@@ -250,7 +260,16 @@ window.deleteOffer = async function(id) {
 };
 
 async function saveOffer() {
-  const sb = window.sb;
+  const sb = window.sb || window.supabase?.createClient(
+    window.SUPABASE_URL || "https://daijiuqqafvjofafwqck.supabase.co",
+    window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g"
+  );
+  
+  if (!sb) {
+    alert('Error: Cliente de Supabase no disponible');
+    return;
+  }
+  
   const id = document.getElementById('editOfferId').value;
   const title = document.getElementById('offerTitle').value.trim();
   const description = document.getElementById('offerDescription').value.trim();
