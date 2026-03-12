@@ -1,62 +1,88 @@
 /* ==========================================
-   LANDING PAGE - PROFESSIONAL REFINEMENT
-   Keep colors, improve typography & spacing
+   LANDING PAGE - MEJORAS ESTÉTICAS
+   Diseño más bonito y moderno
    ========================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* Better typography */
+/* Mejor tipografía */
 body {
   font-family: 'Inter', -apple-system, sans-serif !important;
   letter-spacing: -0.01em !important;
 }
 
-/* Hero section - more professional */
+/* Hero más impactante */
 .hero {
-  padding: 100px 20px !important;
+  padding: 120px 20px 80px !important;
+  background: 
+    radial-gradient(ellipse 800px 400px at 50% 0%, rgba(216, 112, 147, 0.12), transparent),
+    radial-gradient(ellipse 600px 300px at 80% 100%, rgba(147, 51, 234, 0.08), transparent) !important;
 }
 
-.hero-title {
-  font-size: 52px !important;
-  font-weight: 700 !important;
-  letter-spacing: -0.02em !important;
+.hero h1 {
+  font-size: clamp(42px, 7vw, 72px) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
   line-height: 1.1 !important;
+  margin-bottom: 24px !important;
 }
 
-.hero-subtitle {
-  font-size: 18px !important;
+.hero .lead {
+  font-size: clamp(17px, 2.5vw, 20px) !important;
   font-weight: 400 !important;
-  line-height: 1.6 !important;
-  margin-top: 16px !important;
+  line-height: 1.7 !important;
+  margin-top: 20px !important;
+  opacity: 0.85 !important;
 }
 
-/* Section titles */
+/* Títulos de sección más bonitos */
+.section-head h2,
 .section-title {
-  font-size: 36px !important;
-  font-weight: 700 !important;
-  letter-spacing: -0.02em !important;
+  font-size: clamp(32px, 5vw, 48px) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+  margin-bottom: 16px !important;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.7) 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+.section-head p {
+  font-size: 18px !important;
+  opacity: 0.8 !important;
   margin-bottom: 48px !important;
 }
 
-/* Feature cards - cleaner */
-.feature-card {
-  border-radius: 12px !important;
+/* Cards más bonitas */
+.feature-card,
+.benefit-card {
+  border-radius: 16px !important;
   padding: 32px !important;
   backdrop-filter: blur(20px) !important;
-  transition: all 0.3s !important;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(20, 20, 30, 0.5) !important;
+}
+
+.feature-card:hover,
+.benefit-card:hover {
+  transform: translateY(-8px) !important;
+  border-color: rgba(216, 112, 147, 0.3) !important;
+  box-shadow: 0 20px 60px rgba(216, 112, 147, 0.2) !important;
 }
 
 .feature-title {
-  font-size: 20px !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.01em !important;
-  margin: 16px 0 8px !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  margin: 20px 0 12px !important;
 }
 
 .feature-text {
-  font-size: 14px !important;
-  line-height: 1.6 !important;
-  opacity: 0.8 !important;
+  font-size: 15px !important;
+  line-height: 1.7 !important;
+  opacity: 0.85 !important;
 }
 
 /* Form section - more professional */
@@ -82,21 +108,93 @@ input, select, textarea {
   backdrop-filter: blur(10px) !important;
 }
 
-/* Buttons - more professional */
+/* Botones más bonitos */
 .cta-button,
+.btn-primary,
 .btn {
-  padding: 14px 28px !important;
-  border-radius: 8px !important;
-  font-size: 15px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.01em !important;
-  transition: all 0.2s !important;
+  padding: 16px 32px !important;
+  border-radius: 12px !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 8px 24px rgba(216, 112, 147, 0.25) !important;
 }
 
-/* Remove game-like animations */
-.glow,
-.pulse {
-  animation: none !important;
+.cta-button:hover,
+.btn-primary:hover,
+.btn:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 12px 40px rgba(216, 112, 147, 0.35) !important;
+}
+
+/* Topbar más bonito */
+.topbar {
+  backdrop-filter: blur(20px) !important;
+  background: rgba(10, 10, 15, 0.85) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2) !important;
+}
+
+.brand-name {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.nav a {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s !important;
+}
+
+.nav a:hover {
+  color: var(--accent) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Categorías más bonitas */
+.cat {
+  border-radius: 16px !important;
+  padding: 24px !important;
+  backdrop-filter: blur(20px) !important;
+  background: rgba(20, 20, 30, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.cat:hover {
+  transform: translateY(-6px) !important;
+  border-color: rgba(216, 112, 147, 0.3) !important;
+  box-shadow: 0 16px 48px rgba(216, 112, 147, 0.2) !important;
+}
+
+.cat-age {
+  font-size: 32px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+  background: var(--gradient) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  margin-bottom: 12px !important;
+}
+
+.cat-body {
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+  opacity: 0.85 !important;
+}
+
+/* WhatsApp float button más bonito */
+.wa-float {
+  box-shadow: 0 8px 32px rgba(37, 211, 102, 0.4) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.wa-float:hover {
+  transform: scale(1.15) !important;
+  box-shadow: 0 12px 48px rgba(37, 211, 102, 0.5) !important;
 }
 
 /* Spacing improvements */
