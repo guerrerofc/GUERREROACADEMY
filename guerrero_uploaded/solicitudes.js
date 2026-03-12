@@ -43,8 +43,17 @@ async function guardarSolicitudInscripcion(datos) {
 // PANEL DE SOLICITUDES EN SUPER ADMIN
 // ========================================
 
-// Función para cargar solicitudes pendientes
+// Función para cargar solicitudes
 async function cargarSolicitudes(filtro = 'pending') {
+  console.log(`📡 Cargando solicitudes con filtro: ${filtro}`);
+  
+  // Verificar que supabaseClient exista
+  if (typeof supabaseClient === 'undefined') {
+    console.error('❌ supabaseClient no está definido');
+    alert('Error: Supabase no está configurado correctamente');
+    return [];
+  }
+
   try {
     let query = supabaseClient
       .from('inscription_requests')
@@ -57,10 +66,17 @@ async function cargarSolicitudes(filtro = 'pending') {
 
     const { data, error } = await query;
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Error cargando solicitudes:', error);
+      alert('Error cargando solicitudes: ' + error.message);
+      return [];
+    }
+    
+    console.log(`✅ Solicitudes cargadas:`, data);
     return data || [];
   } catch (error) {
-    console.error('Error cargando solicitudes:', error);
+    console.error('❌ Exception cargando solicitudes:', error);
+    alert('Error: ' + error.message);
     return [];
   }
 }
@@ -112,10 +128,25 @@ async function rechazarSolicitud(id, razon = '') {
 
 // Función para renderizar tabla de solicitudes
 function renderizarTablaSolicitudes(solicitudes, contenedor) {
-  if (!contenedor) return;
+  console.log(`🎨 Renderizando ${solicitudes.length} solicitudes`);
+  
+  if (!contenedor) {
+    console.error('❌ Contenedor no proporcionado');
+    return;
+  }
 
   if (solicitudes.length === 0) {
-    contenedor.innerHTML = '<p class="text-muted">No hay solicitudes pendientes.</p>';
+    contenedor.innerHTML = `
+      <div style="padding: 60px 20px; text-align: center; color: #6B7280;">
+        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">📋</div>
+        <p style="font-size: 16px; font-weight: 600; color: #FFF; margin-bottom: 8px;">
+          No hay solicitudes ${document.getElementById('btnPendientes')?.classList.contains('active') ? 'pendientes' : ''}
+        </p>
+        <p style="font-size: 14px;">
+          Las solicitudes del formulario de inscripción aparecerán aquí
+        </p>
+      </div>
+    `;
     return;
   }
 
@@ -243,8 +274,15 @@ async function rechazarSolicitudUI(solicitudId) {
 
 // Inicializar panel de solicitudes si existe
 document.addEventListener('DOMContentLoaded', async () => {
+  console.log('🔍 Inicializando panel de solicitudes...');
+  
   const contenedor = document.getElementById('tablaSolicitudes');
-  if (!contenedor) return;
+  if (!contenedor) {
+    console.log('❌ No se encontró tablaSolicitudes');
+    return;
+  }
+
+  console.log('✅ Contenedor encontrado, cargando solicitudes...');
 
   // Botones de filtro
   const btnPendientes = document.getElementById('btnPendientes');
@@ -252,8 +290,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnRechazadas = document.getElementById('btnRechazadas');
   const btnTodas = document.getElementById('btnTodas');
 
+  // Event listeners para filtros
   if (btnPendientes) {
     btnPendientes.addEventListener('click', async () => {
+      console.log('Filtrando pendientes...');
       const solicitudes = await cargarSolicitudes('pending');
       renderizarTablaSolicitudes(solicitudes, contenedor);
     });
@@ -261,6 +301,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (btnAprobadas) {
     btnAprobadas.addEventListener('click', async () => {
+      console.log('Filtrando aprobadas...');
       const solicitudes = await cargarSolicitudes('approved');
       renderizarTablaSolicitudes(solicitudes, contenedor);
     });
@@ -268,6 +309,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (btnRechazadas) {
     btnRechazadas.addEventListener('click', async () => {
+      console.log('Filtrando rechazadas...');
       const solicitudes = await cargarSolicitudes('rejected');
       renderizarTablaSolicitudes(solicitudes, contenedor);
     });
@@ -275,13 +317,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (btnTodas) {
     btnTodas.addEventListener('click', async () => {
+      console.log('Mostrando todas...');
       const solicitudes = await cargarSolicitudes('all');
       renderizarTablaSolicitudes(solicitudes, contenedor);
     });
   }
 
   // Cargar pendientes por defecto
+  console.log('📥 Cargando solicitudes pendientes...');
   const solicitudes = await cargarSolicitudes('pending');
+  console.log(`✅ ${solicitudes.length} solicitudes cargadas`);
   renderizarTablaSolicitudes(solicitudes, contenedor);
 });
 
