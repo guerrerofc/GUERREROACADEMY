@@ -131,58 +131,58 @@ function addOfferModal() {
 function bindOfferEvents() {
   const btnAddOffer = document.getElementById('btnAddOffer');
   if (btnAddOffer) {
-    btnAddOffer.addEventListener('click', () => {
-      document.getElementById('offerModalTitle').textContent = 'Nueva Oferta';
-      document.getElementById('editOfferId').value = '';
-      document.getElementById('offerTitle').value = '';
-      document.getElementById('offerDescription').value = '';
-      document.getElementById('offerType').value = 'percentage';
-      document.getElementById('offerValue').value = '';
-      document.getElementById('offerShowLanding').checked = false;
-      document.getElementById('offerAssignPlayers').checked = false;
-      document.getElementById('playerAssignmentSection').style.display = 'none';
-      document.getElementById('offerStartDate').value = '';
-      document.getElementById('offerEndDate').value = '';
-      document.getElementById('offerIsActive').checked = true;
-      window.selectedOfferPlayers = [];
-      document.getElementById('offerPlayerSearch').value = '';
-      document.getElementById('offerPlayerSearchResults').innerHTML = '';
-      document.getElementById('selectedPlayersList').innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">Ningún jugador seleccionado</p>';
-      openModal('offerModal');
-      
-      // Vincular evento del checkbox DESPUÉS de abrir el modal
-      setTimeout(() => {
-        const checkbox = document.getElementById('offerAssignPlayers');
-        if (checkbox) {
-          // Remover listeners previos clonando el elemento
-          const newCheckbox = checkbox.cloneNode(true);
-          checkbox.parentNode.replaceChild(newCheckbox, checkbox);
-          
-          newCheckbox.addEventListener('change', function(e) {
-            console.log('Checkbox changed:', e.target.checked);
-            const section = document.getElementById('playerAssignmentSection');
-            if (section) {
-              section.style.display = e.target.checked ? 'block' : 'none';
-              console.log('Section display:', section.style.display);
-            }
-          });
-        }
-        
-        // Vincular búsqueda de jugadores
-        const searchInput = document.getElementById('offerPlayerSearch');
-        if (searchInput) {
-          const newSearchInput = searchInput.cloneNode(true);
-          searchInput.parentNode.replaceChild(newSearchInput, searchInput);
-          newSearchInput.addEventListener('input', searchPlayersForOffer);
-        }
-      }, 100);
-    });
+    btnAddOffer.addEventListener('click', openNewOfferModal);
   }
 
   const saveOfferBtn = document.getElementById('saveOffer');
   if (saveOfferBtn) {
     saveOfferBtn.addEventListener('click', saveOffer);
   }
+
+  // Event delegation para el checkbox (funciona incluso si el modal no está renderizado)
+  document.addEventListener('change', function(e) {
+    if (e.target && e.target.id === 'offerAssignPlayers') {
+      const section = document.getElementById('playerAssignmentSection');
+      if (section) {
+        section.style.display = e.target.checked ? 'block' : 'none';
+        console.log('✅ Sección de jugadores:', e.target.checked ? 'VISIBLE' : 'OCULTA');
+      }
+    }
+  });
+
+  // Event delegation para búsqueda de jugadores
+  document.addEventListener('input', function(e) {
+    if (e.target && e.target.id === 'offerPlayerSearch') {
+      searchPlayersForOffer();
+    }
+  });
+}
+
+function openNewOfferModal() {
+  console.log('🎯 Abriendo modal de nueva oferta...');
+  
+  document.getElementById('offerModalTitle').textContent = 'Nueva Oferta';
+  document.getElementById('editOfferId').value = '';
+  document.getElementById('offerTitle').value = '';
+  document.getElementById('offerDescription').value = '';
+  document.getElementById('offerType').value = 'percentage';
+  document.getElementById('offerValue').value = '';
+  document.getElementById('offerShowLanding').checked = false;
+  document.getElementById('offerAssignPlayers').checked = false;
+  document.getElementById('playerAssignmentSection').style.display = 'none';
+  document.getElementById('offerStartDate').value = '';
+  document.getElementById('offerEndDate').value = '';
+  document.getElementById('offerIsActive').checked = true;
+  
+  // Reset jugadores seleccionados
+  window.selectedOfferPlayers = [];
+  document.getElementById('offerPlayerSearch').value = '';
+  document.getElementById('offerPlayerSearchResults').innerHTML = '';
+  document.getElementById('selectedPlayersList').innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">Ningún jugador seleccionado</p>';
+  
+  openModal('offerModal');
+  
+  console.log('✅ Modal abierto. Prueba marcar el checkbox "Asignar a Jugadores Específicos"');
 }
 
 async function loadOffers() {
@@ -345,16 +345,45 @@ async function saveOffer() {
   };
 
   try {
+    let offerId = id;
+    
     if (id) {
+      // Actualizar oferta existente
       const { error } = await sb.from('offers').update(data).eq('id', id);
       if (error) throw error;
     } else {
-      const { error } = await sb.from('offers').insert(data);
+      // Crear nueva oferta
+      const { data: newOffer, error } = await sb.from('offers').insert(data).select();
       if (error) throw error;
+      offerId = newOffer[0].id;
+    }
+
+    // Guardar asignaciones de jugadores si hay
+    const assignPlayers = document.getElementById('offerAssignPlayers').checked;
+    if (assignPlayers && window.selectedOfferPlayers && window.selectedOfferPlayers.length > 0) {
+      console.log('💾 Guardando asignaciones de jugadores:', window.selectedOfferPlayers);
+      
+      // Primero eliminar asignaciones anteriores
+      await sb.from('offer_assignments').delete().eq('offer_id', offerId);
+      
+      // Luego insertar las nuevas
+      const assignments = window.selectedOfferPlayers.map(player => ({
+        offer_id: offerId,
+        player_id: player.id
+      }));
+      
+      const { error: assignError } = await sb.from('offer_assignments').insert(assignments);
+      if (assignError) {
+        console.error('Error asignando jugadores:', assignError);
+        alert('⚠️ Oferta guardada pero hubo un error al asignar jugadores: ' + assignError.message);
+      } else {
+        console.log('✅ Jugadores asignados correctamente');
+      }
     }
 
     closeModal('offerModal');
     loadOffers();
+    alert('✅ Oferta guardada correctamente' + (assignPlayers && window.selectedOfferPlayers?.length ? ` con ${window.selectedOfferPlayers.length} jugador(es) asignado(s)` : ''));
   } catch (error) {
     alert('Error al guardar oferta: ' + error.message);
     console.error(error);
