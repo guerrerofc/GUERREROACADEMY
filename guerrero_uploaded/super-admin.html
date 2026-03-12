@@ -660,6 +660,7 @@
             <h1 class="page-title">Categorías</h1>
             <p class="page-subtitle">Gestión de categorías y cupos</p>
           </div>
+          <button class="btn btn-primary" id="btnAddCategory">+ Nueva Categoría</button>
         </div>
 
         <div class="grid grid-3" id="categoriesGrid"></div>
@@ -779,6 +780,14 @@
           </div>
         </div>
 
+        <!-- Reportes por Categoría -->
+        <div style="margin-bottom: 32px;">
+          <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 20px;">📋 Reportes por Categoría</h2>
+          <div id="categoryReports"></div>
+        </div>
+
+        <!-- Reportes Generales -->
+        <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 20px;">📊 Reportes Generales</h2>
         <div class="grid grid-2">
           <div class="card">
             <h3 class="card-title" style="margin-bottom: 20px;">Resumen Financiero</h3>
@@ -1282,7 +1291,14 @@
 
         return `
           <div class="card">
-            <h3 class="card-title" style="margin-bottom: 16px;">${c.name}</h3>
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+              <h3 class="card-title">${c.name}</h3>
+              <div style="display: flex; gap: 4px;">
+                <button class="btn btn-sm" onclick="editCategory('${c.id}')" title="Editar">✏️</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteCategory('${c.id}')" title="Eliminar">🗑️</button>
+              </div>
+            </div>
+            ${c.description ? `<p style="color: var(--text-dim); font-size: 13px; margin-bottom: 12px;">${c.description}</p>` : ''}
             <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
               <span style="color: var(--text-muted);">Ocupación</span>
               <strong>${count} / ${max}</strong>
@@ -1516,6 +1532,11 @@
 
     // Reports
     async function loadReports() {
+      // Cargar reportes por categoría
+      if (window.categoriesReportsSystem) {
+        window.categoriesReportsSystem.loadReports();
+      }
+
       const { data: allPayments } = await sb.from('payments').select('*').eq('status', 'paid');
       const total = (allPayments || []).reduce((sum, p) => sum + Number(p.amount || 0), 0);
 
@@ -1585,6 +1606,9 @@
   <!-- Sistema de Cupones -->
   <script src="coupons-system.js"></script>
 
+  <!-- Sistema de Categorías y Reportes -->
+  <script src="categories-reports-system.js"></script>
+
   <!-- Inicializar nuevos sistemas -->
   <script>
     // Esperar a que el sistema principal esté listo
@@ -1599,6 +1623,9 @@
         }
         if (window.couponsSystem) {
           window.couponsSystem.init();
+        }
+        if (window.categoriesReportsSystem) {
+          window.categoriesReportsSystem.init();
         }
       }, 500);
     });
