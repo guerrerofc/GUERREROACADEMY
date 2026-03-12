@@ -494,6 +494,7 @@
 
         <div class="nav-section">Marketing</div>
         <button class="nav-link" data-view="offers"><span class="nav-icon">🎁</span>Ofertas</button>
+        <button class="nav-link" data-view="coupons"><span class="nav-icon">🎟️</span>Cupones</button>
         <button class="nav-link" data-view="announcements"><span class="nav-icon">📢</span>Anuncios</button>
 
         <div class="nav-section">Reportes</div>
@@ -1057,6 +1058,7 @@
       if (view === 'reports') loadReports();
       if (view === 'offers' && window.offersSystem) window.offersSystem.load();
       if (view === 'fees' && window.feesSystem) window.feesSystem.loadCategory();
+      if (view === 'coupons' && window.couponsSystem) window.couponsSystem.load();
     }
 
     // Mobile
@@ -1580,6 +1582,9 @@
   <!-- Sistema de Cuotas -->
   <script src="fees-system.js"></script>
 
+  <!-- Sistema de Cupones -->
+  <script src="coupons-system.js"></script>
+
   <!-- Inicializar nuevos sistemas -->
   <script>
     // Esperar a que el sistema principal esté listo
@@ -1591,6 +1596,9 @@
         }
         if (window.feesSystem) {
           window.feesSystem.init();
+        }
+        if (window.couponsSystem) {
+          window.couponsSystem.init();
         }
       }, 500);
     });

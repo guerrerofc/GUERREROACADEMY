@@ -87,6 +87,20 @@ function addOfferModal() {
           </div>
 
           <div class="form-group">
+            <label>
+              <input type="checkbox" id="offerAssignPlayers" style="width: auto; margin-right: 8px;">
+              Asignar a Jugadores Específicos
+            </label>
+          </div>
+
+          <div class="form-group" id="playerAssignmentSection" style="display: none;">
+            <label>Buscar Jugadores</label>
+            <input type="text" id="offerPlayerSearch" class="input" placeholder="Nombre del jugador...">
+            <div id="offerPlayerSearchResults" style="margin-top: 8px; max-height: 200px; overflow-y: auto;"></div>
+            <div id="selectedPlayersList" style="margin-top: 12px;"></div>
+          </div>
+
+          <div class="form-group">
             <label>Fecha de Inicio</label>
             <input type="date" id="offerStartDate" class="input">
           </div>
@@ -312,6 +326,103 @@ async function saveOffer() {
     alert('Error al guardar oferta: ' + error.message);
     console.error(error);
   }
+}
+
+// ========================================
+// ASIGNACIÓN DE JUGADORES A OFERTAS
+// ========================================
+
+window.selectedOfferPlayers = [];
+
+// Toggle de mostrar/ocultar sección de asignación
+document.addEventListener('DOMContentLoaded', () => {
+  const checkbox = document.getElementById('offerAssignPlayers');
+  if (checkbox) {
+    checkbox.addEventListener('change', (e) => {
+      document.getElementById('playerAssignmentSection').style.display = 
+        e.target.checked ? 'block' : 'none';
+    });
+  }
+
+  // Búsqueda de jugadores
+  const searchInput = document.getElementById('offerPlayerSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', searchPlayersForOffer);
+  }
+});
+
+async function searchPlayersForOffer() {
+  const sb = window.sb || window.supabase?.createClient(
+    window.SUPABASE_URL || "https://daijiuqqafvjofafwqck.supabase.co",
+    window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g"
+  );
+  
+  const query = document.getElementById('offerPlayerSearch').value.toLowerCase();
+  
+  if (query.length < 2) {
+    document.getElementById('offerPlayerSearchResults').innerHTML = '';
+    return;
+  }
+
+  const { data: players } = await sb
+    .from('players')
+    .select('*, categories(name)')
+    .ilike('nombre', `%${query}%`)
+    .limit(8);
+
+  const html = (players || []).map(p => {
+    const isSelected = window.selectedOfferPlayers.some(sp => sp.id === p.id);
+    return `
+      <button class="btn btn-sm ${isSelected ? 'btn-success' : ''}" 
+        style="width: 100%; justify-content: flex-start; margin-bottom: 4px;" 
+        onclick="togglePlayerSelection('${p.id}', '${(p.nombre || '').replace(/'/g, "\\'")}', '${(p.categories?.name || '').replace(/'/g, "\\'")}')">
+        ${isSelected ? '✓ ' : ''}${p.nombre} 
+        <span style="margin-left: 8px; color: var(--text-muted);">${p.categories?.name || ''}</span>
+      </button>
+    `;
+  }).join('');
+
+  document.getElementById('offerPlayerSearchResults').innerHTML = html;
+}
+
+window.togglePlayerSelection = function(id, name, category) {
+  const index = window.selectedOfferPlayers.findIndex(p => p.id === id);
+  
+  if (index > -1) {
+    window.selectedOfferPlayers.splice(index, 1);
+  } else {
+    window.selectedOfferPlayers.push({ id, name, category });
+  }
+  
+  renderSelectedPlayers();
+  searchPlayersForOffer(); // Refresh search results
+};
+
+function renderSelectedPlayers() {
+  const container = document.getElementById('selectedPlayersList');
+  if (!container) return;
+
+  if (window.selectedOfferPlayers.length === 0) {
+    container.innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">Ningún jugador seleccionado</p>';
+    return;
+  }
+
+  const html = `
+    <div style="margin-top: 12px;">
+      <strong style="font-size: 13px; color: var(--text-dim);">Jugadores seleccionados (${window.selectedOfferPlayers.length}):</strong>
+      <div style="margin-top: 8px;">
+        ${window.selectedOfferPlayers.map(p => `
+          <span class="badge badge-blue" style="margin: 4px;">
+            ${p.name}
+            <button onclick="togglePlayerSelection('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${p.category.replace(/'/g, "\\'")}'); event.stopPropagation();" 
+              style="margin-left: 6px; background: none; border: none; color: white; cursor: pointer;">✕</button>
+          </span>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
 }
 
 // Exportar funciones necesarias
