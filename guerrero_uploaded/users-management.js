@@ -15,7 +15,7 @@ function initUsersManagement() {
   
   const btnAddUser = document.getElementById('btnAddUser');
   const btnSaveUser = document.getElementById('saveUser');
-  const userRoleSelect = document.getElementById('userRole');
+  const userRoleSelect = document.getElementById('newUserRole');
   
   if (!btnAddUser || !btnSaveUser) {
     console.warn('⚠️ Botones de usuarios no encontrados');
@@ -33,17 +33,19 @@ function initUsersManagement() {
   });
 
   // Evento: Mostrar/ocultar campos según rol
-  userRoleSelect.addEventListener('change', (e) => {
-    const role = e.target.value;
-    const phoneGroup = document.getElementById('phoneGroup');
-    
-    // Mostrar teléfono solo para padres
-    if (role === 'parent') {
-      phoneGroup.style.display = 'block';
-    } else {
-      phoneGroup.style.display = 'none';
-    }
-  });
+  if (userRoleSelect) {
+    userRoleSelect.addEventListener('change', (e) => {
+      const role = e.target.value;
+      const phoneGroup = document.getElementById('phoneGroup');
+      
+      // Mostrar teléfono solo para padres
+      if (role === 'parent' && phoneGroup) {
+        phoneGroup.style.display = 'block';
+      } else if (phoneGroup) {
+        phoneGroup.style.display = 'none';
+      }
+    });
+  }
 
   console.log('✅ Gestión de usuarios inicializada');
 }
@@ -164,22 +166,22 @@ function openUserModal(userId = null, source = null) {
   const modalTitle = document.getElementById('userModalTitle');
   const saveBtn = document.getElementById('saveUser');
   const passwordGroup = document.getElementById('passwordGroup');
-  const emailInput = document.getElementById('userEmail');
+  const emailInput = document.getElementById('newUserEmail');
   
   if (userId) {
     // Modo edición
     modalTitle.textContent = 'Editar Usuario';
     saveBtn.textContent = 'Guardar Cambios';
-    passwordGroup.style.display = 'none'; // No permitir cambiar contraseña en edición
-    emailInput.disabled = true; // No permitir cambiar email
+    if (passwordGroup) passwordGroup.style.display = 'none'; // No permitir cambiar contraseña en edición
+    if (emailInput) emailInput.disabled = true; // No permitir cambiar email
     currentEditingUserId = userId;
     loadUserData(userId, source);
   } else {
     // Modo creación
     modalTitle.textContent = 'Nuevo Usuario';
     saveBtn.textContent = 'Crear Usuario';
-    passwordGroup.style.display = 'block';
-    emailInput.disabled = false;
+    if (passwordGroup) passwordGroup.style.display = 'block';
+    if (emailInput) emailInput.disabled = false;
     currentEditingUserId = null;
     clearUserForm();
   }
@@ -192,12 +194,20 @@ function openUserModal(userId = null, source = null) {
 // ========================================
 function clearUserForm() {
   document.getElementById('editUserId').value = '';
-  document.getElementById('userEmail').value = '';
-  document.getElementById('userName').value = '';
-  document.getElementById('userPassword').value = '';
-  document.getElementById('userRole').value = '';
-  document.getElementById('userPhone').value = '';
-  document.getElementById('phoneGroup').style.display = 'none';
+  const emailField = document.getElementById('newUserEmail');
+  const nameField = document.getElementById('newUserName');
+  const passwordField = document.getElementById('newUserPassword');
+  const roleField = document.getElementById('newUserRole');
+  const phoneField = document.getElementById('newUserPhone');
+  
+  if (emailField) emailField.value = '';
+  if (nameField) nameField.value = '';
+  if (passwordField) passwordField.value = '';
+  if (roleField) roleField.value = '';
+  if (phoneField) phoneField.value = '';
+  
+  const phoneGroup = document.getElementById('phoneGroup');
+  if (phoneGroup) phoneGroup.style.display = 'none';
 }
 
 // ========================================
@@ -217,13 +227,20 @@ async function loadUserData(userId, source) {
     if (error) throw error;
 
     document.getElementById('editUserId').value = userId;
-    document.getElementById('userEmail').value = data.email || '';
-    document.getElementById('userName').value = data.name || '';
-    document.getElementById('userRole').value = source === 'parents' ? 'parent' : 'staff';
-    document.getElementById('userPhone').value = data.phone || '';
+    
+    const emailField = document.getElementById('newUserEmail');
+    const nameField = document.getElementById('newUserName');
+    const roleField = document.getElementById('newUserRole');
+    const phoneField = document.getElementById('newUserPhone');
+    
+    if (emailField) emailField.value = data.email || '';
+    if (nameField) nameField.value = data.name || '';
+    if (roleField) roleField.value = source === 'parents' ? 'parent' : 'staff';
+    if (phoneField) phoneField.value = data.phone || '';
     
     if (source === 'parents') {
-      document.getElementById('phoneGroup').style.display = 'block';
+      const phoneGroup = document.getElementById('phoneGroup');
+      if (phoneGroup) phoneGroup.style.display = 'block';
     }
 
   } catch (error) {
@@ -243,11 +260,19 @@ async function saveUser() {
   }
 
   const userId = currentEditingUserId;
-  const email = document.getElementById('userEmail').value.trim();
-  const name = document.getElementById('userName').value.trim();
-  const password = document.getElementById('userPassword').value;
-  const role = document.getElementById('userRole').value;
-  const phone = document.getElementById('userPhone').value.trim();
+  const emailField = document.getElementById('newUserEmail');
+  const nameField = document.getElementById('newUserName');
+  const passwordField = document.getElementById('newUserPassword');
+  const roleField = document.getElementById('newUserRole');
+  const phoneField = document.getElementById('newUserPhone');
+  
+  const email = emailField ? emailField.value.trim() : '';
+  const name = nameField ? nameField.value.trim() : '';
+  const password = passwordField ? passwordField.value : '';
+  const role = roleField ? roleField.value : '';
+  const phone = phoneField ? phoneField.value.trim() : '';
+
+  console.log('📝 Datos del formulario:', { email, name, role, hasPassword: !!password });
 
   // Validaciones
   if (!email || !name || !role) {
