@@ -1,0 +1,408 @@
+// ========================================
+// GESTIÓN AVANZADA DE CATEGORÍAS - JUGADORES
+// ========================================
+
+console.log('👥 Módulo de gestión de jugadores por categoría cargado');
+
+// ========================================
+// MODAL: VER JUGADORES DE CATEGORÍA
+// ========================================
+function createCategoryPlayersModal() {
+  const modalHTML = `
+    <div class="modal" id="categoryPlayersModal">
+      <div class="modal-content" style="max-width: 1000px; max-height: 85vh;">
+        <div class="modal-header">
+          <div>
+            <h3 id="categoryPlayersTitle">Jugadores de la Categoría</h3>
+            <p id="categoryPlayersSubtitle" style="font-size: 13px; color: var(--text-dim); margin-top: 4px;"></p>
+          </div>
+          <button class="btn btn-sm" onclick="closeModal('categoryPlayersModal')">✕</button>
+        </div>
+        
+        <div class="modal-body" style="padding: 0;">
+          <!-- Estadísticas de la categoría -->
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 20px; background: var(--bg-glass); border-bottom: 1px solid var(--border);">
+            <div style="text-align: center;">
+              <div style="font-size: 28px; font-weight: 700; color: var(--accent);" id="catStatTotal">0</div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">TOTAL JUGADORES</div>
+            </div>
+            <div style="text-align: center;">
+              <div style="font-size: 28px; font-weight: 700; color: #10b981;" id="catStatCapacity">0%</div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">CAPACIDAD</div>
+            </div>
+            <div style="text-align: center;">
+              <div style="font-size: 28px; font-weight: 700; color: #3b82f6;" id="catStatAvgAge">0</div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">EDAD PROMEDIO</div>
+            </div>
+            <div style="text-align: center;">
+              <div style="font-size: 28px; font-weight: 700; color: #f59e0b;" id="catStatRevenue">$0</div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">INGRESOS/MES</div>
+            </div>
+          </div>
+
+          <!-- Acciones rápidas -->
+          <div style="padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn btn-sm" id="btnSendCategoryAnnouncement">
+              📢 Enviar Anuncio a Padres
+            </button>
+            <button class="btn btn-sm" id="btnExportCategoryPlayers">
+              📊 Exportar Lista (CSV)
+            </button>
+            <button class="btn btn-sm" id="btnViewCategoryMorosos">
+              ⚠️ Ver Morosos
+            </button>
+          </div>
+
+          <!-- Lista de jugadores -->
+          <div style="padding: 20px; max-height: 400px; overflow-y: auto;">
+            <div id="categoryPlayersList"></div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button class="btn" onclick="closeModal('categoryPlayersModal')">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+// ========================================
+// ABRIR MODAL DE JUGADORES
+// ========================================
+window.viewCategoryPlayers = async function(categoryId, categoryName) {
+  console.log('👥 Abriendo vista de jugadores para categoría:', categoryId);
+  
+  const sb = window.sb;
+  if (!sb) {
+    alert('Error: Supabase no disponible');
+    return;
+  }
+
+  // Abrir modal
+  if (!document.getElementById('categoryPlayersModal')) {
+    createCategoryPlayersModal();
+  }
+
+  document.getElementById('categoryPlayersTitle').textContent = `Jugadores de ${categoryName}`;
+  openModal('categoryPlayersModal');
+
+  // Cargar datos
+  await loadCategoryPlayers(categoryId, categoryName);
+  
+  // Bind eventos de botones
+  bindCategoryActions(categoryId, categoryName);
+};
+
+// ========================================
+// CARGAR JUGADORES DE LA CATEGORÍA
+// ========================================
+async function loadCategoryPlayers(categoryId, categoryName) {
+  const sb = window.sb;
+  const playersList = document.getElementById('categoryPlayersList');
+  
+  try {
+    playersList.innerHTML = '<p style="text-align:center; color: var(--text-dim);">Cargando jugadores...</p>';
+
+    // Obtener jugadores de la categoría
+    const { data: players, error } = await sb
+      .from('players')
+      .select('*, parents(name, email)')
+      .eq('category_id', categoryId)
+      .order('name');
+
+    if (error) throw error;
+
+    // Obtener datos de la categoría
+    const { data: category } = await sb
+      .from('categories')
+      .select('max_players, monthly_fee')
+      .eq('id', categoryId)
+      .single();
+
+    if (!players || players.length === 0) {
+      playersList.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: var(--text-dim);">
+          <div style="font-size: 48px; margin-bottom: 12px;">⚽</div>
+          <p>No hay jugadores en esta categoría aún</p>
+        </div>
+      `;
+      
+      // Actualizar stats con 0
+      document.getElementById('catStatTotal').textContent = '0';
+      document.getElementById('catStatCapacity').textContent = '0%';
+      document.getElementById('catStatAvgAge').textContent = '-';
+      document.getElementById('catStatRevenue').textContent = '$0';
+      document.getElementById('categoryPlayersSubtitle').textContent = `0 / ${category?.max_players || 30} jugadores`;
+      
+      return;
+    }
+
+    // Calcular estadísticas
+    const totalPlayers = players.length;
+    const maxPlayers = category?.max_players || 30;
+    const capacity = Math.round((totalPlayers / maxPlayers) * 100);
+    const avgAge = calculateAverageAge(players);
+    const monthlyRevenue = (category?.monthly_fee || 0) * totalPlayers;
+
+    // Actualizar stats
+    document.getElementById('catStatTotal').textContent = totalPlayers;
+    document.getElementById('catStatCapacity').textContent = `${capacity}%`;
+    document.getElementById('catStatAvgAge').textContent = avgAge ? `${avgAge} años` : '-';
+    document.getElementById('catStatRevenue').textContent = `$${monthlyRevenue.toFixed(2)}`;
+    document.getElementById('categoryPlayersSubtitle').textContent = `${totalPlayers} / ${maxPlayers} jugadores`;
+
+    // Renderizar lista de jugadores
+    playersList.innerHTML = players.map(player => `
+      <div style="
+        display: grid; 
+        grid-template-columns: 48px 1fr auto auto; 
+        gap: 16px; 
+        align-items: center; 
+        padding: 16px; 
+        background: var(--bg-glass); 
+        border: 1px solid var(--border); 
+        border-radius: 12px; 
+        margin-bottom: 12px;
+      ">
+        <div style="
+          width: 48px; 
+          height: 48px; 
+          border-radius: 50%; 
+          background: var(--gradient); 
+          display: grid; 
+          place-items: center; 
+          font-weight: 700; 
+          font-size: 18px;
+        ">
+          ${player.name ? player.name.charAt(0).toUpperCase() : '?'}
+        </div>
+        
+        <div>
+          <div style="font-weight: 600; margin-bottom: 4px;">${player.name || 'Sin nombre'}</div>
+          <div style="font-size: 12px; color: var(--text-dim);">
+            ${player.age ? `${player.age} años` : 'Edad no registrada'} • 
+            Padre: ${player.parents?.name || 'No asignado'}
+          </div>
+        </div>
+        
+        <div>
+          <select 
+            class="input" 
+            style="font-size: 12px; padding: 8px 12px;" 
+            onchange="changeCategoryPlayer('${player.id}', this.value, '${categoryId}')"
+          >
+            <option value="">Cambiar categoría...</option>
+          </select>
+        </div>
+        
+        <div>
+          <button 
+            class="btn btn-sm" 
+            onclick="viewPlayerDetail('${player.id}')" 
+            style="font-size: 11px;"
+          >
+            Ver Detalles
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    // Cargar opciones de categorías en los selects
+    loadCategoriesForSelect(categoryId);
+
+  } catch (error) {
+    console.error('❌ Error cargando jugadores:', error);
+    playersList.innerHTML = `
+      <div style="text-align: center; padding: 40px; color: var(--danger);">
+        <p>Error al cargar jugadores: ${error.message}</p>
+      </div>
+    `;
+  }
+}
+
+// ========================================
+// CALCULAR EDAD PROMEDIO
+// ========================================
+function calculateAverageAge(players) {
+  const playersWithAge = players.filter(p => p.age);
+  if (playersWithAge.length === 0) return null;
+  
+  const totalAge = playersWithAge.reduce((sum, p) => sum + p.age, 0);
+  return Math.round(totalAge / playersWithAge.length);
+}
+
+// ========================================
+// CARGAR CATEGORÍAS PARA SELECT
+// ========================================
+async function loadCategoriesForSelect(currentCategoryId) {
+  const sb = window.sb;
+  if (!sb) return;
+
+  try {
+    const { data: categories, error } = await sb
+      .from('categories')
+      .select('id, name')
+      .neq('id', currentCategoryId)
+      .eq('status', 'active')
+      .order('name');
+
+    if (error) throw error;
+
+    const selects = document.querySelectorAll('#categoryPlayersList select');
+    const options = categories.map(cat => 
+      `<option value="${cat.id}">${cat.name}</option>`
+    ).join('');
+
+    selects.forEach(select => {
+      select.innerHTML = '<option value="">Cambiar categoría...</option>' + options;
+    });
+
+  } catch (error) {
+    console.error('Error cargando categorías:', error);
+  }
+}
+
+// ========================================
+// CAMBIAR JUGADOR DE CATEGORÍA
+// ========================================
+window.changeCategoryPlayer = async function(playerId, newCategoryId, currentCategoryId) {
+  if (!newCategoryId) return;
+
+  const sb = window.sb;
+  if (!sb) return;
+
+  const confirmed = confirm('¿Estás seguro de cambiar este jugador de categoría?');
+  if (!confirmed) {
+    // Resetear select
+    event.target.value = '';
+    return;
+  }
+
+  try {
+    const { error } = await sb
+      .from('players')
+      .update({ category_id: newCategoryId })
+      .eq('id', playerId);
+
+    if (error) throw error;
+
+    alert('✅ Jugador movido a nueva categoría');
+    
+    // Recargar lista
+    const categoryName = document.getElementById('categoryPlayersTitle').textContent.replace('Jugadores de ', '');
+    await loadCategoryPlayers(currentCategoryId, categoryName);
+
+  } catch (error) {
+    console.error('Error moviendo jugador:', error);
+    alert('Error al mover jugador: ' + error.message);
+    event.target.value = '';
+  }
+};
+
+// ========================================
+// BIND ACCIONES DE CATEGORÍA
+// ========================================
+function bindCategoryActions(categoryId, categoryName) {
+  // Botón enviar anuncio
+  const btnAnnouncement = document.getElementById('btnSendCategoryAnnouncement');
+  if (btnAnnouncement) {
+    btnAnnouncement.onclick = () => sendCategoryAnnouncement(categoryId, categoryName);
+  }
+
+  // Botón exportar
+  const btnExport = document.getElementById('btnExportCategoryPlayers');
+  if (btnExport) {
+    btnExport.onclick = () => exportCategoryPlayers(categoryId, categoryName);
+  }
+
+  // Botón ver morosos
+  const btnMorosos = document.getElementById('btnViewCategoryMorosos');
+  if (btnMorosos) {
+    btnMorosos.onclick = () => viewCategoryMorosos(categoryId, categoryName);
+  }
+}
+
+// ========================================
+// ENVIAR ANUNCIO A PADRES DE CATEGORÍA
+// ========================================
+async function sendCategoryAnnouncement(categoryId, categoryName) {
+  alert(`📢 Función de anuncio para ${categoryName}\n\nEsta función abrirá el modal de anuncios con los padres de esta categoría pre-seleccionados.`);
+  // TODO: Implementar integración con sistema de anuncios
+}
+
+// ========================================
+// EXPORTAR LISTA DE JUGADORES (CSV)
+// ========================================
+async function exportCategoryPlayers(categoryId, categoryName) {
+  const sb = window.sb;
+  if (!sb) return;
+
+  try {
+    const { data: players, error } = await sb
+      .from('players')
+      .select('name, age, parents(name, email, phone)')
+      .eq('category_id', categoryId)
+      .order('name');
+
+    if (error) throw error;
+
+    if (!players || players.length === 0) {
+      alert('No hay jugadores para exportar');
+      return;
+    }
+
+    // Crear CSV
+    let csv = 'Nombre Jugador,Edad,Nombre Padre,Email Padre,Teléfono Padre\n';
+    
+    players.forEach(player => {
+      csv += `"${player.name || ''}",`;
+      csv += `"${player.age || ''}",`;
+      csv += `"${player.parents?.name || ''}",`;
+      csv += `"${player.parents?.email || ''}",`;
+      csv += `"${player.parents?.phone || ''}"\n`;
+    });
+
+    // Descargar archivo
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `jugadores_${categoryName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    alert('✅ Lista exportada correctamente');
+
+  } catch (error) {
+    console.error('Error exportando:', error);
+    alert('Error al exportar lista: ' + error.message);
+  }
+}
+
+// ========================================
+// VER MOROSOS DE CATEGORÍA
+// ========================================
+async function viewCategoryMorosos(categoryId, categoryName) {
+  alert(`⚠️ Morosos de ${categoryName}\n\nEsta función mostrará los jugadores de esta categoría con pagos pendientes.`);
+  // TODO: Implementar vista de morosos filtrada
+}
+
+// ========================================
+// VER DETALLE DE JUGADOR
+// ========================================
+window.viewPlayerDetail = function(playerId) {
+  console.log('Ver detalle de jugador:', playerId);
+  // Cerrar modal actual y abrir modal de jugador
+  closeModal('categoryPlayersModal');
+  // TODO: Abrir modal de edición de jugador existente
+  alert('Función de detalle de jugador - se integrará con el sistema existente');
+};
+
+console.log('✅ Módulo de jugadores por categoría listo');

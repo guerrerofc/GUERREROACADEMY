@@ -1663,6 +1663,15 @@
             <p style="margin-top: 16px; font-size: 32px; font-weight: 700; color: ${pct >= 90 ? 'var(--danger)' : 'var(--success)'};">
               ${max - count} <span style="font-size: 14px; color: var(--text-muted); font-weight: 500;">disponibles</span>
             </p>
+            
+            <!-- Botón Ver Jugadores -->
+            <button 
+              class="btn btn-primary" 
+              onclick="viewCategoryPlayers('${c.id}', '${c.name.replace(/'/g, "\\'")}')"
+              style="width: 100%; margin-top: 16px;"
+            >
+              👥 Ver Jugadores (${count})
+            </button>
           </div>
         `;
       }).join('');
@@ -1963,6 +1972,7 @@
   <!-- Sistema de Categorías y Reportes -->
   <script src="categories-reports-system.js"></script>
   <script src="users-management.js"></script>
+  <script src="category-players-management.js"></script>
 
   <!-- Inicializar nuevos sistemas -->
   <script>
