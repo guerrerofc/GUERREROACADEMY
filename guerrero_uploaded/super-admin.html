@@ -1385,26 +1385,24 @@
         const selectedRole = e.target.value;
         
         if (selectedRole !== 'super_admin') {
-          let panelUrl = '';
-          let panelName = '';
+          let targetUrl = '';
+          let targetName = '';
           
           switch(selectedRole) {
             case 'director':
-              panelUrl = 'director-panel.html';
-              panelName = 'Director';
+              targetUrl = 'director-panel.html';
+              targetName = 'Director';
               break;
             case 'staff':
-              panelUrl = 'staff-panel.html';
-              panelName = 'Staff';
-              break;
             case 'parent':
-              panelUrl = 'parent-panel.html';
-              panelName = 'Padre';
+              // Redirigir al landing para que inicien sesión
+              targetUrl = 'landing-mejorado.html';
+              targetName = 'Landing Page';
               break;
           }
           
-          if (panelUrl && confirm(`¿Quieres ver el panel como ${panelName}?\n\nSe abrirá en una nueva pestaña.`)) {
-            window.open(panelUrl, '_blank');
+          if (targetUrl) {
+            window.open(targetUrl, '_blank');
           }
           
           // Resetear el selector
