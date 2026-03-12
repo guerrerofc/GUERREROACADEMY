@@ -139,9 +139,13 @@ function bindOfferEvents() {
       document.getElementById('offerType').value = 'percentage';
       document.getElementById('offerValue').value = '';
       document.getElementById('offerShowLanding').checked = false;
+      document.getElementById('offerAssignPlayers').checked = false;
+      document.getElementById('playerAssignmentSection').style.display = 'none';
       document.getElementById('offerStartDate').value = '';
       document.getElementById('offerEndDate').value = '';
       document.getElementById('offerIsActive').checked = true;
+      window.selectedOfferPlayers = [];
+      renderSelectedPlayers();
       openModal('offerModal');
     });
   }
@@ -149,6 +153,21 @@ function bindOfferEvents() {
   const saveOfferBtn = document.getElementById('saveOffer');
   if (saveOfferBtn) {
     saveOfferBtn.addEventListener('click', saveOffer);
+  }
+
+  // Toggle de asignación de jugadores
+  const assignCheckbox = document.getElementById('offerAssignPlayers');
+  if (assignCheckbox) {
+    assignCheckbox.addEventListener('change', (e) => {
+      document.getElementById('playerAssignmentSection').style.display = 
+        e.target.checked ? 'block' : 'none';
+    });
+  }
+
+  // Búsqueda de jugadores
+  const searchInput = document.getElementById('offerPlayerSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', searchPlayersForOffer);
   }
 }
 
@@ -333,23 +352,6 @@ async function saveOffer() {
 // ========================================
 
 window.selectedOfferPlayers = [];
-
-// Toggle de mostrar/ocultar sección de asignación
-document.addEventListener('DOMContentLoaded', () => {
-  const checkbox = document.getElementById('offerAssignPlayers');
-  if (checkbox) {
-    checkbox.addEventListener('change', (e) => {
-      document.getElementById('playerAssignmentSection').style.display = 
-        e.target.checked ? 'block' : 'none';
-    });
-  }
-
-  // Búsqueda de jugadores
-  const searchInput = document.getElementById('offerPlayerSearch');
-  if (searchInput) {
-    searchInput.addEventListener('input', searchPlayersForOffer);
-  }
-});
 
 async function searchPlayersForOffer() {
   const sb = window.sb || window.supabase?.createClient(
