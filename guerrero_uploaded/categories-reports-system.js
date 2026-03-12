@@ -68,10 +68,13 @@ function bindCategoryEvents() {
     });
   }
 
-  const saveCategoryBtn = document.getElementById('saveCategory');
-  if (saveCategoryBtn) {
-    saveCategoryBtn.addEventListener('click', saveCategory);
-  }
+  // Bind save button with slight delay to ensure it exists
+  setTimeout(() => {
+    const saveCategoryBtn = document.getElementById('saveCategory');
+    if (saveCategoryBtn) {
+      saveCategoryBtn.addEventListener('click', saveCategory);
+    }
+  }, 500);
 }
 
 async function saveCategory() {
@@ -120,13 +123,22 @@ async function saveCategory() {
 }
 
 window.editCategory = async function(id) {
+  console.log('✏️ Editando categoría:', id);
   const sb = window.sb;
+  if (!sb) {
+    alert('Error: Supabase no disponible');
+    return;
+  }
+  
   const { data: category, error } = await sb.from('categories').select('*').eq('id', id).single();
   
   if (error || !category) {
-    alert('Error al cargar categoría');
+    alert('Error al cargar categoría: ' + (error?.message || 'No encontrada'));
+    console.error('Error:', error);
     return;
   }
+
+  console.log('Categoría cargada:', category);
 
   document.getElementById('categoryModalTitle').textContent = 'Editar Categoría';
   document.getElementById('editCategoryId').value = category.id;
@@ -139,13 +151,20 @@ window.editCategory = async function(id) {
 };
 
 window.deleteCategory = async function(id) {
+  console.log('🗑️ Intentando eliminar categoría:', id);
   if (!confirm('¿Eliminar esta categoría? Los jugadores de esta categoría quedarán sin categoría asignada.')) return;
 
   const sb = window.sb;
+  if (!sb) {
+    alert('Error: Supabase no disponible');
+    return;
+  }
+
   const { error } = await sb.from('categories').delete().eq('id', id);
 
   if (error) {
     alert('Error al eliminar categoría: ' + error.message);
+    console.error('Error:', error);
     return;
   }
 
@@ -158,19 +177,29 @@ window.deleteCategory = async function(id) {
 // ========================================
 
 async function loadCategoryReports() {
+  console.log('📊 Cargando reportes por categoría...');
   const sb = window.sb;
-  if (!sb) return;
+  if (!sb) {
+    console.error('❌ Supabase no disponible');
+    return;
+  }
 
   try {
     // Cargar todas las categorías
-    const { data: categories } = await sb.from('categories').select('*').order('name');
+    const { data: categories, error: catError } = await sb.from('categories').select('*').order('name');
+    if (catError) throw catError;
+    console.log('✅ Categorías cargadas:', categories?.length);
     
     // Cargar jugadores
-    const { data: players } = await sb.from('players').select('*, categories(name)');
+    const { data: players, error: playersError } = await sb.from('players').select('*, categories(name)');
+    if (playersError) throw playersError;
+    console.log('✅ Jugadores cargados:', players?.length);
     
     // Cargar pagos del mes actual
     const currentMonth = new Date().toISOString().slice(0, 7);
-    const { data: payments } = await sb.from('payments').select('*').eq('month', currentMonth).eq('status', 'paid');
+    const { data: payments, error: paymentsError } = await sb.from('payments').select('*').eq('month', currentMonth).eq('status', 'paid');
+    if (paymentsError) throw paymentsError;
+    console.log('✅ Pagos cargados:', payments?.length, 'Mes:', currentMonth);
 
     // Generar reporte por categoría
     const reports = categories.map(cat => {
@@ -192,15 +221,34 @@ async function loadCategoryReports() {
       };
     });
 
+    console.log('✅ Reportes generados:', reports.length);
     renderCategoryReports(reports);
   } catch (error) {
-    console.error('Error cargando reportes:', error);
+    console.error('❌ Error cargando reportes:', error);
+    const container = document.getElementById('categoryReports');
+    if (container) {
+      container.innerHTML = `<div class="card"><p style="color: var(--danger);">Error cargando reportes: ${error.message}</p></div>`;
+    }
   }
 }
 
 function renderCategoryReports(reports) {
+  console.log('🎨 Renderizando reportes, total:', reports.length);
   const container = document.getElementById('categoryReports');
-  if (!container) return;
+  if (!container) {
+    console.error('❌ Contenedor #categoryReports no encontrado en el DOM');
+    return;
+  }
+
+  if (!reports || reports.length === 0) {
+    console.warn('⚠️ No hay reportes para renderizar');
+    container.innerHTML = `
+      <div class="card">
+        <p>No hay categorías para mostrar reportes</p>
+      </div>
+    `;
+    return;
+  }
 
   const html = `
     <div class="grid grid-3">
@@ -267,6 +315,7 @@ function renderCategoryReports(reports) {
   `;
 
   container.innerHTML = html;
+  console.log('✅ Reportes renderizados correctamente en el DOM');
 }
 
 // Exportar
