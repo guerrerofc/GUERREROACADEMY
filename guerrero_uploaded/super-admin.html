@@ -489,7 +489,12 @@
         <button class="nav-link" data-view="players"><span class="nav-icon">👥</span>Jugadores</button>
         <button class="nav-link" data-view="categories"><span class="nav-icon">📁</span>Categorías</button>
         <button class="nav-link" data-view="payments"><span class="nav-icon">💰</span>Pagos</button>
+        <button class="nav-link" data-view="fees"><span class="nav-icon">💵</span>Cuotas</button>
         <button class="nav-link" data-view="attendance"><span class="nav-icon">📋</span>Asistencia</button>
+
+        <div class="nav-section">Marketing</div>
+        <button class="nav-link" data-view="offers"><span class="nav-icon">🎁</span>Ofertas</button>
+        <button class="nav-link" data-view="announcements"><span class="nav-icon">📢</span>Anuncios</button>
 
         <div class="nav-section">Reportes</div>
         <button class="nav-link" data-view="morosos"><span class="nav-icon">⚠️</span>Morosos</button>
@@ -498,8 +503,6 @@
         <div class="nav-section">Sistema</div>
         <button class="nav-link" data-view="users"><span class="nav-icon">🔐</span>Usuarios</button>
         <button class="nav-link" data-view="requests"><span class="nav-icon">📋</span>Solicitudes</button>
-
-        <button class="nav-link" data-view="announcements"><span class="nav-icon">📢</span>Anuncios</button>
       </nav>
 
       <div class="user-card">
@@ -1052,6 +1055,8 @@
       if (view === 'users') loadUsers();
       if (view === 'announcements') loadAnnouncements();
       if (view === 'reports') loadReports();
+      if (view === 'offers' && window.offersSystem) window.offersSystem.load();
+      if (view === 'fees' && window.feesSystem) window.feesSystem.loadCategory();
     }
 
     // Mobile
@@ -1564,9 +1569,31 @@
 
 
   <!-- Sistema de Solicitudes -->
+  <script src="solicitudes.js"></script>
 
   <!-- Sistema de anuncios con email -->
   <script src="announcements-email.js"></script>
 
-  <script src="solicitudes.js"></script>
+  <!-- Sistema de Ofertas -->
+  <script src="offers-system.js"></script>
+
+  <!-- Sistema de Cuotas -->
+  <script src="fees-system.js"></script>
+
+  <!-- Inicializar nuevos sistemas -->
+  <script>
+    // Esperar a que el sistema principal esté listo
+    window.addEventListener('DOMContentLoaded', () => {
+      // Inicializar sistemas después de un pequeño delay
+      setTimeout(() => {
+        if (window.offersSystem) {
+          window.offersSystem.init();
+        }
+        if (window.feesSystem) {
+          window.feesSystem.init();
+        }
+      }, 500);
+    });
+  </script>
+
 

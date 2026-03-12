@@ -157,6 +157,7 @@ function renderizarTablaSolicitudes(solicitudes, contenedor) {
           <tr>
             <th>Fecha</th>
             <th>Tutor</th>
+            <th>Email</th>
             <th>WhatsApp</th>
             <th>Jugador</th>
             <th>Edad</th>
@@ -170,6 +171,7 @@ function renderizarTablaSolicitudes(solicitudes, contenedor) {
             <tr data-id="${s.id}">
               <td>${new Date(s.created_at).toLocaleDateString()}</td>
               <td>${s.tutor_nombre}</td>
+              <td><small>${s.tutor_email || '-'}</small></td>
               <td>
                 <a href="https://wa.me/1${s.tutor_whatsapp}" target="_blank" class="btn-link">
                   ${s.tutor_whatsapp}
@@ -211,7 +213,7 @@ function renderizarTablaSolicitudes(solicitudes, contenedor) {
 
 // Función para aprobar y crear jugador automáticamente
 async function aprobarYCrearJugador(solicitudId) {
-  if (!confirm('¿Aprobar esta solicitud y crear el jugador?')) return;
+  if (!confirm('¿Aprobar esta solicitud y crear el jugador? Se enviará un email al padre para que establezca su contraseña.')) return;
 
   try {
     // 1. Obtener datos de la solicitud
@@ -222,6 +224,11 @@ async function aprobarYCrearJugador(solicitudId) {
       .single();
 
     if (fetchError) throw fetchError;
+
+    if (!solicitud.tutor_email) {
+      alert('❌ Esta solicitud no tiene email registrado. No se puede crear cuenta de padre.');
+      return;
+    }
 
     // 2. Crear jugador en la tabla players
     const { data: jugador, error: playerError } = await sb
@@ -236,10 +243,51 @@ async function aprobarYCrearJugador(solicitudId) {
 
     if (playerError) throw playerError;
 
-    // 3. Aprobar solicitud
+    const playerId = jugador[0].id;
+
+    // 3. Generar token único para invitación
+    const token = generateRandomToken();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // Expira en 7 días
+
+    // 4. Guardar invitación
+    const { error: inviteError } = await sb
+      .from('parent_invitations')
+      .insert([{
+        email: solicitud.tutor_email,
+        player_id: playerId,
+        token: token,
+        expires_at: expiresAt.toISOString()
+      }]);
+
+    if (inviteError) {
+      console.error('Error creando invitación:', inviteError);
+      // No tiramos error aquí, el jugador ya se creó
+    }
+
+    // 5. Enviar email de invitación
+    try {
+      const inviteLink = `${window.location.origin}/establecer-password.html?token=${token}`;
+      
+      await sb.functions.invoke('send-parent-invitation', {
+        body: {
+          to: solicitud.tutor_email,
+          parentName: solicitud.tutor_nombre,
+          playerName: solicitud.jugador_nombre,
+          inviteLink: inviteLink
+        }
+      });
+      
+      console.log('✅ Email de invitación enviado');
+    } catch (emailError) {
+      console.warn('⚠️ No se pudo enviar email:', emailError);
+      alert(`⚠️ Jugador creado pero no se pudo enviar el email a ${solicitud.tutor_email}. Envíale el enlace manualmente.`);
+    }
+
+    // 6. Aprobar solicitud
     await aprobarSolicitud(solicitudId);
 
-    alert('✅ Solicitud aprobada y jugador creado');
+    alert(`✅ Solicitud aprobada!\n\n- Jugador creado: ${solicitud.jugador_nombre}\n- Email enviado a: ${solicitud.tutor_email}`);
     
     // Recargar tabla
     const solicitudes = await cargarSolicitudes('pending');
@@ -250,6 +298,13 @@ async function aprobarYCrearJugador(solicitudId) {
     console.error('Error:', error);
     alert('❌ Error al procesar solicitud: ' + error.message);
   }
+}
+
+// Generar token aleatorio seguro
+function generateRandomToken() {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
 // Función para rechazar con UI

@@ -98,6 +98,17 @@
     </div>
   </section>
 
+  <!-- OFERTAS ESPECIALES -->
+  <section id="ofertas" class="section landing section-soft" style="display: none;">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>🎁 Ofertas Especiales</h2>
+        <p>Aprovecha nuestras promociones activas</p>
+      </div>
+      <div class="grid-3" id="offersContainer"></div>
+    </div>
+  </section>
+
   <section id="categorias" class="section section-soft landing">
     <div class="wrap">
       <div class="section-head">
@@ -275,6 +286,12 @@
                   <div class="field span-2">
                     <label>Padre / Tutor</label>
                     <input class="input" id="fPadre" placeholder="Nombre y apellido" required />
+                  </div>
+
+                  <div class="field span-2">
+                    <label>Email</label>
+                    <input class="input" type="email" id="fEmail" placeholder="tu@email.com" required />
+                    <div class="hint">Para crear tu cuenta y acceder al panel</div>
                   </div>
 
                   <div class="field span-2">
@@ -599,6 +616,86 @@
 
   <!-- Sistema de Solicitudes -->
   <script src="solicitudes.js"></script>
+
+  <!-- Cargar y Mostrar Ofertas -->
+  <script>
+    async function loadLandingOffers() {
+      try {
+        const { data: offers, error } = await window.sb
+          .from('offers')
+          .select('*')
+          .eq('is_active', true)
+          .eq('show_on_landing', true);
+
+        if (error || !offers || offers.length === 0) {
+          document.getElementById('ofertas').style.display = 'none';
+          return;
+        }
+
+        // Filtrar ofertas vigentes
+        const now = new Date();
+        const activeOffers = offers.filter(o => {
+          const validStart = !o.start_date || new Date(o.start_date) <= now;
+          const validEnd = !o.end_date || new Date(o.end_date) >= now;
+          return validStart && validEnd;
+        });
+
+        if (activeOffers.length === 0) {
+          document.getElementById('ofertas').style.display = 'none';
+          return;
+        }
+
+        // Mostrar sección y renderizar ofertas
+        document.getElementById('ofertas').style.display = 'block';
+        
+        const html = activeOffers.map(offer => {
+          let valueDisplay = offer.value;
+          let badgeClass = 'card';
+          
+          if (offer.offer_type === 'percentage') {
+            valueDisplay = `${offer.value}% OFF`;
+            badgeClass = 'card card-accent';
+          } else if (offer.offer_type === 'fixed') {
+            valueDisplay = `RD$ ${offer.value} de descuento`;
+            badgeClass = 'card card-success';
+          }
+
+          return `
+            <div class="${badgeClass}" style="text-align: center; position: relative; overflow: hidden;">
+              <div style="position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, #D87093, #9333ea); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;">
+                OFERTA
+              </div>
+              <div style="font-size: 32px; margin-bottom: 12px;">🎁</div>
+              <div class="card-title" style="margin-bottom: 8px;">${offer.title}</div>
+              <div style="font-size: 24px; font-weight: 700; color: #D87093; margin: 12px 0;">
+                ${valueDisplay}
+              </div>
+              <div class="card-text" style="font-size: 14px;">
+                ${offer.description || '¡Aprovecha esta oferta!'}
+              </div>
+              ${offer.end_date ? `
+                <div style="margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.5);">
+                  Válido hasta ${new Date(offer.end_date).toLocaleDateString()}
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+
+        document.getElementById('offersContainer').innerHTML = html;
+
+      } catch (error) {
+        console.error('Error cargando ofertas:', error);
+      }
+    }
+
+    // Cargar ofertas al cargar la página
+    if (window.sb) {
+      loadLandingOffers();
+    } else {
+      window.addEventListener('DOMContentLoaded', loadLandingOffers);
+    }
+  </script>
 
 
   <a class="wa-float"

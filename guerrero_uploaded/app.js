@@ -425,6 +425,7 @@ const ENR_PATCH_MAP = {
     setMsg("");
 
     const padre = (fPadre.value || "").trim();
+    const email = (document.getElementById('fEmail')?.value || "").trim();
     const whatsapp = normalizeRDPhone(fWhats.value);
     const jugador = (fJugador.value || "").trim();
     const edad = Number(fEdad.value);
@@ -432,9 +433,10 @@ const ENR_PATCH_MAP = {
     const notas = (fNotas?.value || "").trim();
     const beca_req = !!fBecaReq?.checked;
 
-    if (!padre || !jugador || !categoria) return setMsg("Completa los campos obligatorios.");
+    if (!padre || !jugador || !categoria || !email) return setMsg("Completa los campos obligatorios.");
     if (!Number.isFinite(edad) || edad < 8 || edad > 17) return setMsg("Edad inválida (8 a 17).");
     if (whatsapp.length !== 10) return setMsg("WhatsApp inválido. Ej: 8296396001");
+    if (!email.includes('@')) return setMsg("Email inválido.");
 
     const full = isFull(categoria);
     const estado = full ? "Lista de espera" : "Nuevo";
@@ -457,6 +459,7 @@ const ENR_PATCH_MAP = {
       try {
         const requestPayload = {
           tutor_nombre: padre,
+          tutor_email: email,
           tutor_whatsapp: whatsapp,
           jugador_nombre: jugador,
           jugador_edad: edad,
