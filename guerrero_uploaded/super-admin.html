@@ -75,8 +75,20 @@
 
     @media (max-width: 1024px) {
       .app { grid-template-columns: 1fr; }
-      .sidebar { position: fixed; left: -300px; z-index: 100; transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+      .sidebar { 
+        position: fixed; 
+        left: -300px; 
+        top: 0;
+        width: 280px;
+        height: 100vh;
+        z-index: 100; 
+        transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+      }
       .sidebar.open { left: 0; }
+      
+      /* Asegurar que el overlay esté detrás del sidebar */
+      .overlay { z-index: 99; }
     }
 
     .sidebar {
@@ -112,6 +124,17 @@
       font-size: 20px;
       box-shadow: 0 8px 40px var(--accent-glow);
       position: relative;
+      overflow: hidden;
+      padding: 8px;
+    }
+    
+    .logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      position: relative;
+      z-index: 2;
+      filter: brightness(1.1);
     }
 
     .logo::before {
@@ -384,7 +407,14 @@
       box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5);
     }
 
-    .login-card .logo { width: 72px; height: 72px; margin: 0 auto 28px; font-size: 26px; }
+    .login-card .logo { 
+      width: 96px; 
+      height: 96px; 
+      margin: 0 auto 28px; 
+      font-size: 26px;
+      background: linear-gradient(135deg, #1a1a2e, #0f0f1f);
+      border: 2px solid var(--border-glow);
+    }
     .login-card h1 { text-align: center; font-size: 28px; margin-bottom: 10px; }
     .login-card > p { text-align: center; color: var(--text-dim); font-size: 14px; margin-bottom: 36px; }
 
@@ -461,6 +491,20 @@
         align-items: stretch; 
         gap: 16px; 
         margin-bottom: 24px; 
+      }
+      
+      /* Mobile menu más grande y visible */
+      .mobile-menu {
+        width: 48px;
+        height: 48px;
+        border: 2px solid var(--border-glow);
+        background: var(--bg-card);
+        font-size: 24px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+      
+      .mobile-menu:active {
+        transform: scale(0.95);
       }
       
       .page-title { font-size: 24px; }
@@ -564,16 +608,7 @@
         font-size: 24px; 
       }
       
-      /* Sidebar mobile */
-      .sidebar { 
-        width: 280px; 
-        height: 100vh;
-        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
-      }
-      
-      .sidebar.open { 
-        left: 0 !important; 
-      }
+      /* Sidebar mobile - ya está configurado arriba en @media (max-width: 1024px) */
       
       /* User panel */
       .user-panel { 
@@ -685,7 +720,9 @@
   <!-- LOGIN -->
   <div id="loginView" class="login-wrap">
     <div class="login-card">
-      <div class="logo">GA</div>
+      <div class="logo">
+        <img src="assets/logo-guerrero.png" alt="Guerrero Academy Logo">
+      </div>
       <h1>Super Admin</h1>
       <p>Panel de control total de la academia</p>
 
@@ -710,7 +747,9 @@
 
     <aside class="sidebar" id="sidebar">
       <div class="brand">
-        <div class="logo">GA</div>
+        <div class="logo">
+          <img src="assets/logo-guerrero.png" alt="Guerrero Academy Logo">
+        </div>
         <div class="brand-text">
           <h1>Guerrero Academy</h1>
           <span>Super Admin</span>
@@ -1293,7 +1332,14 @@
 
     // Navigation
     $$('.nav-link').forEach(btn => {
-      btn.addEventListener('click', () => showView(btn.dataset.view));
+      btn.addEventListener('click', () => {
+        showView(btn.dataset.view);
+        // Cerrar sidebar en móvil al hacer click en un enlace
+        if (window.innerWidth <= 1024) {
+          $('sidebar').classList.remove('open');
+          $('overlay').classList.remove('show');
+        }
+      });
     });
 
     function showView(view) {
