@@ -762,6 +762,19 @@
             <span>Super Administrador</span>
           </div>
         </div>
+        
+        <!-- Role Switcher -->
+        <div style="margin: 16px 0; padding: 12px; background: var(--bg-glass); border-radius: 12px; border: 1px solid var(--border);">
+          <label style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 8px;">🎭 Vista Como:</label>
+          <select id="roleSwitcher" class="input" style="width: 100%; font-size: 13px;">
+            <option value="super_admin">🔐 Super Admin</option>
+            <option value="director">👔 Director</option>
+          </select>
+          <p style="font-size: 11px; color: var(--text-dim); margin-top: 8px; line-height: 1.4;">
+            Cambia entre vistas para previsualizar permisos
+          </p>
+        </div>
+        
         <button class="btn-logout" id="btnLogout">Cerrar Sesión</button>
       </div>
     </aside>
@@ -1358,6 +1371,23 @@
       await sb.auth.signOut();
       location.reload();
     });
+
+    // Role Switcher
+    const roleSwitcher = document.getElementById('roleSwitcher');
+    if (roleSwitcher) {
+      roleSwitcher.addEventListener('change', (e) => {
+        const selectedRole = e.target.value;
+        
+        if (selectedRole === 'director') {
+          // Redirigir al panel de director
+          if (confirm('¿Quieres ver el panel como Director?\n\nSe abrirá en una nueva pestaña.')) {
+            window.open('director-panel.html', '_blank');
+          }
+          // Resetear el selector
+          roleSwitcher.value = 'super_admin';
+        }
+      });
+    }
 
     // Navigation
     $$('.nav-link').forEach(btn => {
