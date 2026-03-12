@@ -87,20 +87,6 @@ function addOfferModal() {
           </div>
 
           <div class="form-group">
-            <label>
-              <input type="checkbox" id="offerAssignPlayers" style="width: auto; margin-right: 8px;">
-              Asignar a Jugadores Específicos
-            </label>
-          </div>
-
-          <div class="form-group" id="playerAssignmentSection" style="display: none;">
-            <label>Buscar Jugadores</label>
-            <input type="text" id="offerPlayerSearch" class="input" placeholder="Nombre del jugador...">
-            <div id="offerPlayerSearchResults" style="margin-top: 8px; max-height: 200px; overflow-y: auto;"></div>
-            <div id="selectedPlayersList" style="margin-top: 12px;"></div>
-          </div>
-
-          <div class="form-group">
             <label>Fecha de Inicio</label>
             <input type="date" id="offerStartDate" class="input">
           </div>
@@ -115,6 +101,23 @@ function addOfferModal() {
               <input type="checkbox" id="offerIsActive" checked style="width: auto; margin-right: 8px;">
               Oferta Activa
             </label>
+          </div>
+
+          <hr style="border: none; border-top: 1px solid var(--border); margin: 24px 0;">
+
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="offerAssignPlayers" style="width: auto; margin-right: 8px;">
+              Asignar a Jugadores Específicos
+            </label>
+            <div class="hint">Selecciona jugadores individuales para esta oferta</div>
+          </div>
+
+          <div class="form-group" id="playerAssignmentSection" style="display: none;">
+            <label>Buscar Jugadores</label>
+            <input type="text" id="offerPlayerSearch" class="input" placeholder="Escribe el nombre del jugador...">
+            <div id="offerPlayerSearchResults" style="margin-top: 8px; max-height: 200px; overflow-y: auto;"></div>
+            <div id="selectedPlayersList" style="margin-top: 12px;"></div>
           </div>
         </div>
         <div class="modal-footer">
