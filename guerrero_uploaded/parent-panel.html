@@ -84,14 +84,15 @@
     @media (max-width: 1024px) {
       .app { grid-template-columns: 1fr; }
       .sidebar { 
-        position: fixed;
-        left: -300px;
-        z-index: 1000;
-        width: 280px;
+        position: fixed !important;
+        left: -300px !important;
+        top: 0 !important;
+        z-index: 1000 !important;
+        width: 280px !important;
+        height: 100vh !important;
         transition: left 0.3s ease;
       }
-      .sidebar.open { left: 0; }
-      .sidebar.open { left: 0; }
+      .sidebar.open { left: 0 !important; }
     }
     
     /* Overlay para cerrar sidebar en móvil - SOLO visible en móvil */
