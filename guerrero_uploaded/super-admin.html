@@ -1170,6 +1170,17 @@
             <option value="suspendido">Suspendido</option>
           </select>
         </div>
+        
+        <!-- NUEVO: Checkbox de Portero -->
+        <div class="form-group" style="padding: 16px; background: rgba(255, 215, 0, 0.08); border-radius: 12px; border: 1px solid rgba(255, 215, 0, 0.2);">
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin: 0;">
+            <input type="checkbox" id="playerPortero" style="width: 20px; height: 20px; cursor: pointer;" />
+            <span style="font-size: 16px; font-weight: 600;">🧤 ¿Es portero?</span>
+          </label>
+          <div style="font-size: 13px; color: var(--text-dim); margin-top: 8px; margin-left: 32px;">
+            Los porteros aparecen en su categoría por edad Y en la categoría "Porteros"
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn" onclick="closeModal('playerModal')">Cancelar</button>
@@ -1629,26 +1640,35 @@
       $('tutorName').value = player.tutor_nombre || '';
       $('tutorWhatsapp').value = player.tutor_whatsapp || '';
       $('playerStatus').value = player.status || 'activo';
+      $('playerPortero').checked = player.es_portero || false; // Cargar estado portero
       $('playerCategory').innerHTML = categories.map(c => `<option value="${c.id}" ${c.id === player.category_id ? 'selected' : ''}>${c.name}</option>`).join('');
       openModal('playerModal');
     };
 
     $('savePlayer').addEventListener('click', async () => {
       const id = $('editPlayerId').value;
+      const esPortero = $('playerPortero').checked;
       const data = {
         nombre: $('playerName').value.trim(),
         tutor_nombre: $('tutorName').value.trim(),
         tutor_whatsapp: $('tutorWhatsapp').value.trim(),
         category_id: $('playerCategory').value,
-        status: $('playerStatus').value
+        status: $('playerStatus').value,
+        es_portero: esPortero
       };
 
       if (!data.nombre) return alert('Nombre requerido');
 
       if (id) {
         await sb.from('players').update(data).eq('id', id);
+        
+        // Actualizar categorías si cambió el estado de portero
+        await actualizarCategoriasPortero(id, esPortero, data.category_id);
       } else {
-        await sb.from('players').insert(data);
+        const { data: newPlayer } = await sb.from('players').insert(data).select().single();
+        if (newPlayer) {
+          await actualizarCategoriasPortero(newPlayer.id, esPortero, data.category_id);
+        }
       }
 
       closeModal('playerModal');
@@ -1656,6 +1676,30 @@
       players = newPlayers || [];
       renderPlayersTable();
     });
+
+    // Función auxiliar para actualizar categorías de portero
+    async function actualizarCategoriasPortero(playerId, esPortero, categoryId) {
+      // Eliminar todas las categorías actuales
+      await sb.from('player_categories').delete().eq('player_id', playerId);
+      
+      // Agregar categoría principal por edad
+      const categoriasAAsignar = [{ player_id: playerId, category_id: categoryId }];
+      
+      // Si es portero, agregar también categoría "Porteros"
+      if (esPortero) {
+        const { data: categoriaPorteros } = await sb
+          .from('categories')
+          .select('id')
+          .eq('name', 'Porteros')
+          .single();
+        
+        if (categoriaPorteros) {
+          categoriasAAsignar.push({ player_id: playerId, category_id: categoriaPorteros.id });
+        }
+      }
+      
+      await sb.from('player_categories').insert(categoriasAAsignar);
+    }
 
     // Categories
     window.loadCategories = async function loadCategories() {
