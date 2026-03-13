@@ -586,11 +586,39 @@ const ENR_PATCH_MAP = {
   }
 
   function fillConfirm(){
-    if (cfTutor) cfTutor.textContent = (fPadre?.value || "—").trim() || "—";
-    if (cfWhats) cfWhats.textContent = normalizeRDPhone(fWhats?.value || "") || "—";
-    if (cfJugador) cfJugador.textContent = (fJugador?.value || "—").trim() || "—";
-    if (cfEdad) cfEdad.textContent = (fEdad?.value || "—").toString();
-    if (cfCat) cfCat.textContent = fCategoria?.value || "—";
+    const padre = (fPadre?.value || "—").trim() || "—";
+    const whats = normalizeRDPhone(fWhats?.value || "") || "—";
+    const jugador = (fJugador?.value || "—").trim() || "—";
+    const edad = (fEdad?.value || "—").toString();
+    const catText = fCategoria?.options[fCategoria.selectedIndex]?.text || "—";
+    const esPortero = document.getElementById("fPortero")?.checked || false;
+    
+    if (cfTutor) cfTutor.textContent = padre;
+    if (cfWhats) cfWhats.textContent = whats;
+    if (cfJugador) cfJugador.textContent = jugador;
+    if (cfEdad) cfEdad.textContent = edad;
+    if (cfCat) cfCat.textContent = catText;
+    
+    // Mostrar/ocultar indicador de portero
+    const cfPorteroRow = document.getElementById("cfPorteroRow");
+    if (cfPorteroRow) {
+      cfPorteroRow.style.display = esPortero ? 'flex' : 'none';
+    }
+
+    // Actualizar link de WhatsApp con mensaje natural
+    if (okWhats) {
+      const msg =
+        `Hola! 👋\n\n` +
+        `Acabo de llenar el formulario de inscripción para mi ${edad <= 12 ? 'hijo/a' : 'joven'} *${jugador}*.\n\n` +
+        `${esPortero ? '🧤 Le interesa entrenar como *portero*\n' : ''}` +
+        `📋 *Edad:* ${edad} años\n` +
+        `⚽ *Categoría:* ${catText}\n` +
+        `👤 *Mi nombre:* ${padre}\n` +
+        `📱 *Mi WhatsApp:* ${whats}\n\n` +
+        `¿Cuándo podemos empezar? 🚀`;
+      
+      okWhats.onclick = () => window.open(`https://wa.me/18296396001?text=${encodeURIComponent(msg)}`, "_blank");
+    }
   }
 
   function validateStep(i){
