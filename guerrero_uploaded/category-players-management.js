@@ -118,7 +118,6 @@ async function loadCategoryPlayers(categoryId, categoryName) {
           nombre,
           tutor_nombre,
           tutor_whatsapp,
-          tutor_email,
           es_portero,
           status,
           category_id
