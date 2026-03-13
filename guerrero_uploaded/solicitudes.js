@@ -231,7 +231,21 @@ async function aprobarYCrearJugador(solicitudId) {
       return;
     }
 
-    // 2. Crear jugador en la tabla players
+    // 2. Obtener ID de la categoría solicitada
+    const { data: categoriaData, error: catError } = await sb
+      .from('categories')
+      .select('id')
+      .eq('name', solicitud.category_name)
+      .single();
+
+    if (catError || !categoriaData) {
+      throw new Error(`No se encontró la categoría: ${solicitud.category_name}`);
+    }
+
+    const categoryId = categoriaData.id;
+    console.log(`📋 Categoría encontrada: ${solicitud.category_name} (ID: ${categoryId})`);
+
+    // 3. Crear jugador en la tabla players
     const { data: jugador, error: playerError} = await sb
       .from('players')
       .insert([{
@@ -247,8 +261,9 @@ async function aprobarYCrearJugador(solicitudId) {
     if (playerError) throw playerError;
 
     const playerId = jugador[0].id;
+    console.log(`✅ Jugador creado: ${jugador[0].nombre} (ID: ${playerId})`);
 
-    // 3. Asignar a categoría(s) usando player_categories
+    // 4. Asignar a categoría(s) usando player_categories
     const categoriasAAsignar = [categoryId];
     
     // Si es portero, agregar también a categoría "Porteros"

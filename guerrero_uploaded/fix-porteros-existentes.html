@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Fix Porteros Existentes</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: monospace; padding: 40px; background: #1a1a1a; color: #fff; }
+    .btn { padding: 12px 24px; background: #D87093; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; margin: 8px; }
+    .btn:hover { background: #c76082; }
+    .result { padding: 12px; margin: 8px 0; border-radius: 8px; background: #2a2a2a; }
+    .success { background: #10b981; }
+    .error { background: #ef4444; }
+    pre { background: #2a2a2a; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <h1>🧤 Fix Porteros Existentes</h1>
+  <p>Este script asignará todos los jugadores con es_portero=true a la categoría "Porteros"</p>
+  
+  <button class="btn" onclick="diagnosticar()">1️⃣ Diagnosticar</button>
+  <button class="btn" onclick="fixPorteros()">2️⃣ Arreglar Porteros</button>
+  
+  <div id="results"></div>
+
+  <script>
+    const sb = window.supabase.createClient(
+      'https://daijiuqqafvjofafwqck.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g'
+    );
+
+    async function diagnosticar() {
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = '<div class="result">⏳ Diagnosticando...</div>';
+      
+      try {
+        // 1. Obtener categoría Porteros
+        const { data: categoriaPorteros, error: catError } = await sb
+          .from('categories')
+          .select('id, name')
+          .eq('name', 'Porteros')
+          .single();
+
+        if (catError || !categoriaPorteros) {
+          resultsDiv.innerHTML = '<div class="result error">❌ No existe la categoría "Porteros". Ejecuta SQL_PORTEROS_COMPLETO.sql primero</div>';
+          return;
+        }
+
+        // 2. Obtener jugadores marcados como porteros
+        const { data: porteros, error: playersError } = await sb
+          .from('players')
+          .select('id, nombre, es_portero, status')
+          .eq('es_portero', true)
+          .eq('status', 'activo');
+
+        if (playersError) {
+          resultsDiv.innerHTML = `<div class="result error">❌ Error: ${playersError.message}</div>`;
+          return;
+        }
+
+        // 3. Verificar cuántos están asignados a categoría Porteros
+        const { data: asignaciones, error: pcError } = await sb
+          .from('player_categories')
+          .select('player_id')
+          .eq('category_id', categoriaPorteros.id);
+
+        const asignadosIds = new Set(asignaciones?.map(a => a.player_id) || []);
+        const sinAsignar = porteros.filter(p => !asignadosIds.has(p.id));
+
+        let html = `
+          <div class="result success">✅ Categoría "Porteros" ID: ${categoriaPorteros.id}</div>
+          <div class="result">📊 Jugadores con es_portero=true: ${porteros.length}</div>
+          <div class="result">📊 Ya asignados a categoría Porteros: ${asignaciones?.length || 0}</div>
+          <div class="result ${sinAsignar.length > 0 ? 'error' : 'success'}">
+            ${sinAsignar.length > 0 ? '⚠️' : '✅'} Sin asignar a categoría Porteros: ${sinAsignar.length}
+          </div>
+        `;
+
+        if (sinAsignar.length > 0) {
+          html += '<div class="result"><strong>Jugadores sin asignar:</strong><pre>' + 
+                  JSON.stringify(sinAsignar.map(p => ({ id: p.id, nombre: p.nombre })), null, 2) + 
+                  '</pre></div>';
+          html += '<div class="result">👉 Haz clic en "2️⃣ Arreglar Porteros" para asignarlos</div>';
+        }
+
+        resultsDiv.innerHTML = html;
+
+      } catch (error) {
+        resultsDiv.innerHTML = `<div class="result error">❌ Error: ${error.message}</div>`;
+      }
+    }
+
+    async function fixPorteros() {
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = '<div class="result">⏳ Arreglando asignaciones...</div>';
+      
+      try {
+        // 1. Obtener categoría Porteros
+        const { data: categoriaPorteros } = await sb
+          .from('categories')
+          .select('id')
+          .eq('name', 'Porteros')
+          .single();
+
+        if (!categoriaPorteros) {
+          resultsDiv.innerHTML = '<div class="result error">❌ No existe la categoría "Porteros"</div>';
+          return;
+        }
+
+        // 2. Obtener todos los porteros
+        const { data: porteros } = await sb
+          .from('players')
+          .select('id, nombre')
+          .eq('es_portero', true)
+          .eq('status', 'activo');
+
+        if (!porteros || porteros.length === 0) {
+          resultsDiv.innerHTML = '<div class="result">ℹ️ No hay jugadores marcados como porteros</div>';
+          return;
+        }
+
+        // 3. Asignar cada portero a la categoría Porteros
+        const asignaciones = porteros.map(p => ({
+          player_id: p.id,
+          category_id: categoriaPorteros.id
+        }));
+
+        const { data: inserted, error: insertError } = await sb
+          .from('player_categories')
+          .upsert(asignaciones, { onConflict: 'player_id,category_id' })
+          .select();
+
+        if (insertError) {
+          resultsDiv.innerHTML = `<div class="result error">❌ Error: ${insertError.message}</div>`;
+          return;
+        }
+
+        resultsDiv.innerHTML = `
+          <div class="result success">✅ ¡Listo! ${porteros.length} porteros asignados correctamente</div>
+          <div class="result"><strong>Jugadores asignados:</strong><pre>${JSON.stringify(porteros.map(p => p.nombre), null, 2)}</pre></div>
+          <div class="result">🔄 Recarga el panel de Super Admin para ver los cambios</div>
+        `;
+
+      } catch (error) {
+        resultsDiv.innerHTML = `<div class="result error">❌ Error: ${error.message}</div>`;
+      }
+    }
+  </script>
+</body>
+</html>
