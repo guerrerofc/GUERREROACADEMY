@@ -79,14 +79,27 @@
         top: 0;
         width: 280px;
         height: 100vh;
-        z-index: 100; 
-        transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        z-index: 1000; 
+        transition: left 0.3s ease;
         box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
       }
       .sidebar.open { left: 0; }
       
-      /* Asegurar que el overlay esté detrás del sidebar */
-      .overlay { z-index: 99; }
+      /* Overlay para cerrar sidebar */
+      .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 999;
+        backdrop-filter: blur(4px);
+      }
+      .sidebar-overlay.active {
+        display: block;
+      }
     }
 
     .sidebar {
@@ -758,6 +771,9 @@
         <button class="btn-logout" id="btnLogout">Cerrar Sesión</button>
       </div>
     </aside>
+    
+    <!-- Overlay para cerrar sidebar en móvil -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <main class="main">
       <!-- DASHBOARD -->
@@ -1441,13 +1457,23 @@
     document.querySelectorAll('.mobile-menu').forEach(btn => {
       btn.addEventListener('click', () => {
         $('sidebar').classList.toggle('open');
-        $('overlay').classList.toggle('show');
+        $('sidebarOverlay').classList.toggle('active');
       });
     });
 
-    $('overlay').addEventListener('click', () => {
+    $('sidebarOverlay').addEventListener('click', () => {
       $('sidebar').classList.remove('open');
-      $('overlay').classList.remove('show');
+      $('sidebarOverlay').classList.remove('active');
+    });
+    
+    // Cerrar sidebar al seleccionar una opción del menú en móvil
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        if (window.innerWidth <= 1024) {
+          $('sidebar').classList.remove('open');
+          $('sidebarOverlay').classList.remove('active');
+        }
+      });
     });
 
     // Dashboard
