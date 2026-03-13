@@ -116,12 +116,12 @@ async function loadCategoryPlayers(categoryId, categoryName) {
         players (
           id,
           nombre,
-          age,
           tutor_nombre,
           tutor_whatsapp,
           tutor_email,
           es_portero,
-          status
+          status,
+          category_id
         )
       `)
       .eq('category_id', categoryId);
