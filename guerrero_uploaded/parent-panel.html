@@ -960,7 +960,7 @@
           <div class="payment-card" id="paymentCard" style="display: none;">
             <div class="payment-header">
               <h3>Mensualidad - <span id="paymentMonth">Marzo 2026</span></h3>
-              <div class="payment-amount">RD$ 3,500<small>/mes</small></div>
+              <div class="payment-amount" id="paymentAmount">RD$ 3,500<small>/mes</small></div>
             </div>
             <div class="payment-body">
               <div class="payment-row">
@@ -1257,7 +1257,7 @@
       `).join('');
     }
 
-    window.selectChildForPayment = function(id, name, category) {
+    window.selectChildForPayment = async function(id, name, category) {
       selectedChild = { id, name, category };
       $('paymentCard').style.display = 'block';
       $('paymentPlayerName').textContent = name;
@@ -1265,6 +1265,69 @@
       
       const now = new Date();
       $('paymentMonth').textContent = now.toLocaleDateString('es-DO', { month: 'long', year: 'numeric' });
+      
+      // Consultar ofertas asignadas al jugador
+      try {
+        const { data: assignments, error: assignError } = await sb
+          .from('offer_assignments')
+          .select('offer_id, offers(id, name, discount_type, value)')
+          .eq('player_id', id)
+          .eq('is_active', true);
+        
+        if (assignError) throw assignError;
+        
+        // Precio base de la mensualidad
+        const basePrice = 3500;
+        let finalPrice = basePrice;
+        let discountText = '';
+        
+        if (assignments && assignments.length > 0) {
+          // Tomar la primera oferta activa
+          const offer = assignments[0].offers;
+          
+          if (offer.discount_type === 'porcentaje') {
+            const discount = (basePrice * offer.value) / 100;
+            finalPrice = basePrice - discount;
+            discountText = `<div class="payment-row" style="color: var(--success);">
+              <span>Descuento (${offer.value}%)</span>
+              <span>-RD$ ${discount.toLocaleString('es-DO')}</span>
+            </div>`;
+          } else if (offer.discount_type === 'monto_fijo') {
+            finalPrice = basePrice - offer.value;
+            discountText = `<div class="payment-row" style="color: var(--success);">
+              <span>Descuento</span>
+              <span>-RD$ ${offer.value.toLocaleString('es-DO')}</span>
+            </div>`;
+          }
+        }
+        
+        // Guardar el precio final en selectedChild
+        selectedChild.finalPrice = finalPrice;
+        selectedChild.basePrice = basePrice;
+        
+        // Actualizar UI con precio y descuento
+        $('paymentAmount').innerHTML = `RD$ ${finalPrice.toLocaleString('es-DO')}<small>/mes</small>`;
+        
+        // Si hay descuento, mostrar el precio original tachado y el descuento
+        if (discountText) {
+          const discountInfo = `
+            <div class="payment-row" style="color: var(--text-muted); text-decoration: line-through;">
+              <span>Precio regular</span>
+              <span>RD$ ${basePrice.toLocaleString('es-DO')}</span>
+            </div>
+            ${discountText}
+          `;
+          // Insertar después de la fila de categoría
+          const categoryRow = $('paymentCategory').closest('.payment-row');
+          categoryRow.insertAdjacentHTML('afterend', discountInfo);
+        }
+      } catch (error) {
+        console.error('Error al consultar ofertas:', error);
+        // Si falla, usar precio base
+        selectedChild.finalPrice = 3500;
+        selectedChild.basePrice = 3500;
+        $('paymentAmount').innerHTML = `RD$ 3,500<small>/mes</small>`;
+      }
     };
 
     $('btnPay').addEventListener('click', async () => {
@@ -1285,7 +1348,8 @@
             player_id: selectedChild.id,
             parent_id: currentUser.id,
             origin_url: window.location.origin,
-            month: new Date().toISOString().slice(0, 7)
+            month: new Date().toISOString().slice(0, 7),
+            amount: selectedChild.finalPrice || 3500  // Enviar precio con descuento
           })
         });
 
