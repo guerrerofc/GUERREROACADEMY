@@ -337,20 +337,28 @@ async function aprobarYCrearJugador(solicitudId) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // Expira en 7 días
 
-    // 4. Guardar invitación
+    // 4. Guardar invitación (UPSERT para evitar conflictos)
+    // Si ya existe una invitación para este email, se actualiza con nuevo token
     const { error: inviteError } = await sb
       .from('parent_invitations')
-      .insert([{
+      .upsert([{
         email: solicitud.tutor_email,
         player_id: playerId,
         token: token,
-        expires_at: expiresAt.toISOString()
-      }]);
+        expires_at: expiresAt.toISOString(),
+        used: false,
+        used_at: null
+      }], {
+        onConflict: 'email' // Actualizar si el email ya existe
+      });
 
     if (inviteError) {
-      console.error('Error creando invitación:', inviteError);
-      // No tiramos error aquí, el jugador ya se creó
+      console.error('❌ Error creando invitación:', inviteError);
+      alert(`⚠️ Jugador creado pero hubo un problema con la invitación: ${inviteError.message}`);
+      return;
     }
+    
+    console.log('✅ Invitación creada/actualizada correctamente');
 
     // 5. Enviar email de bienvenida
     try {
