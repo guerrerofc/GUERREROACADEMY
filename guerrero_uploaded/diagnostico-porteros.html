@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Diagnóstico Sistema Porteros</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: monospace; padding: 40px; background: #1a1a1a; color: #fff; }
+    .check { padding: 12px; margin: 8px 0; border-radius: 8px; }
+    .ok { background: #10b981; }
+    .error { background: #ef4444; }
+    .warning { background: #f59e0b; }
+    pre { background: #2a2a2a; padding: 16px; border-radius: 8px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>🔍 Diagnóstico Sistema de Porteros</h1>
+  <div id="results"></div>
+
+  <script>
+    const sb = window.supabase.createClient(
+      'https://daijiuqqafvjofafwqck.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g'
+    );
+
+    async function runDiagnostics() {
+      const results = [];
+
+      // Check 1: Columna es_portero en players
+      try {
+        const { data, error } = await sb.from('players').select('es_portero').limit(1);
+        if (error) {
+          results.push({ status: 'error', message: '❌ Columna es_portero NO existe en players', detail: error.message });
+        } else {
+          results.push({ status: 'ok', message: '✅ Columna es_portero existe en players' });
+        }
+      } catch (e) {
+        results.push({ status: 'error', message: '❌ Error verificando es_portero', detail: e.message });
+      }
+
+      // Check 2: Tabla player_categories existe
+      try {
+        const { data, error } = await sb.from('player_categories').select('*').limit(1);
+        if (error) {
+          if (error.code === '42P01') {
+            results.push({ status: 'error', message: '❌ Tabla player_categories NO existe', detail: 'Ejecuta SQL_PORTEROS_COMPLETO.sql' });
+          } else {
+            results.push({ status: 'warning', message: '⚠️ player_categories existe pero hay un error', detail: error.message });
+          }
+        } else {
+          const count = data?.length || 0;
+          results.push({ status: 'ok', message: `✅ Tabla player_categories existe (${count} registros de prueba)` });
+        }
+      } catch (e) {
+        results.push({ status: 'error', message: '❌ Error verificando player_categories', detail: e.message });
+      }
+
+      // Check 3: Categoría Porteros existe
+      try {
+        const { data, error } = await sb.from('categories').select('*').eq('name', 'Porteros').single();
+        if (error || !data) {
+          results.push({ status: 'error', message: '❌ Categoría "Porteros" NO existe', detail: 'Ejecuta el SQL' });
+        } else {
+          results.push({ status: 'ok', message: `✅ Categoría "Porteros" existe (ID: ${data.id})` });
+        }
+      } catch (e) {
+        results.push({ status: 'error', message: '❌ Error verificando categoría Porteros', detail: e.message });
+      }
+
+      // Check 4: Contar porteros actuales
+      try {
+        const { data, error } = await sb.from('players').select('*').eq('es_portero', true);
+        if (!error) {
+          const count = data?.length || 0;
+          results.push({ status: count > 0 ? 'ok' : 'warning', message: `📊 Jugadores marcados como porteros: ${count}` });
+        }
+      } catch (e) {
+        results.push({ status: 'warning', message: '⚠️ No se pudo contar porteros' });
+      }
+
+      // Check 5: Verificar player_categories tiene datos
+      try {
+        const { data, error } = await sb.from('player_categories').select('*, players(nombre), categories(name)');
+        if (!error && data) {
+          results.push({ status: 'ok', message: `📊 Relaciones player_categories: ${data.length}`, detail: JSON.stringify(data.slice(0, 3), null, 2) });
+        }
+      } catch (e) {
+        // Ignorar
+      }
+
+      // Renderizar resultados
+      const html = results.map(r => `
+        <div class="check ${r.status}">
+          <strong>${r.message}</strong>
+          ${r.detail ? `<pre>${r.detail}</pre>` : ''}
+        </div>
+      `).join('');
+
+      document.getElementById('results').innerHTML = html;
+
+      // Resumen final
+      const errors = results.filter(r => r.status === 'error').length;
+      const summary = document.createElement('div');
+      summary.className = 'check ' + (errors === 0 ? 'ok' : 'error');
+      summary.innerHTML = `<h2>${errors === 0 ? '✅ TODO LISTO' : '❌ FALTAN ' + errors + ' PASOS'}</h2>`;
+      document.getElementById('results').appendChild(summary);
+
+      if (errors > 0) {
+        const instructions = document.createElement('div');
+        instructions.className = 'check warning';
+        instructions.innerHTML = `
+          <h3>📋 QUÉ HACER:</h3>
+          <ol>
+            <li>Ve a Supabase → SQL Editor</li>
+            <li>Ejecuta el archivo <code>SQL_PORTEROS_COMPLETO.sql</code></li>
+            <li>Recarga esta página</li>
+          </ol>
+        `;
+        document.getElementById('results').appendChild(instructions);
+      }
+    }
+
+    runDiagnostics();
+  </script>
+</body>
+</html>

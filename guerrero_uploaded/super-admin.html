@@ -1659,22 +1659,35 @@
 
       if (!data.nombre) return alert('Nombre requerido');
 
-      if (id) {
-        await sb.from('players').update(data).eq('id', id);
-        
-        // Actualizar categorías si cambió el estado de portero
-        await actualizarCategoriasPortero(id, esPortero, data.category_id);
-      } else {
-        const { data: newPlayer } = await sb.from('players').insert(data).select().single();
-        if (newPlayer) {
-          await actualizarCategoriasPortero(newPlayer.id, esPortero, data.category_id);
-        }
-      }
+      console.log('💾 Guardando jugador...', { id, esPortero, category_id: data.category_id });
 
-      closeModal('playerModal');
-      const { data: newPlayers } = await sb.from('players').select('*, categories(name)');
-      players = newPlayers || [];
-      renderPlayersTable();
+      try {
+        if (id) {
+          const { error } = await sb.from('players').update(data).eq('id', id);
+          if (error) throw error;
+          
+          console.log('✅ Jugador actualizado, ahora actualizando categorías...');
+          // Actualizar categorías si cambió el estado de portero
+          await actualizarCategoriasPortero(id, esPortero, data.category_id);
+        } else {
+          const { data: newPlayer, error } = await sb.from('players').insert(data).select().single();
+          if (error) throw error;
+          
+          console.log('✅ Jugador creado, ahora actualizando categorías...');
+          if (newPlayer) {
+            await actualizarCategoriasPortero(newPlayer.id, esPortero, data.category_id);
+          }
+        }
+
+        alert('✅ Jugador guardado correctamente' + (esPortero ? ' como PORTERO' : ''));
+        closeModal('playerModal');
+        const { data: newPlayers } = await sb.from('players').select('*, categories(name)');
+        players = newPlayers || [];
+        renderPlayersTable();
+      } catch (error) {
+        console.error('❌ Error al guardar:', error);
+        alert('❌ Error al guardar: ' + error.message);
+      }
     });
 
     // Función auxiliar para actualizar categorías de portero
