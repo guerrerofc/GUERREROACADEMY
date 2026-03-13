@@ -118,6 +118,26 @@
       height: 100vh;
       overflow-y: auto;
     }
+    
+    /* Botón cerrar sidebar móvil */
+    .sidebar-close {
+      display: none;
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      border: none;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      font-size: 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 10;
+    }
+    @media (max-width: 1024px) {
+      .sidebar-close { display: flex; align-items: center; justify-content: center; }
+    }
 
     .brand {
       display: flex;
@@ -734,6 +754,7 @@
     <div class="overlay" id="overlay"></div>
 
     <aside class="sidebar" id="sidebar">
+      <button class="sidebar-close" id="sidebarClose" onclick="closeSidebar()">✕</button>
       <div class="brand">
         <div class="logo">
           <img src="assets/logo-guerrero.png" alt="Guerrero Academy Logo">
@@ -1698,6 +1719,7 @@
       $('sidebar').classList.remove('open');
       $('sidebarOverlay').classList.remove('active');
     }
+    window.closeSidebar = closeSidebar;
     $('sidebarOverlay').addEventListener('click', closeSidebar);
     $('sidebarOverlay').addEventListener('touchstart', closeSidebar);
     
