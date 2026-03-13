@@ -360,23 +360,70 @@ async function aprobarYCrearJugador(solicitudId) {
     
     console.log('✅ Invitación creada/actualizada correctamente');
 
-    // 5. Enviar email de bienvenida
+    // 5. Enviar email de bienvenida usando Resend directamente
     try {
       const inviteLink = `${window.location.origin}/establecer-password.html?token=${token}`;
       
-      await sb.functions.invoke('send-welcome-email', {
-        body: {
-          email: solicitud.tutor_email,
-          nombre: solicitud.tutor_nombre,
-          playerName: solicitud.jugador_nombre,
-          magicLink: inviteLink
-        }
-      });
+      const emailHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>¡Bienvenido a Guerrero Academy!</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9fafb; }
+            .container { background: white; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+            .header { background: linear-gradient(135deg, #D87093, #8B5CF6); color: white; padding: 40px 30px; text-align: center; border-radius: 16px 16px 0 0; }
+            .header h1 { margin: 0; font-size: 28px; }
+            .content { padding: 40px 30px; }
+            .button { display: inline-block; background: linear-gradient(135deg, #D87093, #8B5CF6); color: white; padding: 14px 32px; text-decoration: none; border-radius: 10px; font-weight: 600; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>⚽ ¡Bienvenido a Guerrero Academy!</h1>
+            </div>
+            <div class="content">
+              <h2>Hola ${solicitud.tutor_nombre},</h2>
+              <p>¡Excelentes noticias! 🎉 La inscripción de <strong>${solicitud.jugador_nombre}</strong> ha sido aprobada exitosamente.</p>
+              <p>Tu cuenta ha sido creada. Haz clic en el botón para establecer tu contraseña:</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${inviteLink}" class="button">🔐 Establecer Contraseña</a>
+                <p style="color: #9ca3af; font-size: 13px; margin-top: 15px;">Este link es válido por 7 días</p>
+              </div>
+              <p>¡Bienvenido a la familia Guerrero! 🎯⚽</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
       
-      console.log('✅ Email de bienvenida enviado');
+      // Llamar directamente a Resend API
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer re_QuqVCuKf_BMpVjpcGKEXLnHUi8ubH3eXJ',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'Guerrero Academy <onboarding@resend.dev>',
+          to: solicitud.tutor_email,
+          subject: '🎉 ¡Bienvenido a Guerrero Academy!',
+          html: emailHtml
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Error enviando email');
+      }
+
+      const result = await response.json();
+      console.log('✅ Email de bienvenida enviado:', result);
     } catch (emailError) {
       console.error('⚠️  Error enviando email:', emailError);
-      alert(`⚠️ Jugador creado pero no se pudo enviar el email a ${solicitud.tutor_email}. Envíale el enlace manualmente.`);
+      alert(`⚠️ Jugador creado pero no se pudo enviar el email a ${solicitud.tutor_email}. Error: ${emailError.message}`);
     }
 
     // 6. Aprobar solicitud
