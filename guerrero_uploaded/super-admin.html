@@ -1134,19 +1134,50 @@
           <button class="btn btn-primary" id="btnAddUser">+ Nuevo Usuario</button>
         </div>
 
-        <div class="card">
-          <table>
-            <thead>
-              <tr>
-                <th>Email</th>
-                <th>Nombre</th>
-                <th>Rol</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="usersTable"></tbody>
-          </table>
+        <!-- Tabs -->
+        <div style="display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 2px solid var(--border);">
+          <button class="tab-btn active" data-tab="personal" onclick="switchUserTab('personal')" style="padding: 12px 24px; background: none; border: none; border-bottom: 3px solid transparent; font-weight: 600; cursor: pointer; color: var(--text-dim); transition: all 0.3s;">
+            👥 Personal (Staff/Director)
+          </button>
+          <button class="tab-btn" data-tab="parents" onclick="switchUserTab('parents')" style="padding: 12px 24px; background: none; border: none; border-bottom: 3px solid transparent; font-weight: 600; cursor: pointer; color: var(--text-dim); transition: all 0.3s;">
+            👨‍👩‍👧‍👦 Padres
+          </button>
+        </div>
+
+        <!-- Tab: Personal -->
+        <div id="tabPersonal" class="user-tab-content">
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Nombre</th>
+                  <th>Rol</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="personalTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab: Padres -->
+        <div id="tabParents" class="user-tab-content" style="display: none;">
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Nombre</th>
+                  <th>Hijos</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="parentsTable"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -1374,6 +1405,65 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal: Gestionar Hijos -->
+  <div class="modal" id="manageChildrenModal">
+    <div class="modal-content" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3 id="childrenModalTitle">Gestionar Hijos de <span id="parentNameDisplay"></span></h3>
+        <button class="btn btn-sm" onclick="closeModal('manageChildrenModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="currentParentEmail">
+        
+        <!-- Hijos actuales -->
+        <div style="margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h4 style="font-size: 16px; font-weight: 600;">Hijos Actuales</h4>
+            <button class="btn btn-sm btn-primary" onclick="showAddChildForm()">+ Agregar Hijo</button>
+          </div>
+          <div id="currentChildrenList"></div>
+        </div>
+
+        <!-- Formulario para agregar hijo (oculto por defecto) -->
+        <div id="addChildForm" style="display: none; background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 16px;">
+          <h4 style="font-size: 15px; font-weight: 600; margin-bottom: 16px;">Agregar Nuevo Hijo</h4>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label>Nombre del Jugador *</label>
+              <input type="text" id="newChildName" class="input" placeholder="Nombre completo">
+            </div>
+            <div class="form-group">
+              <label>Categoría *</label>
+              <select id="newChildCategory" class="select"></select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>WhatsApp (opcional)</label>
+            <input type="text" id="newChildWhatsapp" class="input" placeholder="8291234567">
+          </div>
+
+          <div class="form-group" style="background: rgba(255, 215, 0, 0.08); border-radius: 12px; border: 1px solid rgba(255, 215, 0, 0.2); padding: 12px;">
+            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin: 0;">
+              <input type="checkbox" id="newChildPortero" style="width: 20px; height: 20px; cursor: pointer;" />
+              <span style="font-size: 16px; font-weight: 600;">🧤 ¿Es portero?</span>
+            </label>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-top: 16px;">
+            <button class="btn" onclick="hideAddChildForm()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveNewChild()">Agregar Hijo</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('manageChildrenModal')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
 
   <script>
     const SUPABASE_URL = "https://daijiuqqafvjofafwqck.supabase.co";
@@ -2179,19 +2269,241 @@
       }).join('') || '<div class="empty"><p>Sin sesiones registradas</p></div>';
     });
 
-    // Users
-    async function loadUsers() {
-      const { data: profiles } = await sb.from('profiles').select('*');
+    // Users - Tabs y gestión de padres/hijos
+    let currentUserTab = 'personal';
+    
+    window.switchUserTab = function(tab) {
+      currentUserTab = tab;
+      
+      // Actualizar tabs visuales
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        if (btn.dataset.tab === tab) {
+          btn.classList.add('active');
+          btn.style.borderBottomColor = 'var(--primary)';
+          btn.style.color = 'var(--text)';
+        } else {
+          btn.classList.remove('active');
+          btn.style.borderBottomColor = 'transparent';
+          btn.style.color = 'var(--text-dim)';
+        }
+      });
 
-      $('usersTable').innerHTML = (profiles || []).map(u => `
-        <tr>
-          <td>${u.email || '-'}</td>
-          <td>${u.nombre || '-'}</td>
-          <td><span class="badge badge-${u.role === 'admin' ? 'info' : u.role === 'coach' ? 'blue' : 'success'}">${u.role || 'parent'}</span></td>
-          <td><span class="badge badge-success">Activo</span></td>
-          <td><button class="btn btn-sm">✏️</button></td>
-        </tr>
-      `).join('') || '<tr><td colspan="5" style="text-align: center;">Sin usuarios</td></tr>';
+      // Mostrar/ocultar contenido
+      document.getElementById('tabPersonal').style.display = tab === 'personal' ? 'block' : 'none';
+      document.getElementById('tabParents').style.display = tab === 'parents' ? 'block' : 'none';
+      
+      loadUsers();
+    }
+
+    async function loadUsers() {
+      const { data: users } = await sb.from('users').select('*').order('created_at', { ascending: false });
+
+      if (currentUserTab === 'personal') {
+        // Mostrar solo staff, director, super_admin
+        const personal = (users || []).filter(u => ['staff', 'director', 'super_admin'].includes(u.rol));
+        
+        $('personalTable').innerHTML = personal.map(u => `
+          <tr>
+            <td>${u.email || '-'}</td>
+            <td>${u.nombre || '-'}</td>
+            <td><span class="badge badge-${u.rol === 'super_admin' ? 'danger' : u.rol === 'director' ? 'warning' : 'info'}">${u.rol || '-'}</span></td>
+            <td><span class="badge badge-success">Activo</span></td>
+            <td><button class="btn btn-sm" onclick="editUser('${u.id}')">✏️</button></td>
+          </tr>
+        `).join('') || '<tr><td colspan="5" style="text-align: center;">Sin personal</td></tr>';
+        
+      } else {
+        // Mostrar solo padres con sus hijos
+        const parents = (users || []).filter(u => u.rol === 'parent');
+        
+        // Obtener jugadores para contar hijos
+        const { data: allPlayers } = await sb.from('players').select('tutor_email, nombre').eq('status', 'activo');
+        
+        // Contar hijos por padre
+        const childrenCount = {};
+        (allPlayers || []).forEach(p => {
+          if (p.tutor_email) {
+            childrenCount[p.tutor_email] = (childrenCount[p.tutor_email] || 0) + 1;
+          }
+        });
+        
+        $('parentsTable').innerHTML = parents.map(u => {
+          const numHijos = childrenCount[u.email] || 0;
+          return `
+            <tr>
+              <td>${u.email || '-'}</td>
+              <td>${u.nombre || '-'}</td>
+              <td>
+                <span class="badge badge-${numHijos > 0 ? 'success' : 'warning'}" style="font-size: 13px;">
+                  ${numHijos} hijo${numHijos !== 1 ? 's' : ''}
+                </span>
+              </td>
+              <td><span class="badge badge-success">Activo</span></td>
+              <td>
+                <button class="btn btn-sm" onclick="manageChildren('${u.email}', '${u.nombre}')" title="Gestionar hijos">
+                  👨‍👩‍👧‍👦
+                </button>
+                <button class="btn btn-sm" onclick="editUser('${u.id}')">✏️</button>
+              </td>
+            </tr>
+          `;
+        }).join('') || '<tr><td colspan="5" style="text-align: center;">Sin padres registrados</td></tr>';
+      }
+    }
+
+    // Gestionar hijos de un padre
+    window.manageChildren = async function(parentEmail, parentName) {
+      $('currentParentEmail').value = parentEmail;
+      $('parentNameDisplay').textContent = parentName;
+      
+      // Cargar hijos actuales
+      await loadCurrentChildren(parentEmail);
+      
+      // Cargar categorías para el formulario
+      $('newChildCategory').innerHTML = categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      
+      openModal('manageChildrenModal');
+    }
+
+    async function loadCurrentChildren(parentEmail) {
+      const { data: children } = await sb
+        .from('players')
+        .select('id, nombre, tutor_whatsapp, es_portero, status')
+        .eq('tutor_email', parentEmail)
+        .eq('status', 'activo')
+        .order('nombre');
+
+      const list = $('currentChildrenList');
+      
+      if (!children || children.length === 0) {
+        list.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-dim);">Este padre no tiene hijos asignados aún</div>';
+        return;
+      }
+
+      list.innerHTML = children.map(child => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-glass); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px;">
+          <div>
+            <strong style="font-size: 15px;">${child.nombre}</strong>
+            ${child.es_portero ? '<span style="margin-left: 8px; padding: 2px 8px; background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-radius: 6px; font-size: 10px; font-weight: 700;">🧤 PORTERO</span>' : ''}
+            <div style="font-size: 12px; color: var(--text-dim); margin-top: 4px;">
+              ${child.tutor_whatsapp ? `📱 ${child.tutor_whatsapp}` : 'Sin WhatsApp'}
+            </div>
+          </div>
+          <button class="btn btn-sm" onclick="removeChild('${child.id}', '${child.nombre}')" style="background: var(--danger); color: white;">
+            🗑️ Desvincular
+          </button>
+        </div>
+      `).join('');
+    }
+
+    window.showAddChildForm = function() {
+      $('addChildForm').style.display = 'block';
+      $('newChildName').value = '';
+      $('newChildWhatsapp').value = '';
+      $('newChildPortero').checked = false;
+    }
+
+    window.hideAddChildForm = function() {
+      $('addChildForm').style.display = 'none';
+    }
+
+    window.saveNewChild = async function() {
+      const parentEmail = $('currentParentEmail').value;
+      const nombre = $('newChildName').value.trim();
+      const categoryId = $('newChildCategory').value;
+      const whatsapp = $('newChildWhatsapp').value.trim();
+      const esPortero = $('newChildPortero').checked;
+
+      if (!nombre) {
+        alert('❌ El nombre del jugador es requerido');
+        return;
+      }
+
+      if (!categoryId) {
+        alert('❌ Selecciona una categoría');
+        return;
+      }
+
+      try {
+        // Obtener nombre del padre para tutor_nombre
+        const { data: parent } = await sb.from('users').select('nombre').eq('email', parentEmail).single();
+        
+        // Crear jugador
+        const { data: newPlayer, error: playerError } = await sb
+          .from('players')
+          .insert({
+            nombre: nombre,
+            tutor_nombre: parent?.nombre || 'Padre',
+            tutor_email: parentEmail,
+            tutor_whatsapp: whatsapp || null,
+            category_id: categoryId,
+            es_portero: esPortero,
+            status: 'activo'
+          })
+          .select()
+          .single();
+
+        if (playerError) throw playerError;
+
+        // Asignar a categorías usando player_categories
+        const categoriasAAsignar = [categoryId];
+        
+        // Si es portero, agregar también a categoría "Porteros"
+        if (esPortero) {
+          const { data: categoriaPorteros } = await sb
+            .from('categories')
+            .select('id')
+            .eq('name', 'Porteros')
+            .single();
+          
+          if (categoriaPorteros) {
+            categoriasAAsignar.push(categoriaPorteros.id);
+          }
+        }
+
+        const asignaciones = categoriasAAsignar.map(catId => ({
+          player_id: newPlayer.id,
+          category_id: catId
+        }));
+
+        const { error: pcError } = await sb
+          .from('player_categories')
+          .insert(asignaciones);
+
+        if (pcError) throw pcError;
+
+        alert('✅ Hijo agregado correctamente');
+        hideAddChildForm();
+        await loadCurrentChildren(parentEmail);
+        
+      } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error al agregar hijo: ' + error.message);
+      }
+    }
+
+    window.removeChild = async function(playerId, playerName) {
+      if (!confirm(`¿Desvincular a ${playerName}?\n\nEsto NO eliminará al jugador, solo lo desvinculará de este padre.`)) {
+        return;
+      }
+
+      try {
+        const { error } = await sb
+          .from('players')
+          .update({ tutor_email: null })
+          .eq('id', playerId);
+
+        if (error) throw error;
+
+        alert('✅ Jugador desvinculado');
+        const parentEmail = $('currentParentEmail').value;
+        await loadCurrentChildren(parentEmail);
+        await loadUsers(); // Recargar tabla de padres
+        
+      } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error al desvincular: ' + error.message);
+      }
     }
 
     // Announcements
