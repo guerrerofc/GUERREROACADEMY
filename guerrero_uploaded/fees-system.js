@@ -200,7 +200,10 @@ function bindFeeEvents() {
   document.getElementById('feePlayerSearch')?.addEventListener('input', searchPlayersForFee);
 
   // Save custom fee
-  document.getElementById('saveCustomFee')?.addEventListener('click', saveCustomFee);
+  document.getElementById('saveCustomFee')?.addEventListener('click', () => {
+    console.log('🖱️ Click en botón Guardar Cuota');
+    saveCustomFee();
+  });
 }
 
 async function loadCategoryFees() {
@@ -385,6 +388,9 @@ window.selectFeePlayer = function(id, name, category) {
 };
 
 async function saveCustomFee() {
+  console.log('💾 Guardar cuota personalizada llamado');
+  console.log('  - Jugador seleccionado:', window.selectedFeePlayer);
+  
   if (!window.selectedFeePlayer) {
     alert('Por favor selecciona un jugador');
     return;
@@ -399,7 +405,13 @@ async function saveCustomFee() {
   const startDate = document.getElementById('customFeeStartDate').value;
   const endDate = document.getElementById('customFeeEndDate').value;
 
+  console.log('  - Monto:', amount);
+  console.log('  - Razón:', reason);
+  console.log('  - Fecha inicio:', startDate);
+  console.log('  - Fecha fin:', endDate);
+
   if (!amount || amount <= 0) {
+    console.log('❌ Monto inválido');
     alert('Por favor ingresa un monto válido');
     return;
   }
@@ -415,15 +427,21 @@ async function saveCustomFee() {
       is_active: true
     };
 
-    const { error } = await sb.from('player_custom_fees').insert(data);
-    if (error) throw error;
+    console.log('  - Data a insertar:', data);
 
+    const { error } = await sb.from('player_custom_fees').insert(data);
+    if (error) {
+      console.error('❌ Error de Supabase:', error);
+      throw error;
+    }
+
+    console.log('✅ Cuota personalizada guardada');
     closeModal('customFeeModal');
     loadCustomFees();
     alert(`✅ Cuota personalizada creada para ${window.selectedFeePlayer.name}`);
   } catch (error) {
+    console.error('❌ Error al guardar cuota:', error);
     alert('Error al guardar cuota: ' + error.message);
-    console.error(error);
   }
 }
 
