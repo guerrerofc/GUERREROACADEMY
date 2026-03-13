@@ -1692,6 +1692,8 @@
 
     // Función auxiliar para actualizar categorías de portero
     async function actualizarCategoriasPortero(playerId, esPortero, categoryId) {
+      alert('🔵 INICIO: Actualizando categorías para jugador. Es portero: ' + esPortero);
+      
       try {
         console.log('🔄 Actualizando categorías para jugador:', playerId, 'Es portero:', esPortero);
         
@@ -1699,7 +1701,10 @@
         const { error: deleteError } = await sb.from('player_categories').delete().eq('player_id', playerId);
         if (deleteError) {
           console.error('❌ Error eliminando categorías previas:', deleteError);
+          alert('❌ ERROR 1: No se pudieron eliminar categorías previas');
+          return;
         }
+        alert('✅ Paso 1: Categorías anteriores eliminadas');
         
         // Agregar categoría principal por edad
         const categoriasAAsignar = [{ player_id: playerId, category_id: categoryId }];
@@ -1707,6 +1712,7 @@
         
         // Si es portero, agregar también categoría "Porteros"
         if (esPortero) {
+          alert('🧤 Buscando categoría Porteros...');
           const { data: categoriaPorteros, error: porterosError } = await sb
             .from('categories')
             .select('id')
@@ -1715,25 +1721,35 @@
           
           if (porterosError) {
             console.error('❌ Error buscando categoría Porteros:', porterosError);
-            alert('⚠️ No se encontró la categoría "Porteros". Ejecuta el SQL primero.');
+            alert('❌ ERROR 2: No se encontró categoría Porteros: ' + porterosError.message);
+            return;
           } else if (categoriaPorteros) {
             console.log('✅ Categoría Porteros encontrada:', categoriaPorteros.id);
             categoriasAAsignar.push({ player_id: playerId, category_id: categoriaPorteros.id });
+            alert('✅ Paso 2: Categoría Porteros agregada a la lista. Total: ' + categoriasAAsignar.length);
+          } else {
+            alert('⚠️ Categoría Porteros no encontrada en base de datos');
           }
         }
         
         console.log('📤 Insertando en player_categories:', categoriasAAsignar);
-        const { error: insertError } = await sb.from('player_categories').insert(categoriasAAsignar);
+        alert('📤 Insertando ' + categoriasAAsignar.length + ' categoría(s)...');
+        
+        const { error: insertError, data: insertedData } = await sb
+          .from('player_categories')
+          .insert(categoriasAAsignar)
+          .select();
         
         if (insertError) {
           console.error('❌ Error insertando categorías:', insertError);
-          alert('⚠️ Error al asignar categorías. ¿Ejecutaste el SQL para crear player_categories?');
+          alert('❌ ERROR 3: No se pudieron insertar categorías: ' + insertError.message);
         } else {
-          console.log(`✅ Jugador asignado a ${categoriasAAsignar.length} categoría(s)`);
+          console.log('✅ Categorías insertadas:', insertedData);
+          alert('✅✅✅ ÉXITO: Jugador asignado a ' + categoriasAAsignar.length + ' categoría(s)!');
         }
       } catch (error) {
         console.error('❌ Error general en actualizarCategoriasPortero:', error);
-        alert('Error al actualizar categorías: ' + error.message);
+        alert('❌ ERROR GENERAL: ' + error.message);
       }
     }
 
