@@ -314,12 +314,12 @@
                 <div class="form-grid">
                   <div class="field span-2">
                     <label>Jugador</label>
-                    <input class="input" id="fJugador" placeholder="Nombre del jugador" required />
+                    <input class="input" id="fJugador" placeholder="Nombre del jugador" />
                   </div>
 
                   <div class="field">
                     <label>Edad</label>
-                    <input class="input" id="fEdad" type="number" min="8" max="17" required />
+                    <input class="input" id="fEdad" type="number" min="8" max="17" />
                   </div>
 
                   <div class="field">
@@ -332,7 +332,7 @@
 
                   <div class="field span-2">
                     <label>Categoría</label>
-                    <select class="select" id="fCategoria" required></select>
+                    <select class="select" id="fCategoria"></select>
                     <div class="hint" id="fCupoHint">Cargando cupos…</div>
                   </div>
 
@@ -604,7 +604,8 @@
         total: "cupo_total"
       }
     };
-    document.getElementById("year").textContent = new Date().getFullYear();
+    // Comentado: elemento year no existe en el landing
+    // document.getElementById("year").textContent = new Date().getFullYear();
   </script>
 
   <script>
