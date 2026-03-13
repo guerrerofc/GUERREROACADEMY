@@ -1388,6 +1388,15 @@
 
     function $(id) { return document.getElementById(id); }
     function $$(sel) { return document.querySelectorAll(sel); }
+    
+    // Función global para cerrar sidebar (debe estar al inicio)
+    function closeSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (sidebar) sidebar.classList.remove('open');
+      if (overlay) overlay.classList.remove('active');
+    }
+    window.closeSidebar = closeSidebar;
 
     function formatMoney(n) {
       return new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP', maximumFractionDigits: 0 }).format(n || 0);
@@ -1484,12 +1493,7 @@
       });
     });
 
-    // Cerrar sidebar al tocar overlay (soporte iOS)
-    function closeSidebar() {
-      $('sidebar').classList.remove('open');
-      $('sidebarOverlay').classList.remove('active');
-    }
-    window.closeSidebar = closeSidebar;
+    // Eventos del overlay para cerrar sidebar
     $('sidebarOverlay').addEventListener('click', closeSidebar);
     $('sidebarOverlay').addEventListener('touchstart', closeSidebar);
     
