@@ -66,24 +66,29 @@
         transition: left 0.3s ease; 
       }
       .sidebar.open { left: 0; }
-      .sidebar-overlay.active {
-        display: block;
-      }
     }
     
-    /* Overlay para cerrar sidebar en móvil */
+    /* Overlay para cerrar sidebar en móvil - SOLO visible en móvil */
     .sidebar-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 999;
-      backdrop-filter: blur(4px);
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
+      display: none !important;
+    }
+    @media (max-width: 1024px) {
+      .sidebar-overlay {
+        display: none !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 999;
+        backdrop-filter: blur(4px);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .sidebar-overlay.active {
+        display: block !important;
+      }
     }
 
     .sidebar {
