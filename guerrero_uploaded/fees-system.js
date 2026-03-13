@@ -692,14 +692,26 @@ function renderSelectedAssignmentPlayers() {
 
 // Guardar asignaciones
 document.getElementById('saveOfferAssignment')?.addEventListener('click', async function() {
+  console.log('🖱️ Click en Guardar Asignación de Oferta');
+  console.log('  - Jugadores seleccionados:', window.selectedAssignmentPlayers?.length || 0);
+  console.log('  - Lista:', window.selectedAssignmentPlayers);
+  
   const sb = window.sb || window.supabase?.createClient(
     window.SUPABASE_URL || "https://daijiuqqafvjofafwqck.supabase.co",
     window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g"
   );
   
   const offerId = document.getElementById('assignmentOfferId').value;
+  console.log('  - Offer ID:', offerId);
+  
+  if (!offerId) {
+    console.log('❌ No hay offer ID');
+    alert('Error: No se pudo identificar la oferta');
+    return;
+  }
   
   try {
+    console.log('🗑️ Eliminando asignaciones anteriores...');
     // Eliminar asignaciones anteriores
     await sb.from('offer_assignments').delete().eq('offer_id', offerId);
     
@@ -710,16 +722,22 @@ document.getElementById('saveOfferAssignment')?.addEventListener('click', async 
         player_id: p.id
       }));
       
+      console.log('💾 Insertando nuevas asignaciones:', assignments);
+      
       const { error } = await sb.from('offer_assignments').insert(assignments);
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error de Supabase:', error);
+        throw error;
+      }
     }
     
+    console.log('✅ Asignaciones guardadas correctamente');
     alert(`✅ Asignaciones guardadas correctamente: ${window.selectedAssignmentPlayers.length} jugador(es)`);
     closeModal('offerAssignmentModal');
     loadOffersForAssignment();
   } catch (error) {
+    console.error('❌ Error al guardar asignaciones:', error);
     alert('Error al guardar asignaciones: ' + error.message);
-    console.error(error);
   }
 });
 
