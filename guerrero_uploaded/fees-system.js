@@ -155,6 +155,62 @@ function addOfferAssignmentModal() {
 
   document.body.insertAdjacentHTML('beforeend', modalHTML);
   console.log('✅ Modal de asignación de ofertas agregado al DOM');
+  
+  // Adjuntar event listener INMEDIATAMENTE después de crear el modal
+  setTimeout(() => {
+    const saveOfferBtn = document.getElementById('saveOfferAssignment');
+    console.log('🔍 Adjuntando listener al botón saveOfferAssignment:', saveOfferBtn ? 'ENCONTRADO ✅' : 'NO ENCONTRADO ❌');
+    
+    if (saveOfferBtn) {
+      saveOfferBtn.addEventListener('click', async function() {
+        console.log('🖱️ Click en Guardar Asignación de Oferta');
+        console.log('  - Jugadores seleccionados:', window.selectedAssignmentPlayers?.length || 0);
+        console.log('  - Lista:', window.selectedAssignmentPlayers);
+        
+        const sb = window.sb || window.supabase?.createClient(
+          window.SUPABASE_URL || "https://daijiuqqafvjofafwqck.supabase.co",
+          window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g"
+        );
+        
+        const offerId = document.getElementById('assignmentOfferId').value;
+        console.log('  - Offer ID:', offerId);
+        
+        if (!offerId) {
+          console.log('❌ No hay offer ID');
+          alert('Error: No se pudo identificar la oferta');
+          return;
+        }
+        
+        try {
+          console.log('🗑️ Eliminando asignaciones anteriores...');
+          await sb.from('offer_assignments').delete().eq('offer_id', offerId);
+          
+          if (window.selectedAssignmentPlayers.length > 0) {
+            const assignments = window.selectedAssignmentPlayers.map(p => ({
+              offer_id: offerId,
+              player_id: p.id
+            }));
+            
+            console.log('💾 Insertando nuevas asignaciones:', assignments);
+            
+            const { error } = await sb.from('offer_assignments').insert(assignments);
+            if (error) {
+              console.error('❌ Error de Supabase:', error);
+              throw error;
+            }
+          }
+          
+          console.log('✅ Asignaciones guardadas correctamente');
+          alert(`✅ Asignaciones guardadas correctamente: ${window.selectedAssignmentPlayers.length} jugador(es)`);
+          closeModal('offerAssignmentModal');
+          loadOffersForAssignment();
+        } catch (error) {
+          console.error('❌ Error al guardar asignaciones:', error);
+          alert('Error al guardar asignaciones: ' + error.message);
+        }
+      });
+    }
+  }, 100);
 }
 
 function bindFeeEvents() {
@@ -208,64 +264,6 @@ function bindFeeEvents() {
     console.log('🖱️ Click en botón Guardar Cuota');
     saveCustomFee();
   });
-
-  // Save offer assignment (moved here to ensure modal exists)
-  const saveOfferBtn = document.getElementById('saveOfferAssignment');
-  console.log('🔍 DEBUG: Botón saveOfferAssignment encontrado?', saveOfferBtn ? 'SÍ ✅' : 'NO ❌');
-  
-  if (saveOfferBtn) {
-    saveOfferBtn.addEventListener('click', async function() {
-      console.log('🖱️ Click en Guardar Asignación de Oferta');
-      console.log('  - Jugadores seleccionados:', window.selectedAssignmentPlayers?.length || 0);
-      console.log('  - Lista:', window.selectedAssignmentPlayers);
-      
-      const sb = window.sb || window.supabase?.createClient(
-        window.SUPABASE_URL || "https://daijiuqqafvjofafwqck.supabase.co",
-        window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g"
-      );
-      
-      const offerId = document.getElementById('assignmentOfferId').value;
-      console.log('  - Offer ID:', offerId);
-      
-      if (!offerId) {
-        console.log('❌ No hay offer ID');
-        alert('Error: No se pudo identificar la oferta');
-        return;
-      }
-      
-      try {
-        console.log('🗑️ Eliminando asignaciones anteriores...');
-        // Eliminar asignaciones anteriores
-        await sb.from('offer_assignments').delete().eq('offer_id', offerId);
-        
-        // Insertar nuevas asignaciones
-        if (window.selectedAssignmentPlayers.length > 0) {
-          const assignments = window.selectedAssignmentPlayers.map(p => ({
-            offer_id: offerId,
-            player_id: p.id
-          }));
-          
-          console.log('💾 Insertando nuevas asignaciones:', assignments);
-          
-          const { error } = await sb.from('offer_assignments').insert(assignments);
-          if (error) {
-            console.error('❌ Error de Supabase:', error);
-            throw error;
-          }
-        }
-        
-        console.log('✅ Asignaciones guardadas correctamente');
-        alert(`✅ Asignaciones guardadas correctamente: ${window.selectedAssignmentPlayers.length} jugador(es)`);
-        closeModal('offerAssignmentModal');
-        loadOffersForAssignment();
-      } catch (error) {
-        console.error('❌ Error al guardar asignaciones:', error);
-        alert('Error al guardar asignaciones: ' + error.message);
-      }
-    });
-  } else {
-    console.error('❌ ERROR CRÍTICO: El botón saveOfferAssignment no existe en el DOM cuando se intenta adjuntar el listener');
-  }
 }
 
 async function loadCategoryFees() {
