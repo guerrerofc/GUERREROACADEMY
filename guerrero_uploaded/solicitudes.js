@@ -239,6 +239,7 @@ async function aprobarYCrearJugador(solicitudId) {
         tutor_nombre: solicitud.tutor_nombre,
         tutor_whatsapp: solicitud.tutor_whatsapp,
         es_portero: solicitud.es_portero || false,
+        category_id: categoryId, // Mantener por compatibilidad
         status: 'activo'
       }])
       .select();
@@ -246,6 +247,40 @@ async function aprobarYCrearJugador(solicitudId) {
     if (playerError) throw playerError;
 
     const playerId = jugador[0].id;
+
+    // 3. Asignar a categoría(s) usando player_categories
+    const categoriasAAsignar = [categoryId];
+    
+    // Si es portero, agregar también a categoría "Porteros"
+    if (solicitud.es_portero) {
+      const { data: categoriaPorteros } = await sb
+        .from('categories')
+        .select('id')
+        .eq('name', 'Porteros')
+        .single();
+      
+      if (categoriaPorteros) {
+        categoriasAAsignar.push(categoriaPorteros.id);
+        console.log('✅ Jugador será agregado a categoría Porteros también');
+      }
+    }
+
+    // Insertar en player_categories (relación many-to-many)
+    const playerCategoriesData = categoriasAAsignar.map(catId => ({
+      player_id: playerId,
+      category_id: catId
+    }));
+
+    const { error: pcError } = await sb
+      .from('player_categories')
+      .insert(playerCategoriesData);
+
+    if (pcError) {
+      console.error('⚠️ Error asignando categorías:', pcError);
+      // No hacemos throw aquí para no bloquear la aprobación
+    } else {
+      console.log(`✅ Jugador asignado a ${categoriasAAsignar.length} categoría(s)`);
+    }
 
     // 3. Generar token único para invitación
     const token = generateRandomToken();
