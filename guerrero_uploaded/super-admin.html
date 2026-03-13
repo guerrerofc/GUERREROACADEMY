@@ -1218,6 +1218,15 @@
           <input type="text" id="tutorWhatsapp" class="input" placeholder="8291234567">
         </div>
         <div class="form-group">
+          <label>Email del Padre (Cuenta)</label>
+          <select id="tutorEmail" class="select">
+            <option value="">Sin cuenta de padre</option>
+          </select>
+          <div style="font-size: 12px; color: var(--text-dim); margin-top: 6px;">
+            Selecciona la cuenta del padre para vincular este jugador
+          </div>
+        </div>
+        <div class="form-group">
           <label>Categoría</label>
           <select id="playerCategory" class="select"></select>
         </div>
@@ -1681,14 +1690,19 @@
     $('filterCategory')?.addEventListener('change', renderPlayersTable);
     $('filterStatus')?.addEventListener('change', renderPlayersTable);
 
-    $('btnAddPlayer').addEventListener('click', () => {
+    $('btnAddPlayer').addEventListener('click', async () => {
       $('playerModalTitle').textContent = 'Nuevo Jugador';
       $('editPlayerId').value = '';
       $('playerName').value = '';
       $('tutorName').value = '';
       $('tutorWhatsapp').value = '';
+      $('tutorEmail').value = '';
       $('playerStatus').value = 'activo';
       $('playerCategory').innerHTML = categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      
+      // Cargar lista de padres
+      await loadParentsList();
+      
       openModal('playerModal');
     });
 
@@ -1701,11 +1715,28 @@
       $('playerName').value = player.nombre || '';
       $('tutorName').value = player.tutor_nombre || '';
       $('tutorWhatsapp').value = player.tutor_whatsapp || '';
+      $('tutorEmail').value = player.tutor_email || '';
       $('playerStatus').value = player.status || 'activo';
       $('playerPortero').checked = player.es_portero || false; // Cargar estado portero
       $('playerCategory').innerHTML = categories.map(c => `<option value="${c.id}" ${c.id === player.category_id ? 'selected' : ''}>${c.name}</option>`).join('');
+      
+      // Cargar lista de padres
+      await loadParentsList(player.tutor_email);
+      
       openModal('playerModal');
     };
+
+    async function loadParentsList(selectedEmail = '') {
+      // Obtener todos los usuarios tipo parent
+      const { data: users } = await sb
+        .from('users')
+        .select('email, nombre')
+        .eq('rol', 'parent')
+        .order('nombre');
+
+      $('tutorEmail').innerHTML = '<option value="">Sin cuenta de padre</option>' +
+        (users || []).map(u => `<option value="${u.email}" ${u.email === selectedEmail ? 'selected' : ''}>${u.nombre || u.email}</option>`).join('');
+    }
 
     $('savePlayer').addEventListener('click', async () => {
       const id = $('editPlayerId').value;
@@ -1714,6 +1745,7 @@
         nombre: $('playerName').value.trim(),
         tutor_nombre: $('tutorName').value.trim(),
         tutor_whatsapp: $('tutorWhatsapp').value.trim(),
+        tutor_email: $('tutorEmail').value || null,
         category_id: $('playerCategory').value,
         status: $('playerStatus').value,
         es_portero: esPortero
@@ -1721,7 +1753,7 @@
 
       if (!data.nombre) return alert('Nombre requerido');
 
-      console.log('💾 Guardando jugador...', { id, esPortero, category_id: data.category_id });
+      console.log('💾 Guardando jugador...', { id, esPortero, tutor_email: data.tutor_email, category_id: data.category_id });
 
       try {
         if (id) {
