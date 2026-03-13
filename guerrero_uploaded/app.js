@@ -641,20 +641,37 @@ const ENR_PATCH_MAP = {
   }
 
   function validateStep(i){
+    console.log('🔍 Validando paso:', i);
+    
     if (i === 0){
       const padre = (fPadre?.value || "").trim();
       const whatsapp = normalizeRDPhone(fWhats?.value || "");
+      const email = (document.getElementById('fEmail')?.value || "").trim();
+      
+      console.log('  - Padre:', padre ? '✅' : '❌', padre);
+      console.log('  - WhatsApp:', whatsapp.length === 10 ? '✅' : '❌', whatsapp);
+      console.log('  - Email:', email ? '✅' : '❌', email);
+      
       if (!padre) return "Pon el nombre del tutor.";
       if (whatsapp.length !== 10) return "WhatsApp inválido. Ej: 8296396001";
+      if (!email || !email.includes('@')) return "Email inválido.";
     }
+    
     if (i === 1){
       const jugador = (fJugador?.value || "").trim();
       const edad = Number(fEdad?.value);
       const cat = fCategoria?.value;
+      
+      console.log('  - Jugador:', jugador ? '✅' : '❌', jugador);
+      console.log('  - Edad:', (edad >= 8 && edad <= 17) ? '✅' : '❌', edad);
+      console.log('  - Categoría:', cat ? '✅' : '❌', cat);
+      
       if (!jugador) return "Pon el nombre del jugador.";
       if (!Number.isFinite(edad) || edad < 8 || edad > 17) return "Edad inválida (8 a 17).";
       if (!cat) return "Selecciona una categoría.";
     }
+    
+    console.log('  ✅ Validación del paso', i, 'exitosa');
     return null;
   }
 
@@ -664,20 +681,27 @@ const ENR_PATCH_MAP = {
 
     if (prev){
       e.preventDefault();
+      console.log('⬅️ Botón ATRÁS clickeado, paso actual:', idx);
       setStep(idx - 1);
       return;
     }
 
     if (next){
       e.preventDefault();
+      console.log('➡️ Botón CONTINUAR clickeado, paso actual:', idx);
+      
       const err = validateStep(idx);
       const fMsg = document.getElementById("fMsg");
       if (fMsg) fMsg.textContent = "";
+      
       if (err){
+        console.log('❌ Validación falló:', err);
         if (fMsg && idx === 2) fMsg.textContent = err;
         else alert(err);
         return;
       }
+      
+      console.log('✅ Validación pasó, avanzando a paso:', idx + 1);
       setStep(idx + 1);
       return;
     }
