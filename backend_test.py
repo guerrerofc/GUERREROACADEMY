@@ -10,7 +10,7 @@ from datetime import datetime, date, timedelta
 import json
 
 class GuerreroAcademyAPITester:
-    def __init__(self, base_url="https://strength-finder-12.preview.emergentagent.com"):
+    def __init__(self, base_url="https://guerrero-academy.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
