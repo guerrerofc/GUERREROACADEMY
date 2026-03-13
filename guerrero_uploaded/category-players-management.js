@@ -106,14 +106,37 @@ async function loadCategoryPlayers(categoryId, categoryName) {
   try {
     playersList.innerHTML = '<p style="text-align:center; color: var(--text-dim);">Cargando jugadores...</p>';
 
-    // Obtener jugadores de la categoría
-    const { data: players, error } = await sb
-      .from('players')
-      .select('*')
-      .eq('category_id', categoryId)
-      .order('nombre');
+    console.log('📋 Cargando jugadores para categoría:', categoryId);
 
-    if (error) throw error;
+    // Obtener jugadores usando player_categories (relación many-to-many)
+    const { data: playerCategoryData, error: pcError } = await sb
+      .from('player_categories')
+      .select(`
+        player_id,
+        players (
+          id,
+          nombre,
+          age,
+          tutor_nombre,
+          tutor_whatsapp,
+          tutor_email,
+          es_portero,
+          status
+        )
+      `)
+      .eq('category_id', categoryId);
+
+    if (pcError) {
+      console.error('❌ Error cargando desde player_categories:', pcError);
+      throw pcError;
+    }
+
+    // Extraer y filtrar jugadores activos
+    const players = (playerCategoryData || [])
+      .map(pc => pc.players)
+      .filter(p => p && p.status === 'activo');
+
+    console.log(`✅ ${players.length} jugadores cargados`);
 
     // Obtener datos de la categoría
     const { data: category } = await sb
