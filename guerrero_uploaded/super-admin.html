@@ -1984,11 +1984,21 @@
       }
 
       try {
+        console.log('🗑️ Intentando eliminar jugador:', playerId, playerName);
+        
         // Eliminar jugador (CASCADE eliminará automáticamente player_categories y attendance_records)
-        const { error } = await sb.from('players').delete().eq('id', playerId);
+        const { data, error } = await sb.from('players').delete().eq('id', playerId).select();
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Error de Supabase:', error);
+          throw new Error(`${error.message}\n\nCódigo: ${error.code}\n\n⚠️ Si ves "row-level security", ejecuta SQL_FIX_DELETE_PLAYERS.sql en Supabase`);
+        }
 
+        if (!data || data.length === 0) {
+          throw new Error('No se pudo eliminar. Verifica los permisos de la tabla en Supabase.');
+        }
+
+        console.log('✅ Jugador eliminado:', data);
         alert(`✅ Jugador "${playerName}" eliminado exitosamente`);
         
         // Recargar tabla
@@ -2002,7 +2012,7 @@
         }
       } catch (error) {
         console.error('❌ Error eliminando jugador:', error);
-        alert('❌ Error al eliminar jugador: ' + error.message);
+        alert('❌ Error al eliminar jugador:\n\n' + error.message);
       }
     };
 
