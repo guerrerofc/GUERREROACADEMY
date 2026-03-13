@@ -352,22 +352,22 @@ async function aprobarYCrearJugador(solicitudId) {
       // No tiramos error aquí, el jugador ya se creó
     }
 
-    // 5. Enviar email de invitación
+    // 5. Enviar email de bienvenida
     try {
       const inviteLink = `${window.location.origin}/establecer-password.html?token=${token}`;
       
-      await sb.functions.invoke('send-parent-invitation', {
+      await sb.functions.invoke('send-welcome-email', {
         body: {
-          to: solicitud.tutor_email,
-          parentName: solicitud.tutor_nombre,
+          email: solicitud.tutor_email,
+          nombre: solicitud.tutor_nombre,
           playerName: solicitud.jugador_nombre,
-          inviteLink: inviteLink
+          magicLink: inviteLink
         }
       });
       
-      console.log('✅ Email de invitación enviado');
+      console.log('✅ Email de bienvenida enviado');
     } catch (emailError) {
-      console.warn('⚠️ No se pudo enviar email:', emailError);
+      console.error('⚠️  Error enviando email:', emailError);
       alert(`⚠️ Jugador creado pero no se pudo enviar el email a ${solicitud.tutor_email}. Envíale el enlace manualmente.`);
     }
 
