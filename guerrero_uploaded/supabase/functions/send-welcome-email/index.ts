@@ -9,10 +9,12 @@ const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-requested-with',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
