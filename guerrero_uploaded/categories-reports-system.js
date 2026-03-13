@@ -200,8 +200,8 @@ async function loadCoachesForSelect() {
   try {
     const { data: coaches, error } = await sb
       .from('staff')
-      .select('id, name')
-      .order('name');
+      .select('id, nombre')
+      .order('nombre');
 
     if (error) throw error;
 
@@ -210,7 +210,7 @@ async function loadCoachesForSelect() {
 
     if (coaches && coaches.length > 0) {
       const coachOptions = coaches.map(coach => 
-        `<option value="${coach.id}">${coach.name}</option>`
+        `<option value="${coach.id}">${coach.nombre}</option>`
       ).join('');
 
       if (coachSelect) {
@@ -222,6 +222,7 @@ async function loadCoachesForSelect() {
     }
   } catch (error) {
     console.error('Error cargando coaches:', error);
+    // No crítico, continuar sin coaches
   }
 }
 
