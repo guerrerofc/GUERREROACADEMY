@@ -1263,6 +1263,9 @@
       $('paymentPlayerName').textContent = name;
       $('paymentCategory').textContent = category || '-';
       
+      // Limpiar descuentos anteriores del DOM
+      document.querySelectorAll('.discount-row-dynamic').forEach(el => el.remove());
+      
       const now = new Date();
       $('paymentMonth').textContent = now.toLocaleDateString('es-DO', { month: 'long', year: 'numeric' });
       
@@ -1270,11 +1273,13 @@
       try {
         const { data: assignments, error: assignError } = await sb
           .from('offer_assignments')
-          .select('offer_id, offers(id, name, discount_type, value)')
+          .select('offer_id, offers(id, title, offer_type, value)')
           .eq('player_id', id)
           .eq('is_active', true);
         
         if (assignError) throw assignError;
+        
+        console.log('Ofertas asignadas:', assignments);
         
         // Precio base de la mensualidad
         const basePrice = 3500;
@@ -1284,19 +1289,22 @@
         if (assignments && assignments.length > 0) {
           // Tomar la primera oferta activa
           const offer = assignments[0].offers;
+          console.log('Oferta encontrada:', offer);
           
-          if (offer.discount_type === 'porcentaje') {
-            const discount = (basePrice * offer.value) / 100;
+          if (offer && offer.offer_type === 'percentage') {
+            const discountValue = parseFloat(offer.value) || 0;
+            const discount = (basePrice * discountValue) / 100;
             finalPrice = basePrice - discount;
             discountText = `<div class="payment-row" style="color: var(--success);">
-              <span>Descuento (${offer.value}%)</span>
+              <span>Descuento (${discountValue}%)</span>
               <span>-RD$ ${discount.toLocaleString('es-DO')}</span>
             </div>`;
-          } else if (offer.discount_type === 'monto_fijo') {
-            finalPrice = basePrice - offer.value;
+          } else if (offer && offer.offer_type === 'fixed') {
+            const discountValue = parseFloat(offer.value) || 0;
+            finalPrice = basePrice - discountValue;
             discountText = `<div class="payment-row" style="color: var(--success);">
               <span>Descuento</span>
-              <span>-RD$ ${offer.value.toLocaleString('es-DO')}</span>
+              <span>-RD$ ${discountValue.toLocaleString('es-DO')}</span>
             </div>`;
           }
         }
@@ -1311,11 +1319,11 @@
         // Si hay descuento, mostrar el precio original tachado y el descuento
         if (discountText) {
           const discountInfo = `
-            <div class="payment-row" style="color: var(--text-muted); text-decoration: line-through;">
+            <div class="payment-row discount-row-dynamic" style="color: var(--text-muted); text-decoration: line-through;">
               <span>Precio regular</span>
               <span>RD$ ${basePrice.toLocaleString('es-DO')}</span>
             </div>
-            ${discountText}
+            <div class="discount-row-dynamic">${discountText}</div>
           `;
           // Insertar después de la fila de categoría
           const categoryRow = $('paymentCategory').closest('.payment-row');
