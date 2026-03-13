@@ -120,7 +120,8 @@ async function loadCategoryPlayers(categoryId, categoryName) {
           tutor_whatsapp,
           es_portero,
           status,
-          category_id
+          category_id,
+          created_at
         )
       `)
       .eq('category_id', categoryId);
@@ -152,13 +153,20 @@ async function loadCategoryPlayers(categoryId, categoryName) {
         </div>
       `;
       
-      // Actualizar stats con 0
-      document.getElementById('catStatTotal').textContent = '0';
-      document.getElementById('catStatCapacity').textContent = '0%';
-      document.getElementById('catStatAvgAge').textContent = '-';
-      document.getElementById('catStatRevenue').textContent = '$0';
-      document.getElementById('categoryPlayersSubtitle').textContent = `0 / ${category?.max_players || 30} jugadores`;
+      // Actualizar stats con 0 - Verificar que los elementos existan
+      const statTotal = document.getElementById('catStatTotal');
+      const statCapacity = document.getElementById('catStatCapacity');
+      const statAvgAge = document.getElementById('catStatAvgAge');
+      const statRevenue = document.getElementById('catStatRevenue');
+      const playersSubtitle = document.getElementById('categoryPlayersSubtitle');
       
+      if (statTotal) statTotal.textContent = '0';
+      if (statCapacity) statCapacity.textContent = '0%';
+      if (statAvgAge) statAvgAge.textContent = '-';
+      if (statRevenue) statRevenue.textContent = '$0.00';
+      if (playersSubtitle) playersSubtitle.textContent = `0 / ${category?.max_players || 30} jugadores`;
+      
+      console.log('📊 Estadísticas actualizadas (sin jugadores)');
       return;
     }
 
@@ -166,15 +174,22 @@ async function loadCategoryPlayers(categoryId, categoryName) {
     const totalPlayers = players.length;
     const maxPlayers = category?.max_players || 30;
     const capacity = Math.round((totalPlayers / maxPlayers) * 100);
-    const avgAge = calculateAverageAge(players);
     const monthlyRevenue = (category?.monthly_fee || 0) * totalPlayers;
 
-    // Actualizar stats
-    document.getElementById('catStatTotal').textContent = totalPlayers;
-    document.getElementById('catStatCapacity').textContent = `${capacity}%`;
-    document.getElementById('catStatAvgAge').textContent = avgAge ? `${avgAge} años` : '-';
-    document.getElementById('catStatRevenue').textContent = `$${monthlyRevenue.toFixed(2)}`;
-    document.getElementById('categoryPlayersSubtitle').textContent = `${totalPlayers} / ${maxPlayers} jugadores`;
+    // Actualizar stats - Verificar que los elementos existan
+    const statTotal = document.getElementById('catStatTotal');
+    const statCapacity = document.getElementById('catStatCapacity');
+    const statAvgAge = document.getElementById('catStatAvgAge');
+    const statRevenue = document.getElementById('catStatRevenue');
+    const playersSubtitle = document.getElementById('categoryPlayersSubtitle');
+
+    if (statTotal) statTotal.textContent = totalPlayers;
+    if (statCapacity) statCapacity.textContent = `${capacity}%`;
+    if (statAvgAge) statAvgAge.textContent = '-'; // No tenemos edad en BD
+    if (statRevenue) statRevenue.textContent = `$${monthlyRevenue.toLocaleString('es-DO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    if (playersSubtitle) playersSubtitle.textContent = `${totalPlayers} / ${maxPlayers} jugadores`;
+
+    console.log('📊 Estadísticas actualizadas:', { totalPlayers, capacity: `${capacity}%`, monthlyRevenue });
 
     // Renderizar lista de jugadores
     playersList.innerHTML = players.map(player => `
@@ -203,9 +218,11 @@ async function loadCategoryPlayers(categoryId, categoryName) {
         </div>
         
         <div>
-          <div style="font-weight: 600; margin-bottom: 4px;">${player.nombre || 'Sin nombre'}</div>
+          <div style="font-weight: 600; margin-bottom: 4px;">
+            ${player.nombre || 'Sin nombre'}
+            ${player.es_portero ? '<span style="margin-left: 8px; padding: 2px 8px; background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-radius: 6px; font-size: 10px; font-weight: 700;">🧤 PORTERO</span>' : ''}
+          </div>
           <div style="font-size: 12px; color: var(--text-dim);">
-            ${player.age ? `${player.age} años` : 'Edad no registrada'} • 
             Padre: ${player.tutor_nombre || 'No asignado'}
           </div>
         </div>
@@ -243,17 +260,6 @@ async function loadCategoryPlayers(categoryId, categoryName) {
       </div>
     `;
   }
-}
-
-// ========================================
-// CALCULAR EDAD PROMEDIO
-// ========================================
-function calculateAverageAge(players) {
-  const playersWithAge = players.filter(p => p.age);
-  if (playersWithAge.length === 0) return null;
-  
-  const totalAge = playersWithAge.reduce((sum, p) => sum + p.age, 0);
-  return Math.round(totalAge / playersWithAge.length);
 }
 
 // ========================================
