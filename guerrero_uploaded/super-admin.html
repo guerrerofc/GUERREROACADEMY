@@ -1759,8 +1759,25 @@
       const cupoMap = {};
       (cuposRes.data || []).forEach(c => cupoMap[c.categoria] = c.cupo_total || 30);
 
+      // Obtener conteo de jugadores por categoría usando player_categories (many-to-many)
+      const { data: playerCategoryCounts } = await sb
+        .from('player_categories')
+        .select(`
+          category_id,
+          players!inner (
+            status
+          )
+        `)
+        .in('players.status', ['activo', 'becado']);
+
+      // Crear mapa de conteos por categoría
+      const countMap = {};
+      (playerCategoryCounts || []).forEach(pc => {
+        countMap[pc.category_id] = (countMap[pc.category_id] || 0) + 1;
+      });
+
       $('categoriesGrid').innerHTML = categories.map(c => {
-        const count = players.filter(p => p.category_id === c.id && (p.status === 'activo' || p.status === 'becado')).length;
+        const count = countMap[c.id] || 0;
         const max = cupoMap[c.name] || c.max_players || 30;
         const pct = Math.round((count / max) * 100);
 
