@@ -232,18 +232,53 @@ async function aprobarYCrearJugador(solicitudId) {
     }
 
     // 2. Obtener ID de la categoría solicitada
-    const { data: categoriaData, error: catError } = await sb
+    // Primero intentar match exacto, luego buscar por rango de edad
+    let categoryId = null;
+    let categoriaData = null;
+    
+    // Intento 1: Match exacto del nombre
+    const { data: exactMatch } = await sb
       .from('categories')
-      .select('id')
+      .select('id, name')
       .eq('name', solicitud.category_name)
-      .single();
-
-    if (catError || !categoriaData) {
-      throw new Error(`No se encontró la categoría: ${solicitud.category_name}`);
+      .maybeSingle();
+    
+    if (exactMatch) {
+      categoryId = exactMatch.id;
+      console.log(`✅ Categoría encontrada (match exacto): ${exactMatch.name} (ID: ${categoryId})`);
+    } else {
+      // Intento 2: Buscar todas las categorías y hacer match flexible
+      const { data: allCategories } = await sb
+        .from('categories')
+        .select('id, name, age_min, age_max')
+        .eq('status', 'active');
+      
+      // Extraer edad de la solicitud (ej: "14-17 años" -> buscar 14 y 17)
+      const edadMatch = solicitud.category_name.match(/(\d+)/g);
+      
+      if (edadMatch && allCategories) {
+        const edadSolicitada = parseInt(edadMatch[0]);
+        
+        // Buscar categoría que contenga esa edad en su rango
+        const matchedCat = allCategories.find(cat => {
+          if (cat.age_min && cat.age_max) {
+            return edadSolicitada >= cat.age_min && edadSolicitada <= cat.age_max;
+          }
+          return false;
+        });
+        
+        if (matchedCat) {
+          categoryId = matchedCat.id;
+          console.log(`✅ Categoría encontrada (por edad): ${matchedCat.name} (ID: ${categoryId})`);
+        }
+      }
+      
+      // Si aún no encontró, mostrar categorías disponibles
+      if (!categoryId) {
+        console.error('❌ Categorías disponibles:', allCategories?.map(c => c.name).join(', '));
+        throw new Error(`No se encontró la categoría: "${solicitud.category_name}". Categorías disponibles: ${allCategories?.map(c => c.name).join(', ')}`);
+      }
     }
-
-    const categoryId = categoriaData.id;
-    console.log(`📋 Categoría encontrada: ${solicitud.category_name} (ID: ${categoryId})`);
 
     // 3. Crear jugador en la tabla players
     const { data: jugador, error: playerError} = await sb

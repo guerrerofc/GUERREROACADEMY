@@ -198,19 +198,24 @@ async function loadCoachesForSelect() {
   if (!sb) return;
 
   try {
+    // Buscar usuarios con rol staff o director
     const { data: coaches, error } = await sb
-      .from('staff')
-      .select('id, nombre')
+      .from('users')
+      .select('id, nombre, email')
+      .in('rol', ['staff', 'director'])
       .order('nombre');
 
-    if (error) throw error;
+    if (error) {
+      console.warn('No se pudieron cargar coaches:', error.message);
+      return;
+    }
 
     const coachSelect = document.getElementById('categoryCoachId');
     const assistantSelect = document.getElementById('categoryAssistantCoachId');
 
     if (coaches && coaches.length > 0) {
       const coachOptions = coaches.map(coach => 
-        `<option value="${coach.id}">${coach.nombre}</option>`
+        `<option value="${coach.id}">${coach.nombre || coach.email}</option>`
       ).join('');
 
       if (coachSelect) {
