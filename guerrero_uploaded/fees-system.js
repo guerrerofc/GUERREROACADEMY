@@ -120,6 +120,13 @@ function addCustomFeeModal() {
 }
 
 function addOfferAssignmentModal() {
+  // Prevenir duplicación de modal
+  const existingModal = document.getElementById('offerAssignmentModal');
+  if (existingModal) {
+    console.log('⚠️ Modal ya existe, eliminando anterior...');
+    existingModal.remove();
+  }
+  
   console.log('🎁 Creando modal de asignación de ofertas...');
   const modalHTML = `
     <!-- OFFER ASSIGNMENT MODAL -->
