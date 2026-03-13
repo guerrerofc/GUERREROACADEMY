@@ -432,6 +432,7 @@ const ENR_PATCH_MAP = {
     const categoria = fCategoria.value;
     const notas = (fNotas?.value || "").trim();
     const beca_req = !!fBecaReq?.checked;
+    const es_portero = !!document.getElementById('fPortero')?.checked; // Capturar checkbox portero
 
     if (!padre || !jugador || !categoria || !email) return setMsg("Completa los campos obligatorios.");
     if (!Number.isFinite(edad) || edad < 8 || edad > 17) return setMsg("Edad inválida (8 a 17).");
@@ -464,6 +465,7 @@ const ENR_PATCH_MAP = {
           jugador_nombre: jugador,
           jugador_edad: edad,
           category_name: categoria,
+          es_portero: es_portero, // Agregar campo portero
           status: 'pending'
         };
         
@@ -492,6 +494,7 @@ const ENR_PATCH_MAP = {
           `Hola Guerrero Academy ⚽\n\n` +
           `Acabo de enviar la inscripción.\n` +
           `Padre/Tutor: ${padre}\nJugador: ${jugador}\nEdad: ${edad}\nCategoría: ${categoria}\n` +
+          `${es_portero ? '🧤 Portero\n' : ''}` +
           `${full ? "Estado: Lista de espera" : "Estado: Nueva"}\n\n` +
           `Mi WhatsApp: ${whatsapp}`;
         window.open(`${waLink(ACADEMY_WHATS)}?text=${encodeURIComponent(msg)}`, "_blank");
