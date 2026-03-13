@@ -283,7 +283,7 @@
                 <div class="form-grid">
                   <div class="field span-2">
                     <label>Padre / Tutor</label>
-                    <input class="input" id="fPadre" placeholder="Nombre y apellido" required />
+                    <input class="input" id="fTutor" placeholder="Nombre y apellido" required />
                   </div>
 
                   <div class="field span-2">
@@ -294,7 +294,7 @@
 
                   <div class="field span-2">
                     <label>WhatsApp</label>
-                    <input class="input" id="fWhats" placeholder="8296396001" inputmode="numeric" required />
+                    <input class="input" id="fWhatsapp" placeholder="8296396001" inputmode="numeric" required />
                     <div class="hint">Solo números (RD). Ej: 8296396001</div>
                   </div>
                 </div>
@@ -623,8 +623,9 @@
     );
   </script>
 
-  <!-- app.js eliminado - solo es para admin panel, causaba modal de pagos -->
-
+  <!-- Scripts del landing - NECESARIO para funcionamiento del formulario -->
+  <script src="./app.js"></script>
+  
   <!-- Sistema de Solicitudes -->
   <script src="solicitudes.js"></script>
 
@@ -705,77 +706,6 @@
       loadLandingOffers();
     } else {
       window.addEventListener('DOMContentLoaded', loadLandingOffers);
-    }
-  </script>
-
-  <!-- Script para manejo del formulario de inscripción -->
-  <script>
-    // Actualizar confirmación cuando cambia el checkbox de portero
-    const fPortero = document.getElementById('fPortero');
-    const cfPorteroRow = document.getElementById('cfPorteroRow');
-    
-    if (fPortero && cfPorteroRow) {
-      fPortero.addEventListener('change', () => {
-        if (fPortero.checked) {
-          cfPorteroRow.style.display = 'flex';
-        } else {
-          cfPorteroRow.style.display = 'none';
-        }
-      });
-    }
-
-    // Agregar campo de portero al envío del formulario
-    const formInscripcion = document.querySelector('form');
-    if (formInscripcion) {
-      formInscripcion.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const esPortero = document.getElementById('fPortero')?.checked || false;
-        const padre = document.getElementById('fTutor')?.value;
-        const whatsapp = document.getElementById('fWhatsapp')?.value;
-        const jugador = document.getElementById('fJugador')?.value;
-        const edad = parseInt(document.getElementById('fEdad')?.value);
-        const categoriaSelect = document.getElementById('fCategoria');
-        const categoria = categoriaSelect?.options[categoriaSelect.selectedIndex]?.text;
-        
-        if (!padre || !whatsapp || !jugador || !edad || !categoria) {
-          alert('Por favor completa todos los campos requeridos');
-          return;
-        }
-
-        const datos = {
-          padre,
-          whatsapp,
-          jugador,
-          edad,
-          categoria,
-          esPortero
-        };
-
-        try {
-          const resultado = await guardarSolicitudInscripcion(datos);
-          
-          if (resultado.success) {
-            // Mostrar mensaje de éxito
-            const inscSuccess = document.getElementById('inscSuccess');
-            if (inscSuccess) {
-              inscSuccess.style.display = 'block';
-              formInscripcion.style.display = 'none';
-            }
-            
-            // Opcional: Redirigir a WhatsApp
-            setTimeout(() => {
-              const mensaje = `Hola, acabo de enviar una solicitud de inscripción para ${jugador}${esPortero ? ' (Portero)' : ''}`;
-              window.open(`https://wa.me/18296396001?text=${encodeURIComponent(mensaje)}`, '_blank');
-            }, 2000);
-          } else {
-            alert('Hubo un error al enviar la solicitud. Por favor intenta de nuevo o contáctanos por WhatsApp.');
-          }
-        } catch (error) {
-          console.error('Error:', error);
-          alert('Error al enviar la solicitud.');
-        }
-      });
     }
   </script>
 
