@@ -68,6 +68,7 @@ function initFeesSystem() {
 }
 
 function addCustomFeeModal() {
+  console.log('🔧 Creando modal de cuota personalizada...');
   const modalHTML = `
     <!-- CUSTOM FEE MODAL -->
     <div class="modal" id="customFeeModal">
@@ -119,6 +120,7 @@ function addCustomFeeModal() {
 }
 
 function addOfferAssignmentModal() {
+  console.log('🎁 Creando modal de asignación de ofertas...');
   const modalHTML = `
     <!-- OFFER ASSIGNMENT MODAL -->
     <div class="modal" id="offerAssignmentModal">
@@ -152,9 +154,11 @@ function addOfferAssignmentModal() {
   `;
 
   document.body.insertAdjacentHTML('beforeend', modalHTML);
+  console.log('✅ Modal de asignación de ofertas agregado al DOM');
 }
 
 function bindFeeEvents() {
+  console.log('🔗 Adjuntando event listeners...');
   // Tab switching
   document.querySelectorAll('[data-fee-tab]').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -206,10 +210,14 @@ function bindFeeEvents() {
   });
 
   // Save offer assignment (moved here to ensure modal exists)
-  document.getElementById('saveOfferAssignment')?.addEventListener('click', async function() {
-    console.log('🖱️ Click en Guardar Asignación de Oferta');
-    console.log('  - Jugadores seleccionados:', window.selectedAssignmentPlayers?.length || 0);
-    console.log('  - Lista:', window.selectedAssignmentPlayers);
+  const saveOfferBtn = document.getElementById('saveOfferAssignment');
+  console.log('🔍 DEBUG: Botón saveOfferAssignment encontrado?', saveOfferBtn ? 'SÍ ✅' : 'NO ❌');
+  
+  if (saveOfferBtn) {
+    saveOfferBtn.addEventListener('click', async function() {
+      console.log('🖱️ Click en Guardar Asignación de Oferta');
+      console.log('  - Jugadores seleccionados:', window.selectedAssignmentPlayers?.length || 0);
+      console.log('  - Lista:', window.selectedAssignmentPlayers);
     
     const sb = window.sb || window.supabase?.createClient(
       window.SUPABASE_URL || "https://daijiuqqafvjofafwqck.supabase.co",
@@ -254,7 +262,10 @@ function bindFeeEvents() {
       console.error('❌ Error al guardar asignaciones:', error);
       alert('Error al guardar asignaciones: ' + error.message);
     }
-  });
+    });
+  } else {
+    console.error('❌ ERROR CRÍTICO: El botón saveOfferAssignment no existe en el DOM cuando se intenta adjuntar el listener');
+  }
 }
 
 async function loadCategoryFees() {

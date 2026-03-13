@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debug - Test Fees System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #1a1a1a;
+      color: white;
+    }
+    .debug-panel {
+      background: #2a2a2a;
+      border: 2px solid #4a4a4a;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #d87093;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #c75d82;
+    }
+    #console-output {
+      background: #000;
+      color: #0f0;
+      padding: 15px;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Debug Test - Fees System Button</h1>
+  
+  <div class="debug-panel">
+    <h2>Test Controls</h2>
+    <button onclick="testButtonExists()">1. ¿Existe el botón?</button>
+    <button onclick="testManualClick()">2. Click manual en botón</button>
+    <button onclick="testEventListener()">3. Probar event listener</button>
+    <button onclick="clearConsole()">Limpiar Console</button>
+  </div>
+
+  <div class="debug-panel">
+    <h2>Console Output:</h2>
+    <div id="console-output">Esperando pruebas...</div>
+  </div>
+
+  <!-- MODAL DE PRUEBA -->
+  <div class="modal" id="offerAssignmentModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 9999;">
+    <div class="modal-content" style="background: #2a2a2a; padding: 30px; border-radius: 12px; max-width: 500px;">
+      <h3>Modal de Asignación de Ofertas</h3>
+      <input type="hidden" id="assignmentOfferId" value="test-offer-id-123">
+      <p style="margin: 20px 0;">Este es el modal de prueba</p>
+      <button class="btn btn-primary" id="saveOfferAssignment" style="background: #10b981;">
+        💾 Guardar Asignaciones
+      </button>
+      <button onclick="closeModal()" style="background: #666; margin-left: 10px;">
+        Cancelar
+      </button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+    // Setup Supabase
+    window.SUPABASE_URL = "https://daijiuqqafvjofafwqck.supabase.co";
+    window.SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g";
+    window.sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+    window.selectedAssignmentPlayers = [
+      { id: 'player1', name: 'Test Player 1', category: 'Test Cat' },
+      { id: 'player2', name: 'Test Player 2', category: 'Test Cat' }
+    ];
+
+    const output = document.getElementById('console-output');
+    
+    function log(msg) {
+      output.textContent += '\n' + msg;
+      output.scrollTop = output.scrollHeight;
+      console.log(msg);
+    }
+
+    function clearConsole() {
+      output.textContent = 'Console limpiado...\n';
+    }
+
+    function testButtonExists() {
+      log('🔍 TEST 1: Verificando si el botón existe...');
+      const btn = document.getElementById('saveOfferAssignment');
+      if (btn) {
+        log('✅ ÉXITO: El botón SÍ existe en el DOM');
+        log('   - ID: ' + btn.id);
+        log('   - Texto: ' + btn.textContent.trim());
+        log('   - Visible: ' + (btn.offsetParent !== null ? 'Sí' : 'No'));
+      } else {
+        log('❌ ERROR: El botón NO existe en el DOM');
+      }
+    }
+
+    function testManualClick() {
+      log('\n🖱️ TEST 2: Intentando click manual...');
+      const btn = document.getElementById('saveOfferAssignment');
+      if (btn) {
+        log('✅ Botón encontrado, ejecutando click...');
+        btn.click();
+        log('✅ Click ejecutado');
+      } else {
+        log('❌ No se puede hacer click: botón no existe');
+      }
+    }
+
+    function testEventListener() {
+      log('\n🔗 TEST 3: Adjuntando event listener...');
+      const btn = document.getElementById('saveOfferAssignment');
+      
+      if (!btn) {
+        log('❌ ERROR: Botón no existe, no se puede adjuntar listener');
+        return;
+      }
+
+      log('✅ Botón encontrado, adjuntando listener...');
+      
+      btn.addEventListener('click', async function() {
+        log('🎉 ¡EVENT LISTENER FUNCIONANDO!');
+        log('   - Click detectado correctamente');
+        log('   - Jugadores seleccionados: ' + window.selectedAssignmentPlayers.length);
+        
+        const offerId = document.getElementById('assignmentOfferId').value;
+        log('   - Offer ID: ' + offerId);
+        
+        log('✅ TODO FUNCIONA CORRECTAMENTE');
+      });
+      
+      log('✅ Event listener adjuntado exitosamente');
+      log('👉 Ahora abre el modal y haz click en "Guardar Asignaciones"');
+      
+      // Abrir el modal automáticamente
+      document.getElementById('offerAssignmentModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('offerAssignmentModal').style.display = 'none';
+      log('\n🚪 Modal cerrado');
+    }
+
+    // Log inicial
+    log('🚀 Sistema de debug iniciado');
+    log('📝 Sigue los pasos en orden (1 → 2 → 3)');
+  </script>
+</body>
+</html>
