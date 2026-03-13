@@ -82,6 +82,8 @@
       background: rgba(0, 0, 0, 0.6);
       z-index: 999;
       backdrop-filter: blur(4px);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .sidebar {
@@ -664,17 +666,19 @@
       });
     });
 
-    $('sidebarOverlay').addEventListener('click', () => {
+    // Cerrar sidebar al tocar overlay (soporte iOS)
+    function closeSidebar() {
       $('sidebar').classList.remove('open');
       $('sidebarOverlay').classList.remove('active');
-    });
+    }
+    $('sidebarOverlay').addEventListener('click', closeSidebar);
+    $('sidebarOverlay').addEventListener('touchstart', closeSidebar);
     
     // Cerrar sidebar al seleccionar una opción del menú en móvil
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', () => {
         if (window.innerWidth <= 1024) {
-          $('sidebar').classList.remove('open');
-          $('sidebarOverlay').classList.remove('active');
+          closeSidebar();
         }
       });
     });
