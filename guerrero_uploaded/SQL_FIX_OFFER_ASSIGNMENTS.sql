@@ -1,12 +1,15 @@
 -- ========================================
--- FIX: Crear tabla offer_assignments
+-- FIX: Crear/Arreglar tabla offer_assignments
 -- ========================================
 
--- PASO 1: Crear tabla si no existe
-CREATE TABLE IF NOT EXISTS public.offer_assignments (
+-- PASO 1: Eliminar tabla si existe (para recrearla correctamente)
+DROP TABLE IF EXISTS public.offer_assignments CASCADE;
+
+-- PASO 2: Crear tabla desde cero
+CREATE TABLE public.offer_assignments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  offer_id uuid NOT NULL REFERENCES offers(id) ON DELETE CASCADE,
-  player_id uuid NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+  offer_id uuid NOT NULL,
+  player_id uuid NOT NULL,
   assigned_at timestamptz DEFAULT now(),
   assigned_by uuid,
   is_active boolean DEFAULT true,
@@ -14,38 +17,50 @@ CREATE TABLE IF NOT EXISTS public.offer_assignments (
   UNIQUE(offer_id, player_id)
 );
 
--- PASO 2: Desactivar RLS
+-- PASO 3: Desactivar RLS
 ALTER TABLE public.offer_assignments DISABLE ROW LEVEL SECURITY;
 
--- PASO 3: Crear índices
+-- PASO 4: Crear índices
 CREATE INDEX IF NOT EXISTS idx_offer_assignments_offer ON offer_assignments(offer_id);
 CREATE INDEX IF NOT EXISTS idx_offer_assignments_player ON offer_assignments(player_id);
 CREATE INDEX IF NOT EXISTS idx_offer_assignments_active ON offer_assignments(is_active);
 
--- PASO 4: Verificar que la tabla offers existe
+-- PASO 5: Agregar foreign keys (después de crear la tabla)
+-- Solo si las tablas offers y players existen
 DO $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'offers') THEN
-    RAISE NOTICE 'Creando tabla offers...';
-    
-    CREATE TABLE public.offers (
-      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      title text NOT NULL,
-      description text,
-      offer_type text NOT NULL CHECK (offer_type IN ('percentage', 'fixed', 'free_month')),
-      value numeric NOT NULL,
-      start_date timestamptz DEFAULT now(),
-      end_date timestamptz,
-      is_active boolean DEFAULT true,
-      created_at timestamptz DEFAULT now(),
-      updated_at timestamptz DEFAULT now()
-    );
-    
-    ALTER TABLE public.offers DISABLE ROW LEVEL SECURITY;
+  -- Agregar FK a offers si la tabla existe
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'offers') THEN
+    ALTER TABLE offer_assignments
+      ADD CONSTRAINT fk_offer_assignments_offer
+      FOREIGN KEY (offer_id) REFERENCES offers(id) ON DELETE CASCADE;
+  END IF;
+
+  -- Agregar FK a players si la tabla existe
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'players') THEN
+    ALTER TABLE offer_assignments
+      ADD CONSTRAINT fk_offer_assignments_player
+      FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE;
   END IF;
 END $$;
 
--- PASO 5: Verificación
+-- PASO 6: Verificar que la tabla offers existe, si no crearla
+CREATE TABLE IF NOT EXISTS public.offers (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  description text,
+  offer_type text NOT NULL CHECK (offer_type IN ('percentage', 'fixed', 'free_month')),
+  value numeric NOT NULL,
+  start_date timestamptz DEFAULT now(),
+  end_date timestamptz,
+  is_active boolean DEFAULT true,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.offers DISABLE ROW LEVEL SECURITY;
+
+-- PASO 7: Verificación
 SELECT 
   'offer_assignments' as tabla,
   COUNT(*) as asignaciones_existentes,
@@ -56,7 +71,7 @@ SELECT
   ) as tabla_existe
 FROM offer_assignments;
 
--- PASO 6: Ver estructura de la tabla
+-- PASO 8: Ver estructura de la tabla
 SELECT 
   column_name, 
   data_type, 
@@ -65,14 +80,3 @@ SELECT
 FROM information_schema.columns
 WHERE table_name = 'offer_assignments'
 ORDER BY ordinal_position;
-
--- PASO 7: Ver constraints
-SELECT
-  tc.constraint_name,
-  tc.constraint_type,
-  kcu.column_name
-FROM information_schema.table_constraints tc
-JOIN information_schema.key_column_usage kcu 
-  ON tc.constraint_name = kcu.constraint_name
-WHERE tc.table_name = 'offer_assignments'
-ORDER BY tc.constraint_type, tc.constraint_name;
