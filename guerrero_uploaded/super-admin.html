@@ -1804,11 +1804,13 @@
         <tr>
           <td><strong>${p.nombre || '-'}</strong></td>
           <td><span class="badge badge-info">${p.categories?.name || '-'}</span></td>
-          <td>${p.tutor_nombre || '-'}</td>
+          <td>${p.tutor_nombre || '-'}${p.tutor_email ? `<br><small style="color: #6B7280;">${p.tutor_email}</small>` : ''}</td>
           <td>${p.tutor_whatsapp || '-'}</td>
           <td><span class="badge badge-${p.status === 'activo' ? 'success' : p.status === 'becado' ? 'blue' : 'warning'}">${p.status || '-'}</span></td>
-          <td>
-            <button class="btn btn-sm" onclick="editPlayer('${p.id}')">✏️</button>
+          <td style="white-space: nowrap;">
+            <button class="btn btn-sm" onclick="editPlayer('${p.id}')" title="Editar jugador">✏️</button>
+            ${p.tutor_email ? `<button class="btn btn-sm" style="background: #8B5CF6;" onclick="reenviarEmailPadre('${p.id}', '${p.tutor_email}', '${p.nombre}')" title="Reenviar email de bienvenida">📧</button>` : ''}
+            <button class="btn btn-sm" style="background: #EF4444;" onclick="eliminarJugador('${p.id}', '${p.nombre}')" title="Eliminar jugador">🗑️</button>
           </td>
         </tr>
       `).join('') || '<tr><td colspan="6" style="text-align: center;">Sin jugadores</td></tr>';
@@ -1973,6 +1975,107 @@
         console.error('❌ Error general en actualizarCategoriasPortero:', error);
         alert('❌ ERROR GENERAL: ' + error.message);
       }
+    }
+
+    // Función para eliminar jugador
+    window.eliminarJugador = async function(playerId, playerName) {
+      if (!confirm(`⚠️ ¿Estás seguro de eliminar a "${playerName}"?\n\nEsta acción:\n- Eliminará el jugador de la base de datos\n- Eliminará sus asignaciones de categoría\n- Eliminará sus registros de asistencia\n- NO se puede deshacer`)) {
+        return;
+      }
+
+      try {
+        // Eliminar jugador (CASCADE eliminará automáticamente player_categories y attendance_records)
+        const { error } = await sb.from('players').delete().eq('id', playerId);
+
+        if (error) throw error;
+
+        alert(`✅ Jugador "${playerName}" eliminado exitosamente`);
+        
+        // Recargar tabla
+        const { data: newPlayers } = await sb.from('players').select('*, categories(name)');
+        players = newPlayers || [];
+        renderPlayersTable();
+        
+        // Actualizar badge de solicitudes por si acaso
+        if (window.updateRequestsBadge) {
+          window.updateRequestsBadge();
+        }
+      } catch (error) {
+        console.error('❌ Error eliminando jugador:', error);
+        alert('❌ Error al eliminar jugador: ' + error.message);
+      }
+    };
+
+    // Función para reenviar email de bienvenida a padre
+    window.reenviarEmailPadre = async function(playerId, tutorEmail, playerName) {
+      if (!confirm(`📧 ¿Reenviar email de bienvenida a ${tutorEmail}?\n\nSe enviará un nuevo link para establecer contraseña.`)) {
+        return;
+      }
+
+      try {
+        // Buscar datos del jugador
+        const { data: player, error: playerError } = await sb
+          .from('players')
+          .select('tutor_nombre, tutor_email')
+          .eq('id', playerId)
+          .single();
+
+        if (playerError) throw playerError;
+
+        if (!player.tutor_email) {
+          alert('❌ Este jugador no tiene email de tutor registrado');
+          return;
+        }
+
+        // Generar nuevo token
+        const token = generateRandomToken();
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7);
+
+        // Actualizar o crear invitación
+        const { error: inviteError } = await sb
+          .from('parent_invitations')
+          .upsert([{
+            email: player.tutor_email,
+            player_id: playerId,
+            token: token,
+            expires_at: expiresAt.toISOString(),
+            used: false,
+            used_at: null
+          }], {
+            onConflict: 'email'
+          });
+
+        if (inviteError) throw inviteError;
+
+        // Enviar email
+        const inviteLink = `${window.location.origin}/establecer-password.html?token=${token}`;
+        
+        const { data: emailData, error: emailError } = await sb.functions.invoke('send-welcome-email', {
+          body: {
+            email: player.tutor_email,
+            nombre: player.tutor_nombre,
+            playerName: playerName,
+            magicLink: inviteLink
+          }
+        });
+
+        if (emailError) throw emailError;
+
+        alert(`✅ Email reenviado exitosamente a ${player.tutor_email}`);
+        console.log('✅ Email reenviado:', emailData);
+
+      } catch (error) {
+        console.error('❌ Error reenviando email:', error);
+        alert('❌ Error al reenviar email: ' + error.message);
+      }
+    };
+
+    // Función auxiliar para generar token (si no existe ya)
+    function generateRandomToken() {
+      const array = new Uint8Array(32);
+      crypto.getRandomValues(array);
+      return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
     }
 
     // Categories
