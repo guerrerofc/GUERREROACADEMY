@@ -751,7 +751,10 @@
 
         <div class="nav-section">Sistema</div>
         <button class="nav-link" data-view="users"><span class="nav-icon">🔐</span>Usuarios</button>
-        <button class="nav-link" data-view="requests"><span class="nav-icon">📋</span>Solicitudes</button>
+        <button class="nav-link" data-view="requests">
+          <span class="nav-icon">📋</span>Solicitudes
+          <span id="requestsBadge" style="display: none; margin-left: auto; background: var(--danger); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700;"></span>
+        </button>
       </nav>
 
       <div class="user-card">
@@ -1517,6 +1520,35 @@
       }
     }
 
+    // Actualizar badge de solicitudes pendientes
+    async function updateRequestsBadge() {
+      try {
+        const { data: requests, error } = await sb
+          .from('inscription_requests')
+          .select('id')
+          .eq('status', 'pendiente');
+
+        if (error) throw error;
+
+        const count = (requests || []).length;
+        const badge = document.getElementById('requestsBadge');
+        
+        if (badge) {
+          if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = 'inline-block';
+          } else {
+            badge.style.display = 'none';
+          }
+        }
+      } catch (error) {
+        console.error('Error al actualizar badge de solicitudes:', error);
+      }
+    }
+
+    // Exponer función globalmente para que solicitudes.js pueda actualizarla
+    window.updateRequestsBadge = updateRequestsBadge;
+
     function showApp() {
       $('loginView').style.display = 'none';
       $('appView').style.display = 'grid';
@@ -1525,6 +1557,12 @@
       
       const now = new Date();
       $('dashMonth').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      
+      // Actualizar badge de solicitudes
+      updateRequestsBadge();
+      
+      // Actualizar badge cada 30 segundos
+      setInterval(updateRequestsBadge, 30000);
       
       loadDashboard();
     }

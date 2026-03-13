@@ -345,6 +345,11 @@ async function aprobarYCrearJugador(solicitudId) {
     const solicitudes = await cargarSolicitudes('pending');
     const contenedor = document.getElementById('tablaSolicitudes');
     renderizarTablaSolicitudes(solicitudes, contenedor);
+    
+    // Actualizar badge en super-admin
+    if (window.updateRequestsBadge) {
+      window.updateRequestsBadge();
+    }
 
   } catch (error) {
     console.error('Error:', error);
@@ -374,6 +379,11 @@ async function rechazarSolicitudUI(solicitudId) {
     const solicitudes = await cargarSolicitudes('pending');
     const contenedor = document.getElementById('tablaSolicitudes');
     renderizarTablaSolicitudes(solicitudes, contenedor);
+    
+    // Actualizar badge en super-admin
+    if (window.updateRequestsBadge) {
+      window.updateRequestsBadge();
+    }
   } else {
     alert('❌ Error al rechazar solicitud');
   }
