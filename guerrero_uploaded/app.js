@@ -558,20 +558,36 @@ const ENR_PATCH_MAP = {
   };
 
   let idx = 0;
+  let isTransitioning = false; // Prevenir múltiples clics rápidos
 
   function setStep(i){
+    if (isTransitioning) {
+      console.log('⚠️ Transición en progreso, ignorando');
+      return;
+    }
+    
+    isTransitioning = true;
+    
     idx = Math.max(0, Math.min(pages.length - 1, i));
     console.log(`🔄 setStep llamado: paso ${i} → idx final: ${idx}`);
     
     pages.forEach((p, k) => {
       const isActive = k === idx;
       p.classList.toggle("is-active", isActive);
-      console.log(`  Página ${k} (${p.getAttribute('data-step')}): ${isActive ? '✅ ACTIVA' : '❌ inactiva'}`);
+      console.log(`  Página ${k} (data-step="${p.getAttribute('data-step')}"): ${isActive ? '✅ ACTIVA' : '❌ inactiva'}`);
     });
     
     steps.forEach((s, k) => s.classList.toggle("is-active", k <= idx));
     window.scrollTo({ top: document.getElementById("inscripcion")?.offsetTop || 0, behavior: "smooth" });
-    if (idx === 2) fillConfirm();
+    
+    if (idx === 2) {
+      fillConfirm();
+    }
+    
+    // Permitir nuevas transiciones después de 300ms
+    setTimeout(() => {
+      isTransitioning = false;
+    }, 300);
   }
 
   function currentCategorySuggestion(age){
@@ -681,6 +697,7 @@ const ENR_PATCH_MAP = {
 
     if (prev){
       e.preventDefault();
+      e.stopPropagation();
       console.log('⬅️ Botón ATRÁS clickeado, paso actual:', idx);
       setStep(idx - 1);
       return;
@@ -688,7 +705,9 @@ const ENR_PATCH_MAP = {
 
     if (next){
       e.preventDefault();
+      e.stopPropagation();
       console.log('➡️ Botón CONTINUAR clickeado, paso actual:', idx);
+      console.log('   Intentando ir a paso:', idx + 1);
       
       const err = validateStep(idx);
       const fMsg = document.getElementById("fMsg");
@@ -701,8 +720,10 @@ const ENR_PATCH_MAP = {
         return;
       }
       
-      console.log('✅ Validación pasó, avanzando a paso:', idx + 1);
-      setStep(idx + 1);
+      console.log('✅ Validación pasó');
+      const nextStep = idx + 1;
+      console.log('📍 Calculado nextStep:', nextStep, '(idx actual:', idx, ')');
+      setStep(nextStep);
       return;
     }
   });
