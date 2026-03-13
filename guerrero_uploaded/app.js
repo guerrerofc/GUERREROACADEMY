@@ -521,8 +521,17 @@ const ENR_PATCH_MAP = {
   const form = document.getElementById("inscForm");
   if (!form) return;
 
-  const pages = Array.from(form.querySelectorAll(".step-page"));
+  // Ordenar páginas por data-step para asegurar orden correcto
+  const pages = Array.from(form.querySelectorAll(".step-page")).sort((a, b) => {
+    const stepA = parseInt(a.getAttribute('data-step') || '0', 10);
+    const stepB = parseInt(b.getAttribute('data-step') || '0', 10);
+    return stepA - stepB;
+  });
+  
   const steps = Array.from(document.querySelectorAll(".p-step"));
+  
+  console.log('📄 Páginas del wizard cargadas:', pages.length);
+  pages.forEach((p, i) => console.log(`  Página ${i}:`, p.getAttribute('data-step'), p.querySelector('.step-h')?.textContent));
 
   const fPadre = document.getElementById("fPadre");
   const fWhats = document.getElementById("fWhats");
@@ -552,7 +561,14 @@ const ENR_PATCH_MAP = {
 
   function setStep(i){
     idx = Math.max(0, Math.min(pages.length - 1, i));
-    pages.forEach((p, k) => p.classList.toggle("is-active", k === idx));
+    console.log(`🔄 setStep llamado: paso ${i} → idx final: ${idx}`);
+    
+    pages.forEach((p, k) => {
+      const isActive = k === idx;
+      p.classList.toggle("is-active", isActive);
+      console.log(`  Página ${k} (${p.getAttribute('data-step')}): ${isActive ? '✅ ACTIVA' : '❌ inactiva'}`);
+    });
+    
     steps.forEach((s, k) => s.classList.toggle("is-active", k <= idx));
     window.scrollTo({ top: document.getElementById("inscripcion")?.offsetTop || 0, behavior: "smooth" });
     if (idx === 2) fillConfirm();
