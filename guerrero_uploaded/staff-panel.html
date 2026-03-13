@@ -322,6 +322,12 @@
     .note-player { font-weight: 700; font-size: 14px; }
     .note-date { font-size: 11px; color: var(--text-muted); }
     .note-text { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+    
+    .grid { display: grid; gap: 20px; }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 768px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -444,22 +450,56 @@
           <div>
             <button class="mobile-menu">☰</button>
             <h1 class="page-title">Pasar Asistencia</h1>
-            <p class="page-subtitle">Registra la asistencia del día</p>
+            <p class="page-subtitle">Registro de asistencia por sesión</p>
           </div>
-          <button class="btn btn-primary" id="btnSaveAttendance">💾 Guardar</button>
-        </div>
-
-        <div class="card" style="margin-bottom: 20px;">
-          <div class="form-group">
-            <label>Categoría</label>
-            <select id="attCategory" class="select">
-              <option value="">Seleccionar categoría</option>
-            </select>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn" id="btnViewHistory">📋 Ver Historial</button>
+            <button class="btn btn-primary" id="btnSaveAttendance">💾 Guardar</button>
           </div>
         </div>
 
-        <div class="card">
-          <div id="attendanceList"></div>
+        <!-- Formulario de asistencia -->
+        <div id="attendanceForm">
+          <div class="card" style="margin-bottom: 20px;">
+            <div class="grid grid-2" style="gap: 16px;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label>Categoría</label>
+                <select id="attCategory" class="select">
+                  <option value="">Seleccionar categoría</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label>Fecha</label>
+                <input type="date" id="attDate" class="input" />
+              </div>
+            </div>
+            <div class="form-group" style="margin-top: 16px; margin-bottom: 0;">
+              <label>Notas de la sesión (opcional)</label>
+              <textarea id="sessionNotes" class="input" rows="2" placeholder="Ej: Trabajamos definición, clima lluvioso..."></textarea>
+            </div>
+          </div>
+
+          <div class="card">
+            <div id="attendanceList"></div>
+          </div>
+        </div>
+
+        <!-- Historial de sesiones -->
+        <div id="attendanceHistory" style="display: none;">
+          <div class="card" style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 style="font-size: 18px; font-weight: 600;">Historial de Sesiones</h3>
+              <button class="btn btn-sm" id="btnBackToForm">← Volver</button>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Filtrar por categoría</label>
+              <select id="historyCategory" class="select">
+                <option value="">Todas las categorías</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="historyList"></div>
         </div>
       </div>
 
@@ -616,9 +656,18 @@
     }
 
     // Attendance
+    let currentSessionId = null;
+    
     async function loadAttendanceView() {
+      // Cargar categorías
       $('attCategory').innerHTML = '<option value="">Seleccionar categoría</option>' +
         categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      
+      $('historyCategory').innerHTML = '<option value="">Todas las categorías</option>' +
+        categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      
+      // Establecer fecha de hoy
+      $('attDate').valueAsDate = new Date();
     }
 
     $('attCategory').addEventListener('change', async () => {
@@ -628,20 +677,94 @@
         return;
       }
 
-      const catPlayers = players.filter(p => p.category_id === catId);
-      attendanceState = {};
-      catPlayers.forEach(p => attendanceState[p.id] = null);
+      const fecha = $('attDate').value;
+      if (!fecha) {
+        alert('Selecciona una fecha');
+        return;
+      }
 
-      $('attendanceList').innerHTML = catPlayers.map(p => `
-        <div class="attendance-row">
-          <span style="font-weight: 600;">${p.nombre}</span>
-          <div class="attendance-btns">
-            <button class="att-btn" data-player="${p.id}" data-state="present" onclick="markAttendance('${p.id}', 'present', this)">Presente</button>
-            <button class="att-btn" data-player="${p.id}" data-state="late" onclick="markAttendance('${p.id}', 'late', this)">Tarde</button>
-            <button class="att-btn" data-player="${p.id}" data-state="absent" onclick="markAttendance('${p.id}', 'absent', this)">Ausente</button>
+      // Buscar si ya existe sesión para esta fecha y categoría
+      const { data: existingSession } = await sb
+        .from('sessions')
+        .select('*')
+        .eq('fecha', fecha)
+        .eq('category_id', catId)
+        .maybeSingle();
+
+      currentSessionId = existingSession?.id || null;
+
+      // Obtener jugadores de la categoría (usando player_categories)
+      const { data: playerCategoryData } = await sb
+        .from('player_categories')
+        .select(`
+          player_id,
+          players!inner (
+            id,
+            nombre,
+            status
+          )
+        `)
+        .eq('category_id', catId)
+        .eq('players.status', 'activo');
+
+      const catPlayers = (playerCategoryData || [])
+        .map(pc => pc.players)
+        .filter(p => p);
+
+      if (catPlayers.length === 0) {
+        $('attendanceList').innerHTML = '<div class="empty"><div class="empty-icon">⚽</div><p>Sin jugadores activos en esta categoría</p></div>';
+        return;
+      }
+
+      // Si existe sesión, cargar asistencia guardada
+      let savedAttendance = {};
+      if (currentSessionId) {
+        const { data: attData } = await sb
+          .from('attendance')
+          .select('player_id, estado')
+          .eq('session_id', currentSessionId);
+        
+        (attData || []).forEach(a => {
+          savedAttendance[a.player_id] = a.estado;
+        });
+
+        // Cargar notas de la sesión
+        if (existingSession.notes) {
+          $('sessionNotes').value = existingSession.notes;
+        }
+      }
+
+      attendanceState = {};
+      catPlayers.forEach(p => attendanceState[p.id] = savedAttendance[p.id] || null);
+
+      $('attendanceList').innerHTML = `
+        <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-glass); border-radius: 10px; border: 1px solid var(--border);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; color: var(--text-dim);">
+              <strong>${catPlayers.length}</strong> jugadores en esta categoría
+            </span>
+            ${currentSessionId ? '<span style="font-size: 12px; color: var(--warning);">⚠️ Editando sesión existente</span>' : ''}
           </div>
         </div>
-      `).join('') || '<div class="empty"><p>Sin jugadores en esta categoría</p></div>';
+        ${catPlayers.map(p => `
+          <div class="attendance-row">
+            <span style="font-weight: 600;">${p.nombre}</span>
+            <div class="attendance-btns">
+              <button class="att-btn ${savedAttendance[p.id] === 'present' ? 'present' : ''}" data-player="${p.id}" data-state="present" onclick="markAttendance('${p.id}', 'present', this)">✓ Presente</button>
+              <button class="att-btn ${savedAttendance[p.id] === 'late' ? 'late' : ''}" data-player="${p.id}" data-state="late" onclick="markAttendance('${p.id}', 'late', this)">⏰ Tarde</button>
+              <button class="att-btn ${savedAttendance[p.id] === 'absent' ? 'absent' : ''}" data-player="${p.id}" data-state="absent" onclick="markAttendance('${p.id}', 'absent', this)">✗ Ausente</button>
+            </div>
+          </div>
+        `).join('')}
+      `;
+    });
+
+    // Recargar cuando cambia la fecha
+    $('attDate').addEventListener('change', () => {
+      const catId = $('attCategory').value;
+      if (catId) {
+        $('attCategory').dispatchEvent(new Event('change'));
+      }
     });
 
     window.markAttendance = function(playerId, state, btn) {
@@ -653,40 +776,225 @@
 
     $('btnSaveAttendance').addEventListener('click', async () => {
       const catId = $('attCategory').value;
+      const fecha = $('attDate').value;
+      const notes = $('sessionNotes').value.trim();
+      
       if (!catId) return alert('Selecciona una categoría');
+      if (!fecha) return alert('Selecciona una fecha');
 
-      // Create or get session for today
-      const today = new Date().toISOString().slice(0, 10);
-      let { data: session } = await sb.from('sessions').select('*').eq('fecha', today).eq('category_id', catId).single();
-
-      if (!session) {
-        const { data: newSession } = await sb.from('sessions').insert({ fecha: today, category_id: catId }).select().single();
-        session = newSession;
+      const marked = Object.values(attendanceState).filter(v => v !== null).length;
+      if (marked === 0) {
+        return alert('Marca al menos un jugador');
       }
 
-      // Save attendance
-      for (const [playerId, estado] of Object.entries(attendanceState)) {
-        if (!estado) continue;
-        await sb.from('attendance').upsert({
-          session_id: session.id,
-          player_id: playerId,
-          estado
-        }, { onConflict: 'session_id,player_id' });
-      }
+      const btn = $('btnSaveAttendance');
+      btn.disabled = true;
+      btn.textContent = '💾 Guardando...';
 
-      alert('Asistencia guardada!');
+      try {
+        let sessionId = currentSessionId;
+
+        // Crear o actualizar sesión
+        if (sessionId) {
+          // Actualizar sesión existente
+          await sb
+            .from('sessions')
+            .update({ notes: notes || null })
+            .eq('id', sessionId);
+        } else {
+          // Crear nueva sesión
+          const { data: newSession, error: sessionError } = await sb
+            .from('sessions')
+            .insert({
+              fecha: fecha,
+              category_id: catId,
+              notes: notes || null,
+              created_by: currentUser.id
+            })
+            .select()
+            .single();
+
+          if (sessionError) throw sessionError;
+          sessionId = newSession.id;
+          currentSessionId = sessionId;
+        }
+
+        // Guardar asistencia
+        const attendanceRecords = [];
+        for (const [playerId, estado] of Object.entries(attendanceState)) {
+          if (estado) {
+            attendanceRecords.push({
+              session_id: sessionId,
+              player_id: playerId,
+              estado
+            });
+          }
+        }
+
+        if (attendanceRecords.length > 0) {
+          const { error: attError } = await sb
+            .from('attendance')
+            .upsert(attendanceRecords, { 
+              onConflict: 'session_id,player_id',
+              ignoreDuplicates: false
+            });
+
+          if (attError) throw attError;
+        }
+
+        alert(`✅ Asistencia guardada correctamente!\n\n${marked} jugadores registrados`);
+        
+        // Limpiar
+        $('sessionNotes').value = '';
+        attendanceState = {};
+        
+      } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error al guardar: ' + error.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Guardar';
+      }
     });
+
+    // Ver historial
+    $('btnViewHistory').addEventListener('click', () => {
+      $('attendanceForm').style.display = 'none';
+      $('attendanceHistory').style.display = 'block';
+      loadAttendanceHistory();
+    });
+
+    $('btnBackToForm').addEventListener('click', () => {
+      $('attendanceHistory').style.display = 'none';
+      $('attendanceForm').style.display = 'block';
+    });
+
+    $('historyCategory').addEventListener('change', loadAttendanceHistory);
+
+    async function loadAttendanceHistory() {
+      const filterCat = $('historyCategory').value;
+      
+      let query = sb
+        .from('sessions')
+        .select(`
+          id,
+          fecha,
+          notes,
+          created_at,
+          categories (name),
+          attendance (estado)
+        `)
+        .order('fecha', { ascending: false })
+        .limit(30);
+
+      if (filterCat) {
+        query = query.eq('category_id', filterCat);
+      }
+
+      const { data: sessions, error } = await query;
+
+      if (error) {
+        console.error('Error:', error);
+        $('historyList').innerHTML = '<div class="card"><p style="color: var(--danger);">Error al cargar historial</p></div>';
+        return;
+      }
+
+      if (!sessions || sessions.length === 0) {
+        $('historyList').innerHTML = '<div class="card"><div class="empty"><div class="empty-icon">📋</div><p>Sin sesiones registradas</p></div></div>';
+        return;
+      }
+
+      $('historyList').innerHTML = sessions.map(s => {
+        const attData = s.attendance || [];
+        const present = attData.filter(a => a.estado === 'present').length;
+        const late = attData.filter(a => a.estado === 'late').length;
+        const absent = attData.filter(a => a.estado === 'absent').length;
+        const total = present + late + absent;
+        const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
+
+        return `
+          <div class="card" style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+              <div>
+                <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">
+                  ${s.categories?.name || 'Sin categoría'}
+                </h4>
+                <p style="font-size: 13px; color: var(--text-dim);">
+                  ${new Date(s.fecha).toLocaleDateString('es-DO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                </p>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 24px; font-weight: 700; color: ${percentage >= 80 ? 'var(--success)' : percentage >= 60 ? 'var(--warning)' : 'var(--danger)'};">
+                  ${percentage}%
+                </div>
+                <div style="font-size: 11px; color: var(--text-muted);">ASISTENCIA</div>
+              </div>
+            </div>
+
+            ${s.notes ? `
+              <div style="padding: 10px; background: var(--bg-glass); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px;">
+                <p style="font-size: 13px; color: var(--text-dim); font-style: italic;">"${s.notes}"</p>
+              </div>
+            ` : ''}
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+              <div style="text-align: center; padding: 12px; background: rgba(16, 185, 129, 0.1); border-radius: 10px;">
+                <div style="font-size: 20px; font-weight: 700; color: var(--success);">${present}</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">PRESENTES</div>
+              </div>
+              <div style="text-align: center; padding: 12px; background: rgba(245, 158, 11, 0.1); border-radius: 10px;">
+                <div style="font-size: 20px; font-weight: 700; color: var(--warning);">${late}</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">TARDE</div>
+              </div>
+              <div style="text-align: center; padding: 12px; background: rgba(239, 68, 68, 0.1); border-radius: 10px;">
+                <div style="font-size: 20px; font-weight: 700; color: var(--danger);">${absent}</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">AUSENTES</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
 
     // Players
     async function loadPlayers() {
-      $('playersTable').innerHTML = players.map(p => `
-        <tr>
-          <td><strong>${p.nombre}</strong></td>
-          <td><span class="badge badge-info">${p.categories?.name || '-'}</span></td>
-          <td><span class="badge badge-${p.status === 'activo' ? 'success' : 'warning'}">${p.status}</span></td>
-          <td>${p.tutor_whatsapp || '-'}</td>
-        </tr>
-      `).join('') || '<tr><td colspan="4" style="text-align: center;">Sin jugadores</td></tr>';
+      // Obtener todos los jugadores activos con sus categorías
+      const { data: allPlayers } = await sb
+        .from('players')
+        .select('id, nombre, status, tutor_whatsapp')
+        .eq('status', 'activo')
+        .order('nombre');
+      
+      // Obtener las categorías de cada jugador
+      const { data: playerCats } = await sb
+        .from('player_categories')
+        .select(`
+          player_id,
+          categories (name)
+        `);
+      
+      // Mapear categorías a jugadores
+      const playerCategoriesMap = {};
+      (playerCats || []).forEach(pc => {
+        if (!playerCategoriesMap[pc.player_id]) {
+          playerCategoriesMap[pc.player_id] = [];
+        }
+        playerCategoriesMap[pc.player_id].push(pc.categories?.name || '-');
+      });
+
+      $('playersTable').innerHTML = (allPlayers || []).map(p => {
+        const cats = playerCategoriesMap[p.id] || ['-'];
+        return `
+          <tr>
+            <td><strong>${p.nombre}</strong></td>
+            <td>
+              ${cats.map(c => `<span class="badge badge-info" style="margin-right: 4px;">${c}</span>`).join('')}
+            </td>
+            <td><span class="badge badge-success">${p.status}</span></td>
+            <td>${p.tutor_whatsapp || '-'}</td>
+          </tr>
+        `;
+      }).join('') || '<tr><td colspan="4" style="text-align: center;">Sin jugadores</td></tr>';
     }
 
     // Notes
