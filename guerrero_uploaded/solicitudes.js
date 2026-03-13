@@ -329,17 +329,17 @@ async function rechazarSolicitudUI(solicitudId) {
   }
 }
 
-// Inicializar panel de solicitudes si existe
+// Inicializar panel de solicitudes si existe (solo en super-admin)
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('🔍 Inicializando panel de solicitudes...');
+  console.log('🔍 Verificando si hay panel de solicitudes...');
   
   const contenedor = document.getElementById('tablaSolicitudes');
   if (!contenedor) {
-    console.log('❌ No se encontró tablaSolicitudes');
+    console.log('ℹ️ No hay panel de solicitudes (esto es normal en el landing)');
     return;
   }
 
-  console.log('✅ Contenedor encontrado, cargando solicitudes...');
+  console.log('✅ Panel de solicitudes encontrado, inicializando...');
 
   // Botones de filtro
   const btnPendientes = document.getElementById('btnPendientes');
