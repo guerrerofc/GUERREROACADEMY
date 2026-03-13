@@ -1479,6 +1479,7 @@
     window.SUPABASE_KEY = SUPABASE_KEY;
 
     let currentUser = null;
+    let currentUserRole = null;
     let players = [];
     let categories = [];
     let charts = {};
@@ -1516,6 +1517,17 @@
       const { data } = await sb.auth.getSession();
       if (data.session) {
         currentUser = data.session.user;
+        
+        // Obtener rol del usuario desde la tabla users
+        const { data: userData } = await sb
+          .from('users')
+          .select('rol')
+          .eq('email', currentUser.email)
+          .single();
+        
+        currentUserRole = userData?.rol || null;
+        console.log('👤 Usuario autenticado:', currentUser.email, 'Rol:', currentUserRole);
+        
         showApp();
       }
     }
@@ -1810,7 +1822,7 @@
           <td style="white-space: nowrap;">
             <button class="btn btn-sm" onclick="editPlayer('${p.id}')" title="Editar jugador">✏️</button>
             ${p.tutor_email ? `<button class="btn btn-sm" style="background: #8B5CF6;" onclick="reenviarEmailPadre('${p.id}', '${p.tutor_email}', '${p.nombre}')" title="Reenviar email de bienvenida">📧</button>` : ''}
-            <button class="btn btn-sm" style="background: #EF4444;" onclick="eliminarJugador('${p.id}', '${p.nombre}')" title="Eliminar jugador">🗑️</button>
+            ${currentUserRole === 'super_admin' ? `<button class="btn btn-sm" style="background: #EF4444;" onclick="eliminarJugador('${p.id}', '${p.nombre}')" title="Eliminar jugador (Solo Super Admin)">🗑️</button>` : ''}
           </td>
         </tr>
       `).join('') || '<tr><td colspan="6" style="text-align: center;">Sin jugadores</td></tr>';
@@ -1977,8 +1989,14 @@
       }
     }
 
-    // Función para eliminar jugador
+    // Función para eliminar jugador (SOLO SUPER ADMIN)
     window.eliminarJugador = async function(playerId, playerName) {
+      // Verificar que solo Super Admin pueda eliminar
+      if (currentUserRole !== 'super_admin') {
+        alert('🚫 Acceso Denegado\n\nSolo el Super Admin puede eliminar jugadores.\n\nTu rol actual: ' + (currentUserRole || 'desconocido'));
+        return;
+      }
+
       if (!confirm(`⚠️ ¿Estás seguro de eliminar a "${playerName}"?\n\nEsta acción:\n- Eliminará el jugador de la base de datos\n- Eliminará sus asignaciones de categoría\n- Eliminará sus registros de asistencia\n- NO se puede deshacer`)) {
         return;
       }
@@ -2078,6 +2096,74 @@
       } catch (error) {
         console.error('❌ Error reenviando email:', error);
         alert('❌ Error al reenviar email: ' + error.message);
+      }
+    };
+
+    // Función para reenviar email de bienvenida a padre (desde tabla de Padres)
+    window.reenviarEmailPadreDirecto = async function(parentEmail, parentName) {
+      if (!confirm(`📧 ¿Reenviar email de bienvenida a ${parentName}?\n\nEmail: ${parentEmail}\n\nSe enviará un nuevo link para establecer contraseña.`)) {
+        return;
+      }
+
+      try {
+        // Buscar el primer hijo de este padre para asociar la invitación
+        const { data: children, error: childrenError } = await sb
+          .from('players')
+          .select('id, nombre')
+          .eq('tutor_email', parentEmail)
+          .eq('status', 'activo')
+          .limit(1);
+
+        if (childrenError) throw childrenError;
+
+        if (!children || children.length === 0) {
+          alert('❌ Este padre no tiene hijos registrados.\n\nAsegúrate de asignarle jugadores antes de enviar el email.');
+          return;
+        }
+
+        const firstChild = children[0];
+
+        // Generar nuevo token
+        const token = generateRandomToken();
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7);
+
+        // Actualizar o crear invitación
+        const { error: inviteError } = await sb
+          .from('parent_invitations')
+          .upsert([{
+            email: parentEmail,
+            player_id: firstChild.id,
+            token: token,
+            expires_at: expiresAt.toISOString(),
+            used: false,
+            used_at: null
+          }], {
+            onConflict: 'email'
+          });
+
+        if (inviteError) throw inviteError;
+
+        // Enviar email
+        const inviteLink = `${window.location.origin}/establecer-password.html?token=${token}`;
+        
+        const { data: emailData, error: emailError } = await sb.functions.invoke('send-welcome-email', {
+          body: {
+            email: parentEmail,
+            nombre: parentName,
+            playerName: firstChild.nombre,
+            magicLink: inviteLink
+          }
+        });
+
+        if (emailError) throw emailError;
+
+        alert(`✅ Email reenviado exitosamente a ${parentEmail}`);
+        console.log('✅ Email reenviado:', emailData);
+
+      } catch (error) {
+        console.error('❌ Error reenviando email:', error);
+        alert('❌ Error al reenviar email:\n\n' + error.message);
       }
     };
 
@@ -2490,9 +2576,12 @@
                 </span>
               </td>
               <td><span class="badge badge-success">Activo</span></td>
-              <td>
+              <td style="white-space: nowrap;">
                 <button class="btn btn-sm" onclick="manageChildren('${u.email}', '${u.nombre}')" title="Gestionar hijos">
                   👨‍👩‍👧‍👦
+                </button>
+                <button class="btn btn-sm" style="background: #8B5CF6;" onclick="reenviarEmailPadreDirecto('${u.email}', '${u.nombre}')" title="Reenviar email de bienvenida">
+                  📧
                 </button>
                 <button class="btn btn-sm" onclick="editUser('${u.id}')">✏️</button>
               </td>
