@@ -1155,24 +1155,25 @@
 
     // Dashboard
     async function loadDashboard() {
-      // Load children for this parent
-      const { data: playerParents } = await sb
-        .from('player_parents')
-        .select('player_id')
-        .eq('parent_id', currentUser.id);
-
-      if (!playerParents?.length) {
-        $('dashboardChildren').innerHTML = '<div class="empty"><div class="empty-icon">👦</div><p>No tienes hijos registrados</p></div>';
-        $('statChildren').textContent = '0';
-        return;
-      }
-
-      const playerIds = playerParents.map(pp => pp.player_id);
-
-      const { data: players } = await sb
+      // Load children for this parent using tutor_email
+      const { data: players, error: playersError } = await sb
         .from('players')
         .select('*, categories(name)')
-        .in('id', playerIds);
+        .eq('tutor_email', currentUser.email)
+        .eq('status', 'activo');
+
+      console.log('👶 Cargando hijos del padre:', currentUser.email);
+      console.log('  - Hijos encontrados:', players?.length || 0);
+      if (playersError) {
+        console.error('  - Error:', playersError);
+      }
+
+      if (!players?.length) {
+        $('dashboardChildren').innerHTML = '<div class="empty"><div class="empty-icon">👦</div><p>No tienes hijos registrados</p></div>';
+        $('statChildren').textContent = '0';
+        children = [];
+        return;
+      }
 
       children = players || [];
       $('statChildren').textContent = children.length;
