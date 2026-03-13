@@ -923,7 +923,12 @@
             <h1 class="page-title">Categorías</h1>
             <p class="page-subtitle">Gestión de categorías y cupos</p>
           </div>
-          <button class="btn btn-primary" id="btnAddCategory">+ Nueva Categoría</button>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn" id="btnSyncPorteros" title="Sincronizar todos los jugadores marcados como porteros">
+              🧤 Sincronizar Porteros
+            </button>
+            <button class="btn btn-primary" id="btnAddCategory">+ Nueva Categoría</button>
+          </div>
         </div>
 
         <div class="grid grid-3" id="categoriesGrid"></div>
@@ -1814,6 +1819,98 @@
         `;
       }).join('');
     }
+
+    // Sincronizar Porteros - Botón
+    $('btnSyncPorteros').addEventListener('click', async () => {
+      if (!confirm('¿Sincronizar todos los jugadores marcados como porteros con la categoría "Porteros"?')) return;
+      
+      const btn = $('btnSyncPorteros');
+      btn.disabled = true;
+      btn.textContent = '⏳ Sincronizando...';
+      
+      try {
+        // 1. Obtener categoría Porteros
+        const { data: categoriaPorteros, error: catError } = await sb
+          .from('categories')
+          .select('id, name')
+          .eq('name', 'Porteros')
+          .single();
+
+        if (catError || !categoriaPorteros) {
+          alert('❌ No existe la categoría "Porteros". Ejecuta SQL_PORTEROS_COMPLETO.sql primero');
+          return;
+        }
+
+        // 2. Obtener TODOS los jugadores porteros activos
+        const { data: porteros, error: playersError } = await sb
+          .from('players')
+          .select('id, nombre, es_portero, status')
+          .eq('es_portero', true)
+          .eq('status', 'activo');
+
+        if (playersError) {
+          alert('❌ Error al obtener jugadores: ' + playersError.message);
+          return;
+        }
+
+        if (!porteros || porteros.length === 0) {
+          alert('ℹ️ No hay jugadores marcados como porteros');
+          return;
+        }
+
+        console.log(`📊 Sincronizando ${porteros.length} porteros...`);
+
+        // 3. Para cada portero, asegurarse de que esté en la categoría Porteros
+        let sincronizados = 0;
+        
+        for (const portero of porteros) {
+          try {
+            // Verificar si ya está asignado
+            const { data: existing } = await sb
+              .from('player_categories')
+              .select('id')
+              .eq('player_id', portero.id)
+              .eq('category_id', categoriaPorteros.id)
+              .maybeSingle();
+
+            if (existing) {
+              console.log(`✓ ${portero.nombre} ya está en Porteros`);
+              continue;
+            }
+
+            // Asignar a categoría Porteros
+            const { error: insertError } = await sb
+              .from('player_categories')
+              .insert({
+                player_id: portero.id,
+                category_id: categoriaPorteros.id
+              });
+
+            if (!insertError) {
+              console.log(`✅ ${portero.nombre} agregado a Porteros`);
+              sincronizados++;
+            }
+          } catch (error) {
+            console.error(`❌ Error con ${portero.nombre}:`, error.message);
+          }
+        }
+
+        if (sincronizados > 0) {
+          alert(`✅ ${sincronizados} porteros sincronizados correctamente!\n\nLa página se recargará para mostrar los cambios.`);
+          window.location.reload();
+        } else {
+          alert('✅ Todos los porteros ya estaban sincronizados');
+          btn.disabled = false;
+          btn.textContent = '🧤 Sincronizar Porteros';
+        }
+
+      } catch (error) {
+        console.error('❌ Error:', error);
+        alert('❌ Error: ' + error.message);
+        btn.disabled = false;
+        btn.textContent = '🧤 Sincronizar Porteros';
+      }
+    });
 
     // Payments
     async function loadPayments() {
