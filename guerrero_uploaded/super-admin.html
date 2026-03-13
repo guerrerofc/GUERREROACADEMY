@@ -2533,11 +2533,17 @@
     }
 
     async function loadUsers() {
-      const { data: users } = await sb.from('users').select('*').order('created_at', { ascending: false });
+      const { data: users, error: usersError } = await sb.from('users').select('*').order('created_at', { ascending: false });
+      
+      console.log('👥 Cargando usuarios...');
+      console.log('  - Total usuarios en tabla:', users?.length || 0);
+      console.log('  - Error:', usersError);
 
       if (currentUserTab === 'personal') {
         // Mostrar solo staff, director, super_admin
         const personal = (users || []).filter(u => ['staff', 'director', 'super_admin'].includes(u.rol));
+        
+        console.log('  - Personal encontrado:', personal.length);
         
         $('personalTable').innerHTML = personal.map(u => `
           <tr>
@@ -2553,8 +2559,16 @@
         // Mostrar solo padres con sus hijos
         const parents = (users || []).filter(u => u.rol === 'parent');
         
+        console.log('  - Padres encontrados:', parents.length);
+        if (parents.length > 0) {
+          console.log('  - Emails de padres:', parents.map(p => p.email));
+        }
+        
         // Obtener jugadores para contar hijos
         const { data: allPlayers } = await sb.from('players').select('tutor_email, nombre').eq('status', 'activo');
+        
+        console.log('  - Jugadores activos:', allPlayers?.length || 0);
+        console.log('  - Jugadores con tutor_email:', allPlayers?.filter(p => p.tutor_email).length || 0);
         
         // Contar hijos por padre
         const childrenCount = {};
@@ -2579,9 +2593,6 @@
               <td style="white-space: nowrap;">
                 <button class="btn btn-sm" onclick="manageChildren('${u.email}', '${u.nombre}')" title="Gestionar hijos">
                   👨‍👩‍👧‍👦
-                </button>
-                <button class="btn btn-sm" style="background: #8B5CF6;" onclick="reenviarEmailPadreDirecto('${u.email}', '${u.nombre}')" title="Reenviar email de bienvenida">
-                  📧
                 </button>
                 <button class="btn btn-sm" onclick="editUser('${u.id}')">✏️</button>
               </td>
