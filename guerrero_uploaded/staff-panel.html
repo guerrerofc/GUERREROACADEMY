@@ -57,6 +57,13 @@
       pointer-events: none;
       z-index: -1;
     }
+    
+    /* Desactivar animaciones pesadas en móvil */
+    @media (max-width: 1024px) {
+      body::before { display: none; }
+      * { animation: none !important; }
+      .sidebar { transition: left 0.2s ease !important; }
+    }
 
     h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; font-weight: 700; }
 
@@ -113,6 +120,14 @@
       position: sticky;
       top: 0;
       height: 100vh;
+    }
+    
+    /* En móvil, quitar blur pesado */
+    @media (max-width: 1024px) {
+      .sidebar {
+        background: rgba(15, 15, 25, 0.98) !important;
+        backdrop-filter: none !important;
+      }
     }
     
     /* Botón cerrar sidebar móvil */
