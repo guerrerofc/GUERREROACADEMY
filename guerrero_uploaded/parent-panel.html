@@ -59,16 +59,15 @@
         radial-gradient(ellipse 600px 400px at 20% 20%, rgba(216, 112, 147, 0.08), transparent),
         radial-gradient(ellipse 800px 600px at 80% 80%, rgba(147, 51, 234, 0.06), transparent),
         radial-gradient(ellipse 400px 300px at 50% 50%, rgba(59, 130, 246, 0.04), transparent);
-      animation: ambientMove 20s ease-in-out infinite;
       pointer-events: none;
       z-index: -1;
     }
-
-    @keyframes ambientMove {
-      0%, 100% { transform: translate(0, 0) rotate(0deg); }
-      25% { transform: translate(2%, 2%) rotate(1deg); }
-      50% { transform: translate(-1%, 3%) rotate(-1deg); }
-      75% { transform: translate(1%, -2%) rotate(0.5deg); }
+    
+    /* Desactivar animaciones pesadas en móvil */
+    @media (max-width: 1024px) {
+      body::before { display: none; }
+      * { animation: none !important; }
+      .sidebar { transition: left 0.2s ease !important; }
     }
 
     /* Typography */
@@ -130,6 +129,14 @@
       top: 0;
       height: 100vh;
       overflow-y: auto;
+    }
+    
+    /* En móvil, quitar blur pesado */
+    @media (max-width: 1024px) {
+      .sidebar {
+        background: rgba(15, 15, 25, 0.98) !important;
+        backdrop-filter: none !important;
+      }
     }
     
     /* Botón cerrar sidebar móvil */
