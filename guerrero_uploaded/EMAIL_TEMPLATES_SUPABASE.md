@@ -7,7 +7,7 @@ Copia estos templates en tu dashboard de Supabase:
 
 ## 1. CONFIRM SIGNUP (Confirmar Registro)
 
-**Subject:** 🏆 Confirma tu cuenta en Guerrero Academy
+**Subject:** ⚽ Confirma tu cuenta en Guerrero Academy
 
 ```html
 <!DOCTYPE html>
@@ -21,10 +21,11 @@ Copia estos templates en tu dashboard de Supabase:
     <tr>
       <td align="center">
         <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-          <!-- Header -->
+          <!-- Header con Logo -->
           <tr>
             <td style="background: linear-gradient(135deg, #F188B7 0%, #D87093 100%); padding: 30px; text-align: center;">
-              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">⚽ Guerrero Academy</h1>
+              <img src="https://guerreroacademy.vercel.app/guerrero_uploaded/logo-guerrero.svg" alt="Guerrero Academy" width="60" height="60" style="margin-bottom: 12px;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">Guerrero Academy</h1>
               <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 14px;">Academia de Fútbol</p>
             </td>
           </tr>
@@ -70,7 +71,7 @@ Copia estos templates en tu dashboard de Supabase:
 
 ## 2. INVITE USER (Invitar Usuario)
 
-**Subject:** 🏆 Has sido invitado a Guerrero Academy
+**Subject:** ⚽ Has sido invitado a Guerrero Academy
 
 ```html
 <!DOCTYPE html>
@@ -84,10 +85,11 @@ Copia estos templates en tu dashboard de Supabase:
     <tr>
       <td align="center">
         <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-          <!-- Header -->
+          <!-- Header con Logo -->
           <tr>
             <td style="background: linear-gradient(135deg, #F188B7 0%, #D87093 100%); padding: 30px; text-align: center;">
-              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">⚽ Guerrero Academy</h1>
+              <img src="https://guerreroacademy.vercel.app/guerrero_uploaded/logo-guerrero.svg" alt="Guerrero Academy" width="60" height="60" style="margin-bottom: 12px;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">Guerrero Academy</h1>
               <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 14px;">Academia de Fútbol</p>
             </td>
           </tr>
@@ -147,10 +149,11 @@ Copia estos templates en tu dashboard de Supabase:
     <tr>
       <td align="center">
         <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-          <!-- Header -->
+          <!-- Header con Logo -->
           <tr>
             <td style="background: linear-gradient(135deg, #F188B7 0%, #D87093 100%); padding: 30px; text-align: center;">
-              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">⚽ Guerrero Academy</h1>
+              <img src="https://guerreroacademy.vercel.app/guerrero_uploaded/logo-guerrero.svg" alt="Guerrero Academy" width="60" height="60" style="margin-bottom: 12px;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">Guerrero Academy</h1>
               <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 14px;">Academia de Fútbol</p>
             </td>
           </tr>
@@ -210,10 +213,11 @@ Copia estos templates en tu dashboard de Supabase:
     <tr>
       <td align="center">
         <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-          <!-- Header -->
+          <!-- Header con Logo -->
           <tr>
             <td style="background: linear-gradient(135deg, #F188B7 0%, #D87093 100%); padding: 30px; text-align: center;">
-              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">⚽ Guerrero Academy</h1>
+              <img src="https://guerreroacademy.vercel.app/guerrero_uploaded/logo-guerrero.svg" alt="Guerrero Academy" width="60" height="60" style="margin-bottom: 12px;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">Guerrero Academy</h1>
               <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 14px;">Academia de Fútbol</p>
             </td>
           </tr>
@@ -273,10 +277,11 @@ Copia estos templates en tu dashboard de Supabase:
     <tr>
       <td align="center">
         <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-          <!-- Header -->
+          <!-- Header con Logo -->
           <tr>
             <td style="background: linear-gradient(135deg, #F188B7 0%, #D87093 100%); padding: 30px; text-align: center;">
-              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">⚽ Guerrero Academy</h1>
+              <img src="https://guerreroacademy.vercel.app/guerrero_uploaded/logo-guerrero.svg" alt="Guerrero Academy" width="60" height="60" style="margin-bottom: 12px;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">Guerrero Academy</h1>
               <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 14px;">Academia de Fútbol</p>
             </td>
           </tr>
@@ -327,8 +332,13 @@ Copia estos templates en tu dashboard de Supabase:
 3. En el menú lateral, ve a **Authentication** → **Email Templates**
 4. Para cada tipo de email:
    - Copia el **Subject** (Asunto)
-   - Copia el código **HTML** completo
+   - Copia el código **HTML** completo (todo lo que está entre los ```)
    - Pega en el editor correspondiente
 5. Haz clic en **Save** después de cada cambio
+
+**URL DEL LOGO:**
+```
+https://guerreroacademy.vercel.app/guerrero_uploaded/logo-guerrero.svg
+```
 
 **NOTA:** Asegúrate de mantener las variables como `{{ .ConfirmationURL }}` exactamente como están, ya que Supabase las reemplaza automáticamente con los enlaces correctos.
