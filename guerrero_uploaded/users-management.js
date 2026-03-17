@@ -54,7 +54,7 @@ function initUsersManagement() {
 // CARGAR USUARIOS
 // ========================================
 async function loadUsers() {
-  console.log('📥 Cargando usuarios...');
+  console.log('📥 [users-management.js] Cargando usuarios desde tabla users...');
   
   const sb = window.sb;
   if (!sb) {
@@ -64,78 +64,57 @@ async function loadUsers() {
 
   try {
     const usersTable = document.getElementById('usersTable');
-    if (!usersTable) return;
+    if (!usersTable) {
+      console.log('⚠️ usersTable no encontrado, usando sistema inline');
+      return;
+    }
 
     usersTable.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--text-muted);">Cargando usuarios...</td></tr>';
 
-    // Obtener todos los usuarios de Supabase Auth (requiere permisos de admin)
-    // Como no tenemos acceso directo a auth.users desde el cliente, 
-    // vamos a cargar usuarios desde las tablas parents y staff
-    
-    const usersData = [];
-
-    // 1. Cargar padres
-    const { data: parents, error: parentsError } = await sb
-      .from('parents')
+    // Cargar todos los usuarios de la tabla users
+    const { data: users, error } = await sb
+      .from('users')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (parents && !parentsError) {
-      parents.forEach(parent => {
-        usersData.push({
-          id: parent.id,
-          email: parent.email,
-          name: parent.name || 'Sin nombre',
-          role: 'parent',
-          roleLabel: '👨‍👩‍👧 Padre',
-          status: 'Activo',
-          source: 'parents'
-        });
-      });
+    if (error) {
+      console.error('❌ Error cargando usuarios:', error);
+      throw error;
     }
 
-    // 2. Cargar staff
-    const { data: staff, error: staffError } = await sb
-      .from('staff')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (staff && !staffError) {
-      staff.forEach(member => {
-        usersData.push({
-          id: member.id,
-          email: member.email,
-          name: member.name || 'Sin nombre',
-          role: 'staff',
-          roleLabel: '👨‍🏫 Staff',
-          status: 'Activo',
-          source: 'staff'
-        });
-      });
-    }
-
-    // 3. Cargar directores
-    const { data: directors, error: directorsError } = await sb
-      .from('directors')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (directors && !directorsError) {
-      directors.forEach(director => {
-        usersData.push({
-          id: director.id,
-          email: director.email,
-          name: director.name || 'Sin nombre',
-          role: 'director',
-          roleLabel: '👔 Director',
-          status: 'Activo',
-          source: 'directors'
-        });
-      });
-    }
-
-    // 4. Super admins (estos solo están en auth, los detectamos por exclusión)
-    // Por ahora, mostraremos un mensaje si no hay usuarios
+    const usersData = (users || []).map(user => {
+      let roleLabel = 'Usuario';
+      let badgeClass = 'primary';
+      
+      switch(user.rol) {
+        case 'parent':
+          roleLabel = 'Padre';
+          badgeClass = 'success';
+          break;
+        case 'staff':
+          roleLabel = 'Staff';
+          badgeClass = 'primary';
+          break;
+        case 'director':
+          roleLabel = 'Director';
+          badgeClass = 'warning';
+          break;
+        case 'super_admin':
+          roleLabel = 'Super Admin';
+          badgeClass = 'danger';
+          break;
+      }
+      
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.nombre || 'Sin nombre',
+        role: user.rol,
+        roleLabel: roleLabel,
+        status: user.activo !== false ? 'Activo' : 'Inactivo',
+        badgeClass: badgeClass
+      };
+    });
     
     if (usersData.length === 0) {
       usersTable.innerHTML = `
@@ -155,24 +134,26 @@ async function loadUsers() {
       <tr>
         <td>${user.email}</td>
         <td>${user.name}</td>
-        <td><span class="badge badge-${user.role === 'parent' ? 'success' : 'primary'}">${user.roleLabel}</span></td>
-        <td><span class="badge badge-success">✓ ${user.status}</span></td>
+        <td><span class="badge badge-${user.badgeClass}">${user.roleLabel}</span></td>
+        <td><span class="badge badge-${user.status === 'Activo' ? 'success' : 'secondary'}">${user.status}</span></td>
         <td>
-          <button class="btn btn-sm" onclick="editUser('${user.id}', '${user.source}')">✏️ Editar</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.id}', '${user.source}', '${user.email}')">🗑️ Eliminar</button>
+          <button class="btn btn-sm" onclick="editUser('${user.id}')">Editar</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.id}', '${user.email}')">Eliminar</button>
         </td>
       </tr>
     `).join('');
 
-    console.log(`✅ ${usersData.length} usuarios cargados`);
+    console.log(`✅ ${usersData.length} usuarios cargados desde tabla users`);
 
   } catch (error) {
     console.error('❌ Error cargando usuarios:', error);
-    document.getElementById('usersTable').innerHTML = `
-      <tr>
-        <td colspan="5" style="text-align:center; color: var(--danger);">
-          Error al cargar usuarios: ${error.message}
-        </td>
+    const usersTable = document.getElementById('usersTable');
+    if (usersTable) {
+      usersTable.innerHTML = `
+        <tr>
+          <td colspan="5" style="text-align:center; color: var(--danger);">
+            Error al cargar usuarios: ${error.message}
+          </td>
       </tr>
     `;
   }
@@ -345,73 +326,26 @@ async function createUser(email, password, name, role, phone) {
   
   console.log('🆕 Creando nuevo usuario:', { email, name, role });
 
-  // 1. Crear usuario en Supabase Auth
-  const { data: authData, error: authError } = await sb.auth.signUp({
-    email: email,
-    password: password,
-    options: {
-      data: {
-        name: name,
-        role: role
-      }
-    }
-  });
+  // 1. Crear registro en la tabla users (esto es suficiente)
+  const { data: userData, error: userError } = await sb
+    .from('users')
+    .insert({
+      email: email,
+      nombre: name,
+      rol: role,
+      activo: true,
+      created_at: new Date().toISOString()
+    })
+    .select()
+    .single();
 
-  if (authError) {
-    console.error('❌ Error creando usuario en Auth:', authError);
-    throw new Error(authError.message);
+  if (userError) {
+    console.error('❌ Error creando usuario:', userError);
+    throw new Error(userError.message);
   }
 
-  if (!authData.user) {
-    throw new Error('No se pudo crear el usuario en el sistema de autenticación');
-  }
-
-  console.log('✅ Usuario creado en Auth:', authData.user.id);
-
-  // 2. Crear registro en la tabla correspondiente según el rol
-  if (role === 'parent') {
-    const { error: parentError } = await sb.from('parents').insert({
-      id: authData.user.id,
-      email: email,
-      name: name,
-      phone: phone || null,
-      created_at: new Date().toISOString()
-    });
-
-    if (parentError) {
-      console.error('❌ Error creando registro en parents:', parentError);
-      throw new Error('Usuario creado pero error al guardar datos de padre: ' + parentError.message);
-    }
-  } else if (role === 'staff') {
-    const { error: staffError } = await sb.from('staff').insert({
-      id: authData.user.id,
-      email: email,
-      name: name,
-      phone: phone || null,
-      created_at: new Date().toISOString()
-    });
-
-    if (staffError) {
-      console.error('❌ Error creando registro en staff:', staffError);
-      throw new Error('Usuario creado pero error al guardar datos de staff: ' + staffError.message);
-    }
-  } else if (role === 'director') {
-    const { error: directorError } = await sb.from('directors').insert({
-      id: authData.user.id,
-      email: email,
-      name: name,
-      phone: phone || null,
-      created_at: new Date().toISOString()
-    });
-
-    if (directorError) {
-      console.error('❌ Error creando registro en directors:', directorError);
-      throw new Error('Usuario creado pero error al guardar datos de director: ' + directorError.message);
-    }
-  }
-  // Si es super_admin, no necesita registro en otra tabla
-
-  console.log('✅ Usuario creado completamente');
+  console.log('✅ Usuario creado completamente:', userData);
+  return userData;
 }
 
 // ========================================
@@ -422,13 +356,12 @@ async function updateUser(userId, data) {
   
   console.log('✏️ Actualizando usuario:', userId, data);
 
-  const table = data.role === 'parent' ? 'parents' : 'staff';
-  
   const { error } = await sb
-    .from(table)
+    .from('users')
     .update({
-      name: data.name,
-      phone: data.phone || null,
+      nombre: data.name,
+      rol: data.role,
+      activo: data.activo !== undefined ? data.activo : true,
       updated_at: new Date().toISOString()
     })
     .eq('id', userId);
@@ -437,6 +370,9 @@ async function updateUser(userId, data) {
     console.error('❌ Error actualizando usuario:', error);
     throw new Error(error.message);
   }
+
+  console.log('✅ Usuario actualizado');
+}
 
   console.log('✅ Usuario actualizado');
 }
