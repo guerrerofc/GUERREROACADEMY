@@ -132,9 +132,9 @@ input, select, textarea {
 /* Topbar más bonito */
 .topbar {
   backdrop-filter: blur(20px) !important;
-  background: rgba(10, 10, 15, 0.85) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06) !important;
 }
 
 .brand {
@@ -148,18 +148,19 @@ input, select, textarea {
 }
 
 .brand:hover .logo img {
-  filter: drop-shadow(0 8px 16px rgba(216, 112, 147, 0.6)) !important;
+  filter: drop-shadow(0 8px 16px rgba(216, 112, 147, 0.4)) !important;
 }
 
 .brand-name {
   font-size: 20px !important;
   font-weight: 800 !important;
   letter-spacing: -0.02em !important;
+  color: #1a1a2e !important;
 }
 
 .brand-sub {
   font-size: 12px !important;
-  opacity: 0.6 !important;
+  color: #666 !important;
   font-weight: 500 !important;
 }
 
@@ -167,10 +168,11 @@ input, select, textarea {
   font-size: 15px !important;
   font-weight: 600 !important;
   transition: all 0.3s !important;
+  color: #333 !important;
 }
 
 .nav a:hover {
-  color: var(--accent) !important;
+  color: #D87093 !important;
   transform: translateY(-2px) !important;
 }
 
@@ -178,33 +180,31 @@ input, select, textarea {
 .cat {
   border-radius: 16px !important;
   padding: 24px !important;
-  backdrop-filter: blur(20px) !important;
-  background: rgba(20, 20, 30, 0.5) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .cat:hover {
   transform: translateY(-6px) !important;
   border-color: rgba(216, 112, 147, 0.3) !important;
-  box-shadow: 0 16px 48px rgba(216, 112, 147, 0.2) !important;
+  box-shadow: 0 16px 48px rgba(216, 112, 147, 0.15) !important;
 }
 
 .cat-age {
   font-size: 32px !important;
   font-weight: 800 !important;
   letter-spacing: -0.02em !important;
-  background: var(--gradient) !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  background-clip: text !important;
+  color: #D87093 !important;
+  -webkit-text-fill-color: #D87093 !important;
   margin-bottom: 12px !important;
 }
 
 .cat-body {
   font-size: 15px !important;
   line-height: 1.6 !important;
-  opacity: 0.85 !important;
+  color: #555 !important;
 }
 
 /* WhatsApp float button más bonito */
