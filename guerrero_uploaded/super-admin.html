@@ -1728,7 +1728,7 @@
       if (view === 'payments') loadPayments();
       if (view === 'morosos') loadMorosos();
       if (view === 'attendance') loadAttendanceView();
-      if (view === 'users') loadUsers();
+      if (view === 'users') loadUsersTable();
       if (view === 'announcements') loadAnnouncements();
       if (view === 'reports') loadReports();
       if (view === 'offers' && window.offersSystem) window.offersSystem.load();
@@ -2609,10 +2609,11 @@
       document.getElementById('tabPersonal').style.display = tab === 'personal' ? 'block' : 'none';
       document.getElementById('tabParents').style.display = tab === 'parents' ? 'block' : 'none';
       
-      loadUsers();
+      loadUsersTable();
     }
 
-    async function loadUsers() {
+    async function loadUsersTable() {
+      console.log('👥 [INLINE] Cargando usuarios...');
       const { data: users, error: usersError } = await sb.from('users').select('*').order('created_at', { ascending: false });
       
       console.log('👥 Cargando usuarios...');
@@ -2829,7 +2830,7 @@
         alert('✅ Jugador desvinculado');
         const parentEmail = $('currentParentEmail').value;
         await loadCurrentChildren(parentEmail);
-        await loadUsers(); // Recargar tabla de padres
+        await loadUsersTable(); // Recargar tabla de padres
         
       } catch (error) {
         console.error('Error:', error);
