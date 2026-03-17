@@ -7,6 +7,51 @@ console.log('👥 Sistema de gestión de usuarios cargado');
 // Variables globales
 let currentEditingUserId = null;
 
+// Declarar funciones globales al inicio
+window.openUserModal = function(userId = null, source = null) {
+  const modal = document.getElementById('userModal');
+  const modalTitle = document.getElementById('userModalTitle');
+  const saveBtn = document.getElementById('saveUser');
+  const passwordGroup = document.getElementById('passwordGroup');
+  const emailInput = document.getElementById('newUserEmail');
+  
+  if (userId) {
+    modalTitle.textContent = 'Editar Usuario';
+    saveBtn.textContent = 'Guardar Cambios';
+    if (passwordGroup) passwordGroup.style.display = 'none';
+    if (emailInput) emailInput.disabled = true;
+    currentEditingUserId = userId;
+    loadUserData(userId, source);
+  } else {
+    modalTitle.textContent = 'Nuevo Usuario';
+    saveBtn.textContent = 'Crear Usuario';
+    if (passwordGroup) passwordGroup.style.display = 'block';
+    if (emailInput) emailInput.disabled = false;
+    currentEditingUserId = null;
+    clearUserForm();
+  }
+  openModal('userModal');
+};
+
+window.editUser = function(userId, source) {
+  window.openUserModal(userId, source);
+};
+
+window.deleteUser = async function(userId, email) {
+  if (!confirm(`¿Eliminar al usuario ${email}?`)) return;
+  
+  const sb = window.sb;
+  const { error } = await sb.from('users').delete().eq('id', userId);
+  
+  if (error) {
+    alert('Error al eliminar: ' + error.message);
+    return;
+  }
+  
+  alert('Usuario eliminado');
+  loadUsers();
+};
+
 // ========================================
 // INICIALIZAR MÓDULO
 // ========================================
@@ -23,14 +68,14 @@ function initUsersManagement() {
   }
 
   // Evento: Abrir modal para nuevo usuario
-  btnAddUser.addEventListener('click', () => {
-    openUserModal();
-  });
+  btnAddUser.onclick = function() {
+    window.openUserModal();
+  };
 
   // Evento: Guardar usuario
-  btnSaveUser.addEventListener('click', async () => {
+  btnSaveUser.onclick = async function() {
     await saveUser();
-  });
+  };
 
   // Evento: Mostrar/ocultar campos según rol
   if (userRoleSelect) {
@@ -157,37 +202,6 @@ async function loadUsers() {
       </tr>
     `;
   }
-}
-
-// ========================================
-// ABRIR MODAL PARA CREAR/EDITAR
-// ========================================
-function openUserModal(userId = null, source = null) {
-  const modal = document.getElementById('userModal');
-  const modalTitle = document.getElementById('userModalTitle');
-  const saveBtn = document.getElementById('saveUser');
-  const passwordGroup = document.getElementById('passwordGroup');
-  const emailInput = document.getElementById('newUserEmail');
-  
-  if (userId) {
-    // Modo edición
-    modalTitle.textContent = 'Editar Usuario';
-    saveBtn.textContent = 'Guardar Cambios';
-    if (passwordGroup) passwordGroup.style.display = 'none'; // No permitir cambiar contraseña en edición
-    if (emailInput) emailInput.disabled = true; // No permitir cambiar email
-    currentEditingUserId = userId;
-    loadUserData(userId, source);
-  } else {
-    // Modo creación
-    modalTitle.textContent = 'Nuevo Usuario';
-    saveBtn.textContent = 'Crear Usuario';
-    if (passwordGroup) passwordGroup.style.display = 'block';
-    if (emailInput) emailInput.disabled = false;
-    currentEditingUserId = null;
-    clearUserForm();
-  }
-
-  openModal('userModal');
 }
 
 // ========================================
@@ -378,44 +392,6 @@ async function updateUser(userId, data) {
 }
 
 // ========================================
-// EDITAR USUARIO
-// ========================================
-window.editUser = function(userId, source) {
-  openUserModal(userId, source);
-};
-
-// ========================================
-// ELIMINAR USUARIO
-// ========================================
-window.deleteUser = async function(userId, source, email) {
-  const confirmed = confirm(`¿Estás seguro de eliminar al usuario ${email}?\n\nEsta acción NO se puede deshacer.`);
-  
-  if (!confirmed) return;
-
-  const sb = window.sb;
-  if (!sb) return;
-
-  try {
-    // Eliminar de la tabla correspondiente
-    const { error } = await sb
-      .from(source)
-      .delete()
-      .eq('id', userId);
-
-    if (error) throw error;
-
-    // Nota: No podemos eliminar del auth desde el cliente
-    // El admin deberá hacerlo manualmente desde Supabase Dashboard si es necesario
-
-    alert('✅ Usuario eliminado correctamente');
-    await loadUsers();
-
-  } catch (error) {
-    console.error('❌ Error eliminando usuario:', error);
-    alert('Error al eliminar usuario: ' + error.message);
-  }
-};
-
 // ========================================
 // EXPORTAR FUNCIONES GLOBALES
 // ========================================
@@ -423,10 +399,5 @@ window.usersManagement = {
   init: initUsersManagement,
   load: loadUsers
 };
-
-// Exponer funciones que se llaman desde onclick
-window.openUserModal = openUserModal;
-window.editUser = editUser;
-window.deleteUser = deleteUser;
 
 console.log('✅ Módulo de gestión de usuarios listo');
