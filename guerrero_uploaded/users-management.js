@@ -424,4 +424,9 @@ window.usersManagement = {
   load: loadUsers
 };
 
+// Exponer funciones que se llaman desde onclick
+window.openUserModal = openUserModal;
+window.editUser = editUser;
+window.deleteUser = deleteUser;
+
 console.log('✅ Módulo de gestión de usuarios listo');
