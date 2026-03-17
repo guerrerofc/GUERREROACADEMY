@@ -82,6 +82,78 @@ window.deleteUser = async function(userId, email) {
   loadUsers();
 };
 
+// Función para guardar usuario
+window.saveUser = async function() {
+  const sb = window.sb;
+  if (!sb) {
+    alert('Error: Supabase no disponible');
+    return;
+  }
+
+  const userId = currentEditingUserId;
+  const emailField = document.getElementById('newUserEmail');
+  const nameField = document.getElementById('newUserName');
+  const passwordField = document.getElementById('newUserPassword');
+  const roleField = document.getElementById('newUserRole');
+  
+  const email = emailField ? emailField.value.trim() : '';
+  const name = nameField ? nameField.value.trim() : '';
+  const password = passwordField ? passwordField.value : '';
+  const role = roleField ? roleField.value : '';
+
+  // Validaciones
+  if (!email || !name || !role) {
+    alert('Por favor completa todos los campos obligatorios');
+    return;
+  }
+
+  if (!userId && (!password || password.length < 6)) {
+    alert('La contraseña debe tener al menos 6 caracteres');
+    return;
+  }
+
+  const saveBtn = document.getElementById('saveUser');
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.textContent = userId ? 'Guardando...' : 'Creando...';
+  }
+
+  try {
+    if (userId) {
+      // Actualizar usuario
+      const { error } = await sb.from('users').update({
+        nombre: name,
+        rol: role
+      }).eq('id', userId);
+      
+      if (error) throw error;
+    } else {
+      // Crear nuevo usuario
+      const { error } = await sb.from('users').insert({
+        email: email,
+        nombre: name,
+        rol: role,
+        activo: true
+      });
+      
+      if (error) throw error;
+    }
+
+    closeModal('userModal');
+    loadUsersTable();
+    alert(userId ? '✅ Usuario actualizado' : '✅ Usuario creado');
+
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error: ' + error.message);
+  } finally {
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.textContent = userId ? 'Guardar Cambios' : 'Crear Usuario';
+    }
+  }
+};
+
 // ========================================
 // INICIALIZAR MÓDULO
 // ========================================
@@ -104,7 +176,7 @@ function initUsersManagement() {
 
   // Evento: Guardar usuario
   btnSaveUser.onclick = async function() {
-    await saveUser();
+    await window.saveUser();
   };
 
   // Evento: Mostrar/ocultar campos según rol
@@ -231,74 +303,6 @@ async function loadUsers() {
           </td>
       </tr>
     `;
-  }
-}
-
-// ========================================
-// GUARDAR USUARIO (CREAR O ACTUALIZAR)
-// ========================================
-async function saveUser() {
-  const sb = window.sb;
-  if (!sb) {
-    alert('Error: Supabase no disponible');
-    return;
-  }
-
-  const userId = currentEditingUserId;
-  const emailField = document.getElementById('newUserEmail');
-  const nameField = document.getElementById('newUserName');
-  const passwordField = document.getElementById('newUserPassword');
-  const roleField = document.getElementById('newUserRole');
-  const phoneField = document.getElementById('newUserPhone');
-  
-  const email = emailField ? emailField.value.trim() : '';
-  const name = nameField ? nameField.value.trim() : '';
-  const password = passwordField ? passwordField.value : '';
-  const role = roleField ? roleField.value : '';
-  const phone = phoneField ? phoneField.value.trim() : '';
-
-  console.log('📝 Datos del formulario:', { email, name, role, hasPassword: !!password });
-
-  // Validaciones
-  if (!email || !name || !role) {
-    alert('Por favor completa todos los campos obligatorios (Email, Nombre y Rol)');
-    return;
-  }
-
-  if (!userId && (!password || password.length < 6)) {
-    alert('La contraseña debe tener al menos 6 caracteres');
-    return;
-  }
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    alert('Por favor ingresa un email válido');
-    return;
-  }
-
-  const saveBtn = document.getElementById('saveUser');
-  saveBtn.disabled = true;
-  saveBtn.textContent = userId ? 'Guardando...' : 'Creando...';
-
-  try {
-    if (userId) {
-      // ACTUALIZAR usuario existente
-      await updateUser(userId, { name, phone, role });
-    } else {
-      // CREAR nuevo usuario
-      await createUser(email, password, name, role, phone);
-    }
-
-    closeModal('userModal');
-    await loadUsers();
-    alert(userId ? '✅ Usuario actualizado correctamente' : '✅ Usuario creado correctamente');
-
-  } catch (error) {
-    console.error('❌ Error:', error);
-    alert('Error al guardar usuario: ' + error.message);
-  } finally {
-    saveBtn.disabled = false;
-    saveBtn.textContent = userId ? 'Guardar Cambios' : 'Crear Usuario';
   }
 }
 
