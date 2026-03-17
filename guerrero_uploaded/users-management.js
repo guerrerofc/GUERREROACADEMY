@@ -7,7 +7,37 @@ console.log('👥 Sistema de gestión de usuarios cargado');
 // Variables globales
 let currentEditingUserId = null;
 
-// Declarar funciones globales al inicio
+// Función para limpiar formulario
+function clearUserForm() {
+  const fields = ['editUserId', 'newUserEmail', 'newUserName', 'newUserPassword', 'newUserRole', 'newUserPhone'];
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+// Función para cargar datos de usuario para edición
+function loadUserData(userId, source) {
+  const sb = window.sb;
+  if (!sb) return;
+  
+  sb.from('users').select('*').eq('id', userId).single().then(({ data, error }) => {
+    if (error || !data) {
+      console.error('Error cargando usuario:', error);
+      return;
+    }
+    
+    const emailField = document.getElementById('newUserEmail');
+    const nameField = document.getElementById('newUserName');
+    const roleField = document.getElementById('newUserRole');
+    
+    if (emailField) emailField.value = data.email || '';
+    if (nameField) nameField.value = data.nombre || '';
+    if (roleField) roleField.value = data.rol || 'parent';
+  });
+}
+
+// Declarar funciones globales
 window.openUserModal = function(userId = null, source = null) {
   const modal = document.getElementById('userModal');
   const modalTitle = document.getElementById('userModalTitle');
@@ -201,66 +231,6 @@ async function loadUsers() {
           </td>
       </tr>
     `;
-  }
-}
-
-// ========================================
-// LIMPIAR FORMULARIO
-// ========================================
-function clearUserForm() {
-  document.getElementById('editUserId').value = '';
-  const emailField = document.getElementById('newUserEmail');
-  const nameField = document.getElementById('newUserName');
-  const passwordField = document.getElementById('newUserPassword');
-  const roleField = document.getElementById('newUserRole');
-  const phoneField = document.getElementById('newUserPhone');
-  
-  if (emailField) emailField.value = '';
-  if (nameField) nameField.value = '';
-  if (passwordField) passwordField.value = '';
-  if (roleField) roleField.value = '';
-  if (phoneField) phoneField.value = '';
-  
-  const phoneGroup = document.getElementById('phoneGroup');
-  if (phoneGroup) phoneGroup.style.display = 'none';
-}
-
-// ========================================
-// CARGAR DATOS DE USUARIO PARA EDITAR
-// ========================================
-async function loadUserData(userId, source) {
-  const sb = window.sb;
-  if (!sb) return;
-
-  try {
-    const { data, error } = await sb
-      .from(source)
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (error) throw error;
-
-    document.getElementById('editUserId').value = userId;
-    
-    const emailField = document.getElementById('newUserEmail');
-    const nameField = document.getElementById('newUserName');
-    const roleField = document.getElementById('newUserRole');
-    const phoneField = document.getElementById('newUserPhone');
-    
-    if (emailField) emailField.value = data.email || '';
-    if (nameField) nameField.value = data.name || '';
-    if (roleField) roleField.value = source === 'parents' ? 'parent' : 'staff';
-    if (phoneField) phoneField.value = data.phone || '';
-    
-    if (source === 'parents') {
-      const phoneGroup = document.getElementById('phoneGroup');
-      if (phoneGroup) phoneGroup.style.display = 'block';
-    }
-
-  } catch (error) {
-    console.error('❌ Error cargando datos del usuario:', error);
-    alert('Error al cargar datos del usuario: ' + error.message);
   }
 }
 
