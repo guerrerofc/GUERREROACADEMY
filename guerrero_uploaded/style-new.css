@@ -131,6 +131,7 @@ h1, h2, h3, h4, h5, h6 {
   height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 4px 12px rgba(216, 112, 147, 0.4));
+  mix-blend-mode: multiply;
 }
 
 .brand-text {
