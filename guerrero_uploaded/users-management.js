@@ -132,8 +132,7 @@ window.saveUser = async function() {
       const { error } = await sb.from('users').insert({
         email: email,
         nombre: name,
-        rol: role,
-        activo: true
+        rol: role
       });
       
       if (error) throw error;
@@ -258,7 +257,7 @@ async function loadUsers() {
         name: user.nombre || 'Sin nombre',
         role: user.rol,
         roleLabel: roleLabel,
-        status: user.activo !== false ? 'Activo' : 'Inactivo',
+        status: 'Activo',
         badgeClass: badgeClass
       };
     });
@@ -320,9 +319,7 @@ async function createUser(email, password, name, role, phone) {
     .insert({
       email: email,
       nombre: name,
-      rol: role,
-      activo: true,
-      created_at: new Date().toISOString()
+      rol: role
     })
     .select()
     .single();
@@ -348,9 +345,7 @@ async function updateUser(userId, data) {
     .from('users')
     .update({
       nombre: data.name,
-      rol: data.role,
-      activo: data.activo !== undefined ? data.activo : true,
-      updated_at: new Date().toISOString()
+      rol: data.role
     })
     .eq('id', userId);
 
