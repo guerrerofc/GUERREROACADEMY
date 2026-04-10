@@ -271,17 +271,21 @@ h1, h2, h3, h4, h5, h6 {
   border: none !important;
 }
 
-.header-title h2 {
+.main-header h2,
+.header-title h2,
+.main-header .header-title h2 {
   font-size: 28px !important;
   font-weight: 700 !important;
-  color: var(--text) !important;
+  color: #1d1d1f !important;
   margin-bottom: 4px !important;
 }
 
 .header-subtitle,
-.header-title p {
+.header-title p,
+.main-header p,
+.main-header .header-title p {
   font-size: 14px !important;
-  color: var(--text-secondary) !important;
+  color: #86868b !important;
 }
 
 /* Mobile menu toggle */
@@ -834,12 +838,28 @@ label {
 
 /* ===== FORCE DARK TEXT ON LIGHT BG ===== */
 /* Override any white text that should be dark */
-h1, h2, h3, h4, h5, h6,
+
+/* Main titles and headers - FORCE BLACK */
+.main-header h2,
+.header-title h2,
+.view-title,
+h1, h2, h3, h4, h5, h6 {
+  color: #1d1d1f !important;
+}
+
+/* Subtitles */
+.main-header p,
+.header-title p,
+.header-subtitle,
+.view-subtitle {
+  color: #86868b !important;
+}
+
+/* General text */
 p, span, label, a,
 .title, .subtitle, .label,
 .stat-value, .stat-label,
 .card-title, .section-title,
-.header-title, .header-subtitle,
 .nav-text, .user-name,
 div, strong, b {
   color: #1d1d1f !important;
