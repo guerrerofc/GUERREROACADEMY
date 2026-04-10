@@ -652,6 +652,25 @@ credentials.json
 *.pem
 *.key
 .credentials
+ conflict_120326_1732
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
 
 
 
@@ -661,6 +680,8 @@ credentials.json
 
 
 
+
+ main
  main
  main
  main
