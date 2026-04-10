@@ -1968,13 +1968,21 @@ const ProtectedRoute = ({ children }) => {
 
 // ==================== MAIN APP ====================
 
+// Redirect to the optimized HTML landing page
+const LandingRedirect = () => {
+  useEffect(() => {
+    window.location.href = '/guerrero_uploaded/landing-optimizado.html';
+  }, []);
+  return null;
+};
+
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<LandingRedirect />} />
           <Route path="/admin" element={<LoginPage />} />
           
           {/* Protected Admin Routes */}
