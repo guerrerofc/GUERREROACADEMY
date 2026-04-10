@@ -740,11 +740,104 @@
     /* Android Chrome fixes */
     @media screen and (-webkit-min-device-pixel-ratio: 0) {
       select.select { 
-        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(0,0,0,0.4)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
         background-repeat: no-repeat;
         background-position: right 12px center;
         background-size: 18px;
         padding-right: 40px;
+      }
+    }
+    
+    /* ===== TEMA CLARO APPLE - OVERRIDE FINAL ===== */
+    :root {
+      --bg: #ffffff !important;
+      --bg-secondary: #f5f5f7 !important;
+      --bg-card: #ffffff !important;
+      --bg-glass: rgba(0, 0, 0, 0.02) !important;
+      --border: rgba(0, 0, 0, 0.08) !important;
+      --text: #1d1d1f !important;
+      --text-dim: #3d3d3f !important;
+      --text-muted: #86868b !important;
+      --accent: #1d1d1f !important;
+    }
+    
+    body {
+      background: #ffffff !important;
+      color: #1d1d1f !important;
+    }
+    
+    body::before {
+      display: none !important;
+    }
+    
+    h1, h2, h3, h4, h5, h6,
+    .page-title,
+    .card-title,
+    .stat-value {
+      color: #1d1d1f !important;
+      -webkit-text-fill-color: #1d1d1f !important;
+    }
+    
+    .page-subtitle,
+    .stat-label,
+    .stat-hint,
+    .text-muted {
+      color: #86868b !important;
+      -webkit-text-fill-color: #86868b !important;
+    }
+    
+    .sidebar {
+      background: #ffffff !important;
+      border-right: 1px solid rgba(0,0,0,0.08) !important;
+    }
+    
+    .main {
+      background: #f5f5f7 !important;
+    }
+    
+    .card, .stat-card {
+      background: #ffffff !important;
+      border: 1px solid rgba(0,0,0,0.08) !important;
+    }
+    
+    .nav-link {
+      color: #86868b !important;
+    }
+    
+    .nav-link:hover {
+      background: #f5f5f7 !important;
+      color: #1d1d1f !important;
+    }
+    
+    .nav-link.active {
+      background: #1d1d1f !important;
+      color: #ffffff !important;
+    }
+    
+    .brand-text h1 {
+      color: #1d1d1f !important;
+    }
+    
+    .brand-text span {
+      color: #86868b !important;
+    }
+    
+    .user-card {
+      background: #f5f5f7 !important;
+      border: 1px solid rgba(0,0,0,0.08) !important;
+    }
+    
+    .user-name {
+      color: #1d1d1f !important;
+    }
+    
+    .user-role {
+      color: #86868b !important;
+    }
+    
+    @media (max-width: 1024px) {
+      .sidebar {
+        background: #ffffff !important;
       }
     }
   </style>

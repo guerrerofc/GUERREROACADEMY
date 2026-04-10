@@ -930,3 +930,44 @@ span.text-muted {
   color: #1d1d1f !important;
 }
 
+/* ===== PAGE TITLES - FORCE BLACK TEXT ===== */
+.page-title,
+.view h1,
+.view h2,
+.view h3,
+.main h1,
+.main h2,
+.main h3,
+h1.page-title,
+h2.page-title,
+.header-title h1,
+.header-title h2,
+[class*="title"] {
+  color: #1d1d1f !important;
+  -webkit-text-fill-color: #1d1d1f !important;
+}
+
+.page-subtitle,
+.view p,
+[class*="subtitle"] {
+  color: #86868b !important;
+  -webkit-text-fill-color: #86868b !important;
+}
+
+/* Override any inline styles */
+.main *:not(.btn-primary):not(.btn-danger):not(.btn-success):not(.nav-link.active):not(.badge) {
+  text-shadow: none !important;
+}
+
+/* Force all text in view sections */
+.view *:not(button):not(.btn):not(.badge):not(.nav-link) {
+  color: #1d1d1f !important;
+}
+
+.view p,
+.view .text-muted,
+.view [class*="subtitle"],
+.view small {
+  color: #86868b !important;
+}
+
