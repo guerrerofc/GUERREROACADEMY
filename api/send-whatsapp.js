@@ -24,10 +24,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Número de teléfono y mensaje son requeridos' });
     }
 
-    // Credenciales de Twilio
-    const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID || 'TWILIO_SID_REMOVED';
-    const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN || 'TWILIO_TOKEN_REMOVED';
-    const TWILIO_WHATSAPP_FROM = process.env.TWILIO_WHATSAPP_FROM || 'whatsapp:+14155238886'; // Sandbox number
+    // Credenciales de Twilio (desde variables de entorno)
+    const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
+    const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
+    const TWILIO_WHATSAPP_FROM = process.env.TWILIO_WHATSAPP_FROM || 'whatsapp:+14155238886';
+
+    if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) {
+      return res.status(500).json({ error: 'Credenciales de Twilio no configuradas' });
+    }
 
     // Formatear número (asegurar formato E.164)
     let phoneNumber = String(to).replace(/\D/g, '');
