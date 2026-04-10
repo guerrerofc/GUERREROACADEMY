@@ -62,18 +62,18 @@
     }
     
     .logo img {
-      width: 36px;
-      height: 36px;
+      width: 48px;
+      height: 48px;
     }
     
     .logo span {
       font-weight: 700;
-      font-size: 16px;
+      font-size: 18px;
     }
     
     .header-links {
       display: flex;
-      gap: 20px;
+      gap: 24px;
       align-items: center;
     }
     
@@ -91,18 +91,73 @@
     .btn-header {
       background: #1d1d1f;
       color: #fff !important;
-      padding: 8px 16px;
+      padding: 10px 20px;
       border-radius: 980px;
-      font-size: 13px;
+      font-size: 14px;
+      font-weight: 600;
     }
     
     .btn-header:hover {
       background: #000;
     }
     
+    /* Announcement Bar */
+    .announcement-bar {
+      background: #1d1d1f;
+      color: #fff;
+      padding: 12px 0;
+      text-align: center;
+      position: fixed;
+      top: 56px;
+      left: 0;
+      right: 0;
+      z-index: 99;
+    }
+    
+    .announcement-bar .container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .announcement-badge {
+      background: #fff;
+      color: #1d1d1f;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    
+    .announcement-text {
+      font-size: 14px;
+    }
+    
+    .announcement-text strong {
+      color: #fff;
+    }
+    
+    .announcement-cta {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    
+    .announcement-cta:hover {
+      background: rgba(255,255,255,0.25);
+    }
+    
     /* Hero */
     .hero {
-      padding: 140px 0 80px;
+      padding: 180px 0 80px;
       text-align: center;
     }
     
@@ -348,7 +403,7 @@
     /* Mobile */
     @media (max-width: 600px) {
       .hero {
-        padding: 120px 0 60px;
+        padding: 160px 0 60px;
       }
       .hero-buttons {
         flex-direction: column;
@@ -356,6 +411,15 @@
       }
       .hero-buttons a {
         width: 100%;
+      }
+      .announcement-bar {
+        padding: 10px 0;
+      }
+      .announcement-bar .container {
+        gap: 8px;
+      }
+      .announcement-text {
+        font-size: 13px;
       }
     }
   </style>
@@ -376,6 +440,15 @@
       </div>
     </div>
   </header>
+
+  <!-- Open House Banner -->
+  <div class="announcement-bar">
+    <div class="container">
+      <span class="announcement-badge">OPEN HOUSE</span>
+      <span class="announcement-text"><strong>9 de Mayo</strong> — Ven a conocernos. Inscríbete y forma parte de la familia Guerrero.</span>
+      <a href="#inscripcion" class="announcement-cta">Reservar lugar</a>
+    </div>
+  </div>
 
   <!-- Hero -->
   <section class="hero">
