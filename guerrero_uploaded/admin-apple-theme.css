@@ -404,11 +404,24 @@ td {
   font-size: 14px !important;
   color: var(--text) !important;
   border-bottom: 1px solid var(--border) !important;
-  background: transparent !important;
+  background: var(--bg) !important;
 }
 
 tr:hover td {
   background: var(--bg-secondary) !important;
+}
+
+/* Fix text colors */
+td a,
+td span,
+.table a,
+.table span {
+  color: var(--text) !important;
+}
+
+td .badge,
+.badge {
+  color: inherit !important;
 }
 
 /* ===== BADGES ===== */
@@ -818,3 +831,82 @@ label {
     background: #fff !important;
   }
 }
+
+/* ===== FORCE DARK TEXT ON LIGHT BG ===== */
+/* Override any white text that should be dark */
+h1, h2, h3, h4, h5, h6,
+p, span, label, a,
+.title, .subtitle, .label,
+.stat-value, .stat-label,
+.card-title, .section-title,
+.header-title, .header-subtitle,
+.nav-text, .user-name,
+div, strong, b {
+  color: #1d1d1f !important;
+}
+
+/* Exceptions - keep these light */
+.btn-primary,
+.btn-primary span,
+.nav-link.active,
+.nav-link.active span,
+.nav-link.active .nav-icon,
+.user-avatar,
+.badge-success,
+.badge-warning,
+.badge-danger,
+.badge-info,
+.btn-danger,
+.btn-success,
+.chip-tag {
+  color: #fff !important;
+}
+
+/* Muted text */
+.text-muted,
+.hint,
+.text-secondary,
+.form-hint,
+p.text-muted,
+span.text-muted {
+  color: #86868b !important;
+}
+
+/* Icons in sidebar */
+.nav-icon {
+  color: inherit !important;
+}
+
+/* Login page specific */
+.login-container,
+.login-box,
+.login-form {
+  background: #fff !important;
+}
+
+.login-container h1,
+.login-container h2,
+.login-container p,
+.login-container label {
+  color: #1d1d1f !important;
+}
+
+.login-container .text-muted {
+  color: #86868b !important;
+}
+
+/* Stats cards */
+.stat-card .stat-value {
+  color: #1d1d1f !important;
+}
+
+.stat-card .stat-label {
+  color: #86868b !important;
+}
+
+/* Chart labels */
+.chart-card text,
+.chart-card .chart-label {
+  color: #1d1d1f !important;
+}
+
