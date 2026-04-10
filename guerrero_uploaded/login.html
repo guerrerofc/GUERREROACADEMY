@@ -1,51 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#ffffff">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link rel="stylesheet" href="styles.css">
-    <title>Login</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="stylesheet" href="styles.css">
+  <title>Login</title>
 </head>
-<body>
-    <div class="login-card">
-        <!-- Login form goes here -->
-        <input type="text" class="login-input" placeholder="Username">
-        <input type="password" class="login-input" placeholder="Password">
-        <button class="login-button">Login</button>
-        <div class="error">Invalid credentials</div>
-    </div>
-    <script src="app.js"></script>
+<body style="background: #ffffff; color: #111827;">
+  <div class="login-card" style="background: #ffffff; border: 1px solid rgba(17,24,39,0.12); box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
+    <form>
+      <label style="color: rgba(17, 24, 39, 0.5);">Email</label>
+      <input type="email" class="input" style="background: #f3f4f6; color: #111827;">
+      <label style="color: rgba(17, 24, 39, 0.5);">Password</label>
+      <input type="password" class="input" style="background: #f3f4f6; color: #111827;">
+      <button type="submit">Login</button>
+    </form>
+    <div class="error" style="color: rgba(255,0,0,1);"></div>
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>
-<style>
-:root {
-    --bg: #ffffff;
-    --text: #111827;
-    --text-dim: rgba(17, 24, 39, .65);
-    --text-muted: rgba(17, 24, 39, .5);
-    --bg-card: #ffffff;
-    --bg-glass: #f3f4f6;
-    --border: rgba(17, 24, 39, .12);
-    --border-glow: rgba(216, 112, 147, .20);
-}
-
-body {
-    background: var(--bg);
-}
-
-.login-card {
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
-}
-
-.login-input {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-}
-
-.error {
-    color: var(--text-dim);
-}
-</style>
