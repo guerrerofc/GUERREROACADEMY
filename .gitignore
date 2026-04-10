@@ -229,6 +229,7 @@ android-sdk/ -e
 # Environment files
 *.env
 *.env.*
+ conflict_120326_1732
 -e 
 # Environment and credential files
 .env
@@ -499,3 +500,4 @@ credentials.json
 *.pem
 *.key
 .credentials
+
