@@ -2546,8 +2546,9 @@
           <td>${p.tutor_nombre || '-'}</td>
           <td>${p.tutor_whatsapp || '-'}</td>
           <td><span class="badge badge-danger">1 mes</span></td>
-          <td>
-            <a class="btn btn-sm" href="${waLink(p.tutor_whatsapp, `Hola, recordatorio de pago pendiente de ${p.nombre} en Guerrero Academy. Monto: RD$ 3,500`)}" target="_blank">📱 WhatsApp</a>
+          <td style="display: flex; gap: 8px;">
+            <a class="btn btn-sm" href="${waLink(p.tutor_whatsapp, `Hola, recordatorio de pago pendiente de ${p.nombre} en Guerrero Academy. Monto: RD$ 3,500`)}" target="_blank" style="background: #25D366; border-color: #25D366;">📱 Abrir</a>
+            <button class="btn btn-sm btn-primary" onclick="WhatsAppSystem.showSendModal({phone: '${p.tutor_whatsapp}', name: '${p.tutor_nombre || ''}', type: 'reminder'})">📤 Enviar</button>
           </td>
         </tr>
       `).join('') || '<tr><td colspan="6" style="text-align: center;">¡Sin morosos! 🎉</td></tr>';
@@ -2977,6 +2978,53 @@
 
   <!-- Reportes Avanzados -->
   <script src="advanced-reports.js"></script>
+
+  <!-- Sistema de WhatsApp -->
+  <script src="whatsapp-system.js"></script>
+  <script>
+    // Configurar botón de WhatsApp masivo para morosos
+    document.addEventListener('DOMContentLoaded', () => {
+      const btnWhatsappAll = document.getElementById('btnWhatsappAll');
+      if (btnWhatsappAll) {
+        btnWhatsappAll.addEventListener('click', async () => {
+          // Obtener morosos actuales
+          const currentMonth = monthISO();
+          const { data: payments } = await sb.from('payments').select('player_id').eq('month', currentMonth).eq('status', 'paid');
+          const paidIds = new Set((payments || []).map(p => p.player_id));
+          const morosos = players.filter(p => p.status === 'activo' && !paidIds.has(p.id) && p.tutor_whatsapp);
+
+          if (morosos.length === 0) {
+            alert('¡No hay morosos con WhatsApp registrado!');
+            return;
+          }
+
+          const confirmSend = confirm(`¿Enviar recordatorio de pago a ${morosos.length} padres vía WhatsApp?`);
+          if (!confirmSend) return;
+
+          btnWhatsappAll.disabled = true;
+          btnWhatsappAll.innerHTML = '⏳ Enviando...';
+
+          try {
+            const result = await WhatsAppSystem.sendBulkReminders(morosos.map(m => ({
+              tutor_whatsapp: m.tutor_whatsapp,
+              tutor_name: m.tutor_nombre
+            })));
+
+            if (result.success) {
+              alert(`✅ Mensajes enviados!\n\nEnviados: ${result.sent}\nFallidos: ${result.failed}`);
+            } else {
+              alert('❌ Error: ' + result.error);
+            }
+          } catch (error) {
+            alert('❌ Error: ' + error.message);
+          }
+
+          btnWhatsappAll.disabled = false;
+          btnWhatsappAll.innerHTML = '📱 Enviar recordatorio masivo';
+        });
+      }
+    });
+  </script>
 
 
 
