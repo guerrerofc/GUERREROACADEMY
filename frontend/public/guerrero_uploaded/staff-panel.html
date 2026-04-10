@@ -666,6 +666,22 @@
 
     // Auth
     async function checkAuth() {
+      // Verificar si viene del login unificado
+      const storedUser = localStorage.getItem('guerrero_user');
+      if (storedUser) {
+        try {
+          const userData = JSON.parse(storedUser);
+          const allowedRoles = ['staff', 'entrenador', 'super_admin', 'superadmin', 'admin', 'director'];
+          if (userData.rol && allowedRoles.includes(userData.rol.toLowerCase())) {
+            currentUser = { email: userData.email, user_metadata: { nombre: userData.nombre } };
+            showApp();
+            return;
+          }
+        } catch (e) {
+          console.error('Error parsing stored user:', e);
+        }
+      }
+      
       const { data } = await sb.auth.getSession();
       if (data.session) {
         currentUser = data.session.user;
@@ -699,8 +715,9 @@
     });
 
     $('btnLogout').addEventListener('click', async () => {
+      localStorage.removeItem('guerrero_user');
       await sb.auth.signOut();
-      location.reload();
+      window.location.href = './login.html';
     });
 
     // Navigation
