@@ -980,28 +980,28 @@
             <div class="stat-hint">Sin pago este mes</div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon green">✅</div>
-            <div class="stat-label">Asistencia Prom.</div>
-            <div class="stat-value" id="kpiAttendance">0%</div>
-            <div class="stat-hint">Últimas 4 semanas</div>
+            <div class="stat-icon green">📄</div>
+            <div class="stat-label">Docs. Completos</div>
+            <div class="stat-value" id="kpiDocsComplete">0</div>
+            <div class="stat-hint" id="kpiDocsHint">Jugadores</div>
           </div>
         </div>
 
         <div class="grid grid-2" style="margin-bottom: 24px;">
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">Ingresos Mensuales</h3>
-            </div>
-            <div class="chart-container">
-              <canvas id="chartRevenue"></canvas>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-header">
               <h3 class="card-title">Ocupación por Categoría</h3>
             </div>
             <div class="chart-container">
               <canvas id="chartOccupancy"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Estado de Documentos</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="chartDocuments"></canvas>
             </div>
           </div>
         </div>
@@ -1985,14 +1985,20 @@
       const paidIds = new Set(payments.map(p => p.player_id));
       const morosos = activePlayers.filter(p => !paidIds.has(p.id) && p.status !== 'becado');
 
+      // Contar documentos completos
+      const docsComplete = activePlayers.filter(p => p.documents_complete === true).length;
+      const docsPending = activePlayers.length - docsComplete;
+
       $('kpiRevenue').textContent = formatMoney(revenue);
       $('kpiRevenueHint').textContent = `${payments.length} pagos`;
       $('kpiPlayers').textContent = activePlayers.length;
       $('kpiMorosos').textContent = morosos.length;
+      $('kpiDocsComplete').textContent = docsComplete;
+      $('kpiDocsHint').textContent = `de ${activePlayers.length} jugadores`;
 
       // Charts
-      renderRevenueChart();
       renderOccupancyChart();
+      renderDocumentsChart(docsComplete, docsPending);
 
       // Morosos preview
       $('dashMorosos').innerHTML = morosos.slice(0, 5).map(p => `
@@ -2020,30 +2026,30 @@
       }).join('') || '<p style="color: var(--text-muted); text-align: center; padding: 20px;">Sin pagos este mes</p>';
     }
 
-    function renderRevenueChart() {
-      const ctx = $('chartRevenue');
-      if (charts.revenue) charts.revenue.destroy();
+    function renderDocumentsChart(complete, pending) {
+      const ctx = $('chartDocuments');
+      if (!ctx) return;
+      
+      if (charts.documents) charts.documents.destroy();
 
-      charts.revenue = new Chart(ctx, {
-        type: 'bar',
+      charts.documents = new Chart(ctx, {
+        type: 'doughnut',
         data: {
-          labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+          labels: ['Completos', 'Pendientes'],
           datasets: [{
-            label: 'Ingresos',
-            data: [45000, 52000, 48000, 61000, 55000, 67000],
-            backgroundColor: 'rgba(216, 112, 147, 0.6)',
-            borderColor: 'rgb(216, 112, 147)',
-            borderWidth: 1,
-            borderRadius: 8
+            data: [complete, pending],
+            backgroundColor: ['rgba(52, 199, 89, 0.7)', 'rgba(255, 149, 0, 0.7)'],
+            borderWidth: 0
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' } },
-            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' }, beginAtZero: true }
+          plugins: { 
+            legend: { 
+              position: 'right', 
+              labels: { color: '#1d1d1f' } 
+            } 
           }
         }
       });
@@ -2064,14 +2070,19 @@
           labels: catData.map(c => c.name),
           datasets: [{
             data: catData.map(c => c.count),
-            backgroundColor: ['rgba(216, 112, 147, 0.7)', 'rgba(59, 130, 246, 0.7)', 'rgba(139, 92, 246, 0.7)', 'rgba(16, 185, 129, 0.7)'],
+            backgroundColor: ['rgba(59, 130, 246, 0.7)', 'rgba(139, 92, 246, 0.7)', 'rgba(16, 185, 129, 0.7)', 'rgba(249, 115, 22, 0.7)', 'rgba(236, 72, 153, 0.7)'],
             borderWidth: 0
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { position: 'right', labels: { color: 'rgba(255,255,255,0.7)' } } }
+          plugins: { 
+            legend: { 
+              position: 'right', 
+              labels: { color: '#1d1d1f' } 
+            } 
+          }
         }
       });
     }
