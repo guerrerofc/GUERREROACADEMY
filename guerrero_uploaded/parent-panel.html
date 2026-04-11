@@ -1763,20 +1763,36 @@
       container.innerHTML = '<div class="loading" style="padding: 40px; text-align: center;"><div class="spinner"></div> Cargando documentos...</div>';
       
       try {
-        // Cargar estado del jugador
-        const { data: playerData, error: playerError } = await sb
+        // Cargar datos básicos del jugador primero
+        const { data: playerBasic, error: basicError } = await sb
           .from('players')
-          .select(`
-            id, nombre, tutor_nombre, tutor_email, tutor_telefono,
-            regulations_status, medical_status, image_consent_status,
-            liability_status, payment_agreement_status, documents_complete,
-            agreed_monthly_fee, agreed_payment_day, category_id,
-            categories(name)
-          `)
+          .select('id, nombre, tutor_nombre, tutor_email, category_id, categories(name)')
           .eq('id', playerId)
           .single();
         
-        if (playerError) throw playerError;
+        if (basicError) throw basicError;
+        
+        // Intentar cargar columnas de documentos (pueden no existir)
+        let playerData = { ...playerBasic };
+        try {
+          const { data: playerDocs } = await sb
+            .from('players')
+            .select('regulations_status, medical_status, image_consent_status, liability_status, payment_agreement_status, documents_complete, agreed_monthly_fee, agreed_payment_day')
+            .eq('id', playerId)
+            .single();
+          
+          if (playerDocs) {
+            playerData = { ...playerData, ...playerDocs };
+          }
+        } catch (e) {
+          console.log('Columnas de documentos no existen aún, usando valores por defecto');
+          playerData.regulations_status = 'pending';
+          playerData.medical_status = 'pending';
+          playerData.image_consent_status = 'pending';
+          playerData.liability_status = 'pending';
+          playerData.payment_agreement_status = 'pending';
+          playerData.documents_complete = false;
+        }
         
         // Cargar plantillas de documentos
         const { data: templates, error: templatesError } = await sb
@@ -1786,27 +1802,53 @@
           .eq('is_required', true)
           .order('type');
         
-        if (templatesError) throw templatesError;
+        if (templatesError) {
+          // Si la tabla no existe, mostrar mensaje
+          container.innerHTML = `
+            <div class="empty-state" style="text-align: center; padding: 48px;">
+              <div style="font-size: 48px; margin-bottom: 16px;">⚙️</div>
+              <p style="color: #1d1d1f; font-weight: 600;">Sistema de documentos no configurado</p>
+              <p style="color: #86868b; font-size: 13px; margin-top: 8px;">
+                El administrador debe ejecutar el SQL de configuración en Supabase.
+              </p>
+            </div>
+          `;
+          return;
+        }
+        
+        if (!templates || templates.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state" style="text-align: center; padding: 48px;">
+              <div style="font-size: 48px; margin-bottom: 16px;">📄</div>
+              <p style="color: #86868b;">No hay documentos configurados</p>
+            </div>
+          `;
+          return;
+        }
         
         // Cargar firmas existentes
-        const { data: signatures, error: signaturesError } = await sb
-          .from('document_signatures')
-          .select('*, document_templates(name, type, title, version)')
-          .eq('player_id', playerId)
-          .eq('status', 'signed');
+        let signatures = [];
+        try {
+          const { data: sigs } = await sb
+            .from('document_signatures')
+            .select('*, document_templates(name, type, title, version)')
+            .eq('player_id', playerId)
+            .eq('status', 'signed');
+          signatures = sigs || [];
+        } catch (e) {
+          console.log('No hay firmas o tabla no existe');
+        }
         
         // Renderizar documentos
-        renderDocumentsSection(container, playerData, templates || [], signatures || []);
+        renderDocumentsSection(container, playerData, templates, signatures);
         
       } catch (err) {
         console.error('Error cargando documentos:', err);
         container.innerHTML = `
           <div class="empty-state" style="text-align: center; padding: 48px;">
             <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-            <p style="color: #86868b;">Error al cargar documentos. ${err.message || ''}</p>
-            <p style="color: #86868b; font-size: 13px; margin-top: 8px;">
-              Si es la primera vez, asegúrese de ejecutar el SQL de configuración.
-            </p>
+            <p style="color: #86868b;">Error al cargar documentos.</p>
+            <p style="color: #86868b; font-size: 13px; margin-top: 8px;">${err.message || ''}</p>
           </div>
         `;
       }

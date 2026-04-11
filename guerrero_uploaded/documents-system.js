@@ -65,20 +65,39 @@ const DocumentsSystem = (function() {
      */
     async function getPlayerDocumentsStatus(playerId) {
         try {
-            const { data, error } = await window.supabase
+            // Primero obtener datos básicos
+            const { data: basicData, error: basicError } = await window.supabase
                 .from('players')
-                .select(`
-                    id, nombre, tutor_nombre, tutor_email, tutor_telefono,
-                    regulations_status, medical_status, image_consent_status,
-                    liability_status, payment_agreement_status, documents_complete,
-                    agreed_monthly_fee, agreed_payment_day, category_id,
-                    categories(name)
-                `)
+                .select('id, nombre, tutor_nombre, tutor_email, category_id, categories(name)')
                 .eq('id', playerId)
                 .single();
             
-            if (error) throw error;
-            return data;
+            if (basicError) throw basicError;
+            
+            let result = { ...basicData };
+            
+            // Intentar obtener columnas de documentos
+            try {
+                const { data: docsData } = await window.supabase
+                    .from('players')
+                    .select('regulations_status, medical_status, image_consent_status, liability_status, payment_agreement_status, documents_complete, agreed_monthly_fee, agreed_payment_day')
+                    .eq('id', playerId)
+                    .single();
+                
+                if (docsData) {
+                    result = { ...result, ...docsData };
+                }
+            } catch (e) {
+                // Las columnas no existen, usar valores por defecto
+                result.regulations_status = 'pending';
+                result.medical_status = 'pending';
+                result.image_consent_status = 'pending';
+                result.liability_status = 'pending';
+                result.payment_agreement_status = 'pending';
+                result.documents_complete = false;
+            }
+            
+            return result;
         } catch (err) {
             console.error('Error obteniendo estado de documentos:', err);
             return null;
@@ -621,8 +640,7 @@ const DocumentsSystem = (function() {
             playerData: playerData,
             tutorData: tutorData || {
                 name: playerData.tutor_nombre,
-                email: playerData.tutor_email,
-                phone: playerData.tutor_telefono
+                email: playerData.tutor_email
             },
             existingSignatures: existingSignatures
         };
