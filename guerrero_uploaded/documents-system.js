@@ -116,7 +116,7 @@ const DocumentsSystem = (function() {
         const replacements = {
             '{{TUTOR_NAME}}': tutorData?.name || playerData?.tutor_nombre || '[Nombre del Tutor]',
             '{{TUTOR_ID}}': tutorData?.idNumber || '[Cédula/Pasaporte]',
-            '{{PLAYER_NAME}}': playerData?.name || '[Nombre del Jugador]',
+            '{{PLAYER_NAME}}': playerData?.nombre || playerData?.name || '[Nombre del Jugador]',
             '{{CATEGORY}}': playerData?.categories?.name || playerData?.category || 'Sin categoría',
             '{{INSCRIPTION_DATE}}': new Date().toLocaleDateString('es-DO'),
             '{{INSCRIPTION_AMOUNT}}': CONFIG.INSCRIPTION_AMOUNT.toLocaleString('es-DO'),
@@ -704,7 +704,7 @@ const DocumentsSystem = (function() {
      */
     function renderSummaryStep(body, title, subtitle, btnNext) {
         title.textContent = 'Documentos Obligatorios';
-        subtitle.textContent = `Jugador: ${wizardState.playerData.name}`;
+        subtitle.textContent = `Jugador: ${wizardState.playerData.nombre || wizardState.playerData.name}`;
         btnNext.textContent = 'Comenzar';
         
         let html = '<div class="documents-summary">';
@@ -735,7 +735,7 @@ const DocumentsSystem = (function() {
                 <div class="confirmation-step">
                     <div class="confirmation-icon">✅</div>
                     <h3>Todos los documentos firmados</h3>
-                    <p>El jugador ${wizardState.playerData.name} tiene todos los documentos completos.</p>
+                    <p>El jugador ${wizardState.playerData.nombre || wizardState.playerData.name} tiene todos los documentos completos.</p>
                 </div>
             `;
             btnNext.textContent = 'Cerrar';

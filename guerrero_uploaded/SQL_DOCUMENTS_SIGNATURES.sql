@@ -397,7 +397,7 @@ CREATE POLICY "Users can insert signatures" ON document_signatures
 CREATE OR REPLACE VIEW player_documents_status AS
 SELECT 
     p.id as player_id,
-    p.name as player_name,
+    p.nombre as player_name,
     p.tutor_nombre,
     p.tutor_email,
     p.regulations_status,
