@@ -1195,11 +1195,21 @@ const DocumentsSystem = (function() {
      */
     async function saveAllSignatures() {
         try {
+            const client = getSupabase();
+            if (!client) {
+                console.error('Supabase no disponible para guardar firmas');
+                alert('Error: No se pudo conectar a la base de datos');
+                return false;
+            }
+            
             const signatures = [];
             
             for (const doc of wizardState.pendingDocuments) {
                 const sigData = wizardState.signatures[doc.id];
-                if (!sigData) continue;
+                if (!sigData) {
+                    console.log('No hay datos de firma para documento:', doc.id);
+                    continue;
+                }
                 
                 // Preparar datos de pago si es documento de pago
                 let paymentData = null;
@@ -1209,6 +1219,14 @@ const DocumentsSystem = (function() {
                         monthly_amount: CONFIG.MONTHLY_AMOUNT,
                         payment_day: CONFIG.PAYMENT_DAY
                     };
+                }
+                
+                // Obtener IP (con timeout)
+                let ipAddress = 'unknown';
+                try {
+                    ipAddress = await getClientIP();
+                } catch (e) {
+                    console.log('No se pudo obtener IP');
                 }
                 
                 signatures.push({
@@ -1221,37 +1239,103 @@ const DocumentsSystem = (function() {
                     signer_email: wizardState.tutorData?.email || wizardState.playerData.tutor_email,
                     signature_image_url: sigData.signatureData,
                     accepted_checkbox: true,
-                    ip_address: await getClientIP(),
-                    user_agent: navigator.userAgent,
+                    ip_address: ipAddress,
+                    user_agent: navigator.userAgent.substring(0, 500),
                     status: 'signed',
                     payment_data: paymentData
                 });
             }
             
+            if (signatures.length === 0) {
+                console.error('No hay firmas para guardar');
+                return false;
+            }
+            
+            console.log('Guardando', signatures.length, 'firmas...');
+            
             // Insertar todas las firmas
-            const { data, error } = await window.supabase
+            const { data, error } = await client
                 .from('document_signatures')
-                .insert(signatures);
+                .insert(signatures)
+                .select();
             
-            if (error) throw error;
+            if (error) {
+                console.error('Error de Supabase:', error);
+                alert('Error al guardar: ' + (error.message || 'Error desconocido'));
+                return false;
+            }
             
-            console.log('Firmas guardadas exitosamente');
+            console.log('Firmas guardadas exitosamente:', data);
+            
+            // Actualizar estado del jugador si es posible
+            try {
+                await updatePlayerDocumentStatus(wizardState.playerData.id);
+            } catch (e) {
+                console.log('No se pudo actualizar estado del jugador:', e);
+            }
+            
+            alert('¡Documentos firmados exitosamente!');
             return true;
             
         } catch (err) {
             console.error('Error guardando firmas:', err);
+            alert('Error al guardar las firmas: ' + (err.message || 'Error desconocido'));
             return false;
         }
     }
     
     /**
-     * Obtener IP del cliente (aproximada)
+     * Actualizar estado de documentos del jugador
+     */
+    async function updatePlayerDocumentStatus(playerId) {
+        const client = getSupabase();
+        if (!client) return;
+        
+        // Actualizar estados basado en las firmas
+        const updates = {};
+        
+        for (const doc of wizardState.pendingDocuments) {
+            if (wizardState.signatures[doc.id]) {
+                if (doc.type === 'reglamento') updates.regulations_status = 'signed';
+                if (doc.type === 'medico') updates.medical_status = 'signed';
+                if (doc.type === 'imagen') updates.image_consent_status = 'signed';
+                if (doc.type === 'responsabilidad') updates.liability_status = 'signed';
+                if (doc.type === 'pago') {
+                    updates.payment_agreement_status = 'signed';
+                    updates.agreed_monthly_fee = CONFIG.MONTHLY_AMOUNT;
+                    updates.agreed_payment_day = CONFIG.PAYMENT_DAY;
+                }
+            }
+        }
+        
+        if (Object.keys(updates).length > 0) {
+            try {
+                await client
+                    .from('players')
+                    .update(updates)
+                    .eq('id', playerId);
+                console.log('Estado del jugador actualizado');
+            } catch (e) {
+                console.log('Error actualizando estado del jugador:', e);
+            }
+        }
+    }
+    
+    /**
+     * Obtener IP del cliente (con timeout)
      */
     async function getClientIP() {
         try {
-            const response = await fetch('https://api.ipify.org?format=json');
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+            
+            const response = await fetch('https://api.ipify.org?format=json', {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            
             const data = await response.json();
-            return data.ip;
+            return data.ip || 'unknown';
         } catch {
             return 'unknown';
         }
