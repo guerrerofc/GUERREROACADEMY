@@ -68,7 +68,7 @@ const DocumentsSystem = (function() {
             const { data, error } = await window.supabase
                 .from('players')
                 .select(`
-                    id, name, tutor_nombre, tutor_email, tutor_telefono,
+                    id, nombre, tutor_nombre, tutor_email, tutor_telefono,
                     regulations_status, medical_status, image_consent_status,
                     liability_status, payment_agreement_status, documents_complete,
                     agreed_monthly_fee, agreed_payment_day, category_id,
