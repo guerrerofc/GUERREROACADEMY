@@ -1748,7 +1748,17 @@
     }
 
     function openModal(id) { $(id).classList.add('show'); }
-    function closeModal(id) { $(id).classList.remove('show'); }
+    function closeModal(id) { 
+      const modal = $(id);
+      if (modal) {
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+        // Si es un modal dinámico (playerDocsModal), removerlo
+        if (id === 'playerDocsModal') {
+          modal.remove();
+        }
+      }
+    }
     
     // Exponer funciones globalmente para módulos externos
     window.openModal = openModal;
@@ -3287,11 +3297,11 @@
         
         // Crear modal con información
         let modalHtml = `
-          <div class="modal" id="playerDocsModal" style="display: flex;">
-            <div class="modal-content" style="max-width: 700px;">
+          <div class="modal" id="playerDocsModal" style="display: flex;" onclick="if(event.target === this) closeModal('playerDocsModal')">
+            <div class="modal-content" style="max-width: 700px;" onclick="event.stopPropagation()">
               <div class="modal-header">
                 <h3>Documentos de ${player.nombre}</h3>
-                <button class="btn btn-sm" onclick="closeModal('playerDocsModal')">✕</button>
+                <button class="btn btn-sm" onclick="closeModal('playerDocsModal')" style="font-size: 18px; padding: 4px 10px;">✕</button>
               </div>
               <div class="modal-body">
                 <div style="margin-bottom: 20px; padding: 16px; background: #f5f5f7; border-radius: 12px;">
