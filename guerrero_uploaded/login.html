@@ -252,7 +252,7 @@
         });
         
         if (authError) {
-          // Si falla auth, intentar verificar directamente en la tabla users
+          // Si falla Supabase Auth, verificar en tabla users
           const { data: userData, error: userError } = await sb
             .from('users')
             .select('*')
@@ -266,16 +266,23 @@
             return;
           }
           
-          // Verificar contraseña simple (si está almacenada en texto plano)
-          // Nota: En producción deberías usar hash
-          if (userData.password && userData.password !== password) {
+          // SEGURIDAD: Verificar que existe password y coincide
+          // Si no hay password en la tabla, NO permitir acceso
+          if (!userData.password) {
+            showError('Usuario no tiene contraseña configurada. Contacte al administrador.');
+            btn.disabled = false;
+            btn.innerHTML = 'Iniciar sesión';
+            return;
+          }
+          
+          if (userData.password !== password) {
             showError('Email o contraseña incorrectos');
             btn.disabled = false;
             btn.innerHTML = 'Iniciar sesión';
             return;
           }
           
-          // Usuario encontrado, redirigir según rol
+          // Usuario encontrado y contraseña correcta, redirigir según rol
           const rol = (userData.rol || userData.role || 'padre').toLowerCase();
           redirectToPanel(rol, userData);
           return;

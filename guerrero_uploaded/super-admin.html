@@ -898,6 +898,7 @@
         <button class="nav-link" data-view="offers"><span class="nav-icon">🎁</span>Ofertas</button>
         <button class="nav-link" data-view="coupons"><span class="nav-icon">🎟️</span>Cupones</button>
         <button class="nav-link" data-view="announcements"><span class="nav-icon">📢</span>Anuncios</button>
+        <button class="nav-link" data-view="documents"><span class="nav-icon">📄</span>Documentos</button>
 
         <div class="nav-section">Reportes</div>
         <button class="nav-link" data-view="morosos"><span class="nav-icon">⚠️</span>Morosos</button>
@@ -1354,6 +1355,80 @@
 
         <div class="card">
           <div id="announcementsList"></div>
+        </div>
+      </div>
+
+      <!-- DOCUMENTS MANAGEMENT -->
+      <div class="view" id="view-documents">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">Documentos</h1>
+            <p class="page-subtitle">Estado de documentos obligatorios por jugador</p>
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <select id="docFilterStatus" class="select" style="min-width: 150px;" onchange="loadDocumentsAdmin()">
+              <option value="all">Todos los estados</option>
+              <option value="pending">Pendientes</option>
+              <option value="complete">Completos</option>
+            </select>
+            <select id="docFilterCategory" class="select" style="min-width: 150px;" onchange="loadDocumentsAdmin()">
+              <option value="all">Todas las categorías</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Stats de documentos -->
+        <div class="grid grid-4" style="margin-bottom: 24px;" id="documentsStats">
+          <div class="stat-card">
+            <div class="stat-icon green">✅</div>
+            <div class="stat-label">Completos</div>
+            <div class="stat-value" id="docStatComplete">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon gold">⏳</div>
+            <div class="stat-label">Pendientes</div>
+            <div class="stat-value" id="docStatPending">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">📄</div>
+            <div class="stat-label">Total Firmas</div>
+            <div class="stat-value" id="docStatSignatures">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon pink">💳</div>
+            <div class="stat-label">Compromisos de Pago</div>
+            <div class="stat-value" id="docStatPaymentAgreements">0</div>
+          </div>
+        </div>
+
+        <!-- Tabla de jugadores -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Estado por Jugador</h3>
+            <button class="btn btn-secondary" onclick="exportDocumentsReport()">📥 Exportar</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Jugador</th>
+                  <th>Categoría</th>
+                  <th>Tutor</th>
+                  <th>Reglamento</th>
+                  <th>Médico</th>
+                  <th>Imagen</th>
+                  <th>Responsab.</th>
+                  <th>Pago</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="documentsTableBody">
+                <tr><td colspan="10" style="text-align: center; padding: 40px;">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -1849,6 +1924,7 @@
       if (view === 'offers' && window.offersSystem) window.offersSystem.load();
       if (view === 'fees' && window.feesSystem) window.feesSystem.loadCategory();
       if (view === 'coupons' && window.couponsSystem) window.couponsSystem.load();
+      if (view === 'documents') loadDocumentsAdmin();
     }
     
     // Exponer showView globalmente
@@ -3033,6 +3109,262 @@
 
     $('btnRefresh').addEventListener('click', loadDashboard);
 
+    // =====================================================
+    // SISTEMA DE DOCUMENTOS ADMIN
+    // =====================================================
+    
+    async function loadDocumentsAdmin() {
+      const tbody = $('documentsTableBody');
+      const filterStatus = $('docFilterStatus')?.value || 'all';
+      const filterCategory = $('docFilterCategory')?.value || 'all';
+      
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">Cargando...</td></tr>';
+      
+      try {
+        // Cargar categorías para el filtro
+        const { data: categories } = await sb.from('categories').select('id, name').order('name');
+        const categorySelect = $('docFilterCategory');
+        if (categorySelect && categorySelect.options.length <= 1) {
+          categories?.forEach(cat => {
+            categorySelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+          });
+        }
+        
+        // Query base
+        let query = sb
+          .from('players')
+          .select(`
+            id, nombre, tutor_nombre, tutor_email, category_id,
+            regulations_status, medical_status, image_consent_status,
+            liability_status, payment_agreement_status, documents_complete,
+            agreed_monthly_fee, agreed_payment_day,
+            categories(name)
+          `)
+          .eq('status', 'activo')
+          .order('nombre');
+        
+        // Aplicar filtros
+        if (filterStatus === 'complete') {
+          query = query.eq('documents_complete', true);
+        } else if (filterStatus === 'pending') {
+          query = query.eq('documents_complete', false);
+        }
+        
+        if (filterCategory !== 'all') {
+          query = query.eq('category_id', filterCategory);
+        }
+        
+        const { data: players, error } = await query;
+        
+        if (error) throw error;
+        
+        // Contar estadísticas
+        const { data: allPlayers } = await sb
+          .from('players')
+          .select('documents_complete, payment_agreement_status')
+          .eq('status', 'activo');
+        
+        const { count: totalSignatures } = await sb
+          .from('document_signatures')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'signed');
+        
+        const complete = allPlayers?.filter(p => p.documents_complete).length || 0;
+        const pending = allPlayers?.filter(p => !p.documents_complete).length || 0;
+        const paymentAgreements = allPlayers?.filter(p => p.payment_agreement_status === 'signed').length || 0;
+        
+        $('docStatComplete').textContent = complete;
+        $('docStatPending').textContent = pending;
+        $('docStatSignatures').textContent = totalSignatures || 0;
+        $('docStatPaymentAgreements').textContent = paymentAgreements;
+        
+        // Renderizar tabla
+        if (!players || players.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px; color: #86868b;">No hay jugadores que mostrar</td></tr>';
+          return;
+        }
+        
+        tbody.innerHTML = players.map(player => {
+          const getStatusBadge = (status) => {
+            if (status === 'signed') return '<span class="badge badge-success">✓</span>';
+            if (status === 'expired') return '<span class="badge badge-warning">!</span>';
+            return '<span class="badge badge-danger">✗</span>';
+          };
+          
+          const globalStatus = player.documents_complete 
+            ? '<span class="badge badge-success">Completo</span>'
+            : '<span class="badge badge-warning">Pendiente</span>';
+          
+          return `
+            <tr>
+              <td><strong>${player.nombre}</strong></td>
+              <td>${player.categories?.name || '-'}</td>
+              <td>
+                <div>${player.tutor_nombre || '-'}</div>
+                <small style="color: #86868b;">${player.tutor_email || ''}</small>
+              </td>
+              <td style="text-align: center;">${getStatusBadge(player.regulations_status)}</td>
+              <td style="text-align: center;">${getStatusBadge(player.medical_status)}</td>
+              <td style="text-align: center;">${getStatusBadge(player.image_consent_status)}</td>
+              <td style="text-align: center;">${getStatusBadge(player.liability_status)}</td>
+              <td style="text-align: center;">${getStatusBadge(player.payment_agreement_status)}</td>
+              <td>${globalStatus}</td>
+              <td>
+                <button class="btn btn-sm" onclick="viewPlayerDocuments('${player.id}')" title="Ver documentos">👁️</button>
+                ${player.documents_complete ? `
+                  <button class="btn btn-sm" onclick="downloadPlayerDocs('${player.id}')" title="Descargar PDFs">📥</button>
+                ` : ''}
+              </td>
+            </tr>
+          `;
+        }).join('');
+        
+      } catch (err) {
+        console.error('Error cargando documentos:', err);
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 40px; color: #ef4444;">Error: ${err.message}</td></tr>`;
+      }
+    }
+    
+    // Ver documentos de un jugador específico
+    async function viewPlayerDocuments(playerId) {
+      try {
+        const { data: player } = await sb
+          .from('players')
+          .select('*, categories(name)')
+          .eq('id', playerId)
+          .single();
+        
+        const { data: signatures } = await sb
+          .from('document_signatures')
+          .select('*, document_templates(name, title, type)')
+          .eq('player_id', playerId)
+          .eq('status', 'signed');
+        
+        const { data: templates } = await sb
+          .from('document_templates')
+          .select('*')
+          .eq('is_active', true)
+          .eq('is_required', true);
+        
+        // Crear modal con información
+        let modalHtml = `
+          <div class="modal" id="playerDocsModal" style="display: flex;">
+            <div class="modal-content" style="max-width: 700px;">
+              <div class="modal-header">
+                <h3>Documentos de ${player.nombre}</h3>
+                <button class="btn btn-sm" onclick="closeModal('playerDocsModal')">✕</button>
+              </div>
+              <div class="modal-body">
+                <div style="margin-bottom: 20px; padding: 16px; background: #f5f5f7; border-radius: 12px;">
+                  <p><strong>Categoría:</strong> ${player.categories?.name || 'N/A'}</p>
+                  <p><strong>Tutor:</strong> ${player.tutor_nombre || 'N/A'}</p>
+                  <p><strong>Email:</strong> ${player.tutor_email || 'N/A'}</p>
+                  <p><strong>Estado global:</strong> ${player.documents_complete ? '<span style="color: #34c759;">✓ Completo</span>' : '<span style="color: #ff9500;">⏳ Pendiente</span>'}</p>
+                </div>
+                
+                <h4 style="margin-bottom: 12px;">Estado de Documentos</h4>
+                <div style="display: grid; gap: 8px;">
+        `;
+        
+        const statusMap = {
+          'reglamento': player.regulations_status,
+          'medico': player.medical_status,
+          'imagen': player.image_consent_status,
+          'responsabilidad': player.liability_status,
+          'pago': player.payment_agreement_status
+        };
+        
+        const icons = {
+          'reglamento': '📋',
+          'medico': '🏥',
+          'imagen': '📷',
+          'responsabilidad': '⚖️',
+          'pago': '💳'
+        };
+        
+        templates?.forEach(template => {
+          const status = statusMap[template.type] || 'pending';
+          const isSigned = status === 'signed';
+          const signature = signatures?.find(s => s.document_templates?.type === template.type);
+          
+          modalHtml += `
+            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: ${isSigned ? 'rgba(52,199,89,0.08)' : '#fff'}; border: 1px solid rgba(0,0,0,0.08); border-radius: 10px;">
+              <span style="font-size: 24px;">${icons[template.type] || '📄'}</span>
+              <div style="flex: 1;">
+                <strong>${template.title}</strong>
+                ${isSigned && signature ? `<br><small style="color: #86868b;">Firmado el ${new Date(signature.signed_at).toLocaleDateString('es-DO')} por ${signature.signer_name}</small>` : ''}
+              </div>
+              <span class="badge ${isSigned ? 'badge-success' : 'badge-warning'}">${isSigned ? 'Firmado' : 'Pendiente'}</span>
+              ${isSigned && signature ? `<button class="btn btn-sm" onclick="downloadDocPDF('${signature.id}')">📥</button>` : ''}
+            </div>
+          `;
+        });
+        
+        // Info de compromiso de pago si existe
+        if (player.payment_agreement_status === 'signed' && player.agreed_monthly_fee) {
+          modalHtml += `
+            <div style="margin-top: 20px; padding: 16px; background: rgba(0,122,255,0.08); border-radius: 12px;">
+              <h4 style="margin-bottom: 8px;">💳 Compromiso de Pago</h4>
+              <p><strong>Mensualidad:</strong> RD$ ${Number(player.agreed_monthly_fee).toLocaleString('es-DO')}</p>
+              <p><strong>Día de pago:</strong> Día ${player.agreed_payment_day || 30} de cada mes</p>
+            </div>
+          `;
+        }
+        
+        modalHtml += `
+                </div>
+              </div>
+              <div class="modal-footer">
+                ${player.documents_complete ? `
+                  <button class="btn btn-primary" onclick="downloadPlayerDocs('${playerId}')">📥 Descargar Todos</button>
+                ` : ''}
+                <button class="btn btn-secondary" onclick="closeModal('playerDocsModal')">Cerrar</button>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // Remover modal anterior si existe
+        document.getElementById('playerDocsModal')?.remove();
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+      } catch (err) {
+        console.error('Error:', err);
+        alert('Error al cargar documentos: ' + err.message);
+      }
+    }
+    
+    // Descargar todos los PDFs de un jugador
+    async function downloadPlayerDocs(playerId) {
+      if (typeof DocumentsPDF !== 'undefined') {
+        await DocumentsPDF.downloadAllPlayerDocuments(playerId, sb);
+      } else {
+        alert('El generador de PDF no está cargado. Recarga la página.');
+      }
+    }
+    
+    // Descargar PDF de un documento específico
+    async function downloadDocPDF(signatureId) {
+      if (typeof DocumentsPDF !== 'undefined') {
+        await DocumentsPDF.downloadSignedDocument(signatureId, sb);
+      } else {
+        alert('El generador de PDF no está cargado. Recarga la página.');
+      }
+    }
+    
+    // Exportar reporte de documentos
+    function exportDocumentsReport() {
+      // Por ahora solo mostrar mensaje
+      alert('Función de exportación próximamente disponible');
+    }
+    
+    // Exponer funciones globalmente
+    window.loadDocumentsAdmin = loadDocumentsAdmin;
+    window.viewPlayerDocuments = viewPlayerDocuments;
+    window.downloadPlayerDocs = downloadPlayerDocs;
+    window.downloadDocPDF = downloadDocPDF;
+    window.exportDocumentsReport = exportDocumentsReport;
+
     checkAuth();
   </script>
 </body>
@@ -3065,6 +3397,10 @@
   <script src="categories-reports-system.js"></script>
   <script src="users-management.js"></script>
   <script src="category-players-management.js"></script>
+
+  <!-- Sistema de Documentos y Firmas -->
+  <script src="documents-system.js"></script>
+  <script src="documents-pdf.js"></script>
 
   <!-- Inicializar nuevos sistemas -->
   <script>
