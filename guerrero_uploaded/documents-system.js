@@ -1293,6 +1293,10 @@ const DocumentsSystem = (function() {
         
         // Actualizar estados basado en las firmas
         const updates = {};
+        let allSigned = true;
+        
+        // Lista de todos los tipos de documentos
+        const allDocTypes = ['reglamento', 'medico', 'imagen', 'responsabilidad', 'pago'];
         
         for (const doc of wizardState.pendingDocuments) {
             if (wizardState.signatures[doc.id]) {
@@ -1304,17 +1308,47 @@ const DocumentsSystem = (function() {
                     updates.payment_agreement_status = 'signed';
                     updates.agreed_monthly_fee = CONFIG.MONTHLY_AMOUNT;
                     updates.agreed_payment_day = CONFIG.PAYMENT_DAY;
+                    updates.payment_agreement_date = new Date().toISOString();
                 }
             }
         }
         
+        // Verificar si todos los documentos están firmados
+        // (los que ya estaban firmados + los que acabamos de firmar)
+        const signedTypes = new Set();
+        
+        // Agregar los que ya estaban firmados
+        if (wizardState.playerData.regulations_status === 'signed') signedTypes.add('reglamento');
+        if (wizardState.playerData.medical_status === 'signed') signedTypes.add('medico');
+        if (wizardState.playerData.image_consent_status === 'signed') signedTypes.add('imagen');
+        if (wizardState.playerData.liability_status === 'signed') signedTypes.add('responsabilidad');
+        if (wizardState.playerData.payment_agreement_status === 'signed') signedTypes.add('pago');
+        
+        // Agregar los que acabamos de firmar
+        for (const doc of wizardState.pendingDocuments) {
+            if (wizardState.signatures[doc.id]) {
+                signedTypes.add(doc.type);
+            }
+        }
+        
+        // Si todos los tipos están firmados, marcar como completo
+        if (signedTypes.size >= allDocTypes.length) {
+            updates.documents_complete = true;
+            console.log('Todos los documentos firmados - marcando como completo');
+        }
+        
         if (Object.keys(updates).length > 0) {
             try {
-                await client
+                const { error } = await client
                     .from('players')
                     .update(updates)
                     .eq('id', playerId);
-                console.log('Estado del jugador actualizado');
+                
+                if (error) {
+                    console.error('Error en update:', error);
+                } else {
+                    console.log('Estado del jugador actualizado:', updates);
+                }
             } catch (e) {
                 console.log('Error actualizando estado del jugador:', e);
             }
