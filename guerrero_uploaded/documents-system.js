@@ -241,29 +241,54 @@ const DocumentsSystem = (function() {
         const styles = document.createElement('style');
         styles.id = 'documentsWizardStyles';
         styles.textContent = `
+            /* Modal overlay */
+            #documentsWizardModal {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                background: rgba(0, 0, 0, 0.5) !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                z-index: 10000 !important;
+                padding: 20px !important;
+                box-sizing: border-box !important;
+            }
+            
             .documents-wizard-modal {
-                max-width: 800px !important;
-                width: 95% !important;
-                max-height: 90vh !important;
-                display: flex;
-                flex-direction: column;
+                max-width: 700px !important;
+                width: 100% !important;
+                max-height: 85vh !important;
+                display: flex !important;
+                flex-direction: column !important;
+                background: #fff !important;
+                border-radius: 20px !important;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+                overflow: hidden !important;
+                margin: auto !important;
             }
             
             .wizard-header {
-                padding: 24px 24px 16px;
+                padding: 20px 24px 16px;
                 border-bottom: 1px solid rgba(0,0,0,0.08);
                 position: relative;
+                flex-shrink: 0;
             }
             
             .wizard-header h2 {
-                font-size: 22px;
+                font-size: 20px;
                 font-weight: 700;
                 color: #1d1d1f;
                 margin-bottom: 4px;
+                padding-right: 40px;
             }
             
             .wizard-header p {
-                font-size: 14px;
+                font-size: 13px;
                 color: #86868b;
             }
             
@@ -290,8 +315,9 @@ const DocumentsSystem = (function() {
             }
             
             .wizard-progress {
-                padding: 16px 24px;
+                padding: 12px 24px;
                 background: #f5f5f7;
+                flex-shrink: 0;
             }
             
             .progress-bar {
@@ -318,7 +344,9 @@ const DocumentsSystem = (function() {
             .wizard-body {
                 flex: 1;
                 overflow-y: auto;
-                padding: 24px;
+                padding: 20px 24px;
+                min-height: 200px;
+                max-height: calc(85vh - 200px);
             }
             
             .wizard-footer {
@@ -327,10 +355,37 @@ const DocumentsSystem = (function() {
                 display: flex;
                 justify-content: space-between;
                 gap: 12px;
+                flex-shrink: 0;
+                background: #fff;
             }
             
             .wizard-footer .btn {
                 min-width: 120px;
+                padding: 12px 24px;
+                border-radius: 10px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            
+            .wizard-footer .btn-primary {
+                background: #1d1d1f;
+                color: #fff;
+                border: none;
+            }
+            
+            .wizard-footer .btn-primary:hover {
+                background: #000;
+            }
+            
+            .wizard-footer .btn-secondary {
+                background: #f5f5f7;
+                color: #1d1d1f;
+                border: 1px solid rgba(0,0,0,0.08);
+            }
+            
+            .wizard-footer .btn-secondary:hover {
+                background: #e5e5e7;
             }
             
             /* Paso de resumen */
@@ -391,44 +446,44 @@ const DocumentsSystem = (function() {
             
             /* Contenido del documento */
             .document-content-wrapper {
-                background: #fff;
+                background: #f9f9f9;
                 border: 1px solid rgba(0,0,0,0.08);
                 border-radius: 12px;
-                max-height: 300px;
+                max-height: 200px;
                 overflow-y: auto;
-                padding: 24px;
-                margin-bottom: 20px;
-                font-size: 14px;
-                line-height: 1.7;
+                padding: 16px 20px;
+                margin-bottom: 16px;
+                font-size: 13px;
+                line-height: 1.6;
             }
             
             .document-content-wrapper h2 {
-                font-size: 20px;
+                font-size: 16px;
                 color: #1d1d1f;
-                margin-bottom: 8px;
+                margin-bottom: 4px;
             }
             
             .document-content-wrapper h3 {
-                font-size: 16px;
+                font-size: 14px;
                 color: #86868b;
-                margin-bottom: 20px;
+                margin-bottom: 12px;
             }
             
             .document-content-wrapper h4 {
-                font-size: 15px;
+                font-size: 13px;
                 color: #1d1d1f;
-                margin: 20px 0 10px;
+                margin: 12px 0 6px;
                 font-weight: 600;
             }
             
             .document-content-wrapper p {
-                margin-bottom: 10px;
+                margin-bottom: 8px;
                 color: #3d3d3f;
             }
             
             .document-content-wrapper ul, 
             .document-content-wrapper ol {
-                margin: 10px 0 10px 20px;
+                margin: 8px 0 8px 16px;
                 color: #3d3d3f;
             }
             
@@ -454,23 +509,24 @@ const DocumentsSystem = (function() {
             }
             
             .document-content-wrapper .document-footer {
-                margin-top: 24px;
-                padding-top: 16px;
+                margin-top: 12px;
+                padding-top: 12px;
                 border-top: 1px solid rgba(0,0,0,0.08);
                 font-style: italic;
                 color: #86868b;
+                font-size: 12px;
             }
             
             /* Formulario de firma */
             .signature-form {
                 display: grid;
-                gap: 20px;
+                gap: 14px;
             }
             
             .form-row {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 16px;
+                gap: 12px;
             }
             
             @media (max-width: 600px) {
@@ -481,18 +537,18 @@ const DocumentsSystem = (function() {
             
             .form-group label {
                 display: block;
-                font-size: 13px;
+                font-size: 12px;
                 font-weight: 600;
                 color: #1d1d1f;
-                margin-bottom: 6px;
+                margin-bottom: 4px;
             }
             
             .form-group input {
                 width: 100%;
-                padding: 12px 14px;
-                font-size: 15px;
+                padding: 10px 12px;
+                font-size: 14px;
                 border: 1px solid rgba(0,0,0,0.12);
-                border-radius: 10px;
+                border-radius: 8px;
                 background: #fff;
                 color: #1d1d1f;
             }
@@ -505,31 +561,32 @@ const DocumentsSystem = (function() {
             .checkbox-group {
                 display: flex;
                 align-items: flex-start;
-                gap: 12px;
-                padding: 16px;
+                gap: 10px;
+                padding: 12px;
                 background: #f5f5f7;
-                border-radius: 10px;
+                border-radius: 8px;
             }
             
             .checkbox-group input[type="checkbox"] {
-                width: 20px;
-                height: 20px;
+                width: 18px;
+                height: 18px;
                 margin-top: 2px;
                 accent-color: #1d1d1f;
+                flex-shrink: 0;
             }
             
             .checkbox-group label {
-                font-size: 14px;
+                font-size: 13px;
                 color: #3d3d3f;
-                line-height: 1.5;
+                line-height: 1.4;
                 margin: 0;
             }
             
             /* Canvas de firma */
             .signature-canvas-wrapper {
                 border: 2px dashed rgba(0,0,0,0.15);
-                border-radius: 12px;
-                padding: 8px;
+                border-radius: 10px;
+                padding: 6px;
                 background: #fafafa;
             }
             
@@ -540,9 +597,9 @@ const DocumentsSystem = (function() {
             
             #signatureCanvas {
                 width: 100%;
-                height: 150px;
+                height: 100px;
                 background: #fff;
-                border-radius: 8px;
+                border-radius: 6px;
                 cursor: crosshair;
                 touch-action: none;
             }
@@ -551,17 +608,17 @@ const DocumentsSystem = (function() {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-top: 8px;
+                margin-top: 6px;
             }
             
             .signature-actions span {
-                font-size: 12px;
+                font-size: 11px;
                 color: #86868b;
             }
             
             .signature-actions button {
-                padding: 6px 12px;
-                font-size: 13px;
+                padding: 4px 10px;
+                font-size: 12px;
                 background: #f5f5f7;
                 border: 1px solid rgba(0,0,0,0.08);
                 border-radius: 6px;
@@ -918,7 +975,7 @@ const DocumentsSystem = (function() {
         // Ajustar tamaño del canvas
         const wrapper = signatureCanvas.parentElement;
         signatureCanvas.width = wrapper.clientWidth - 16;
-        signatureCanvas.height = 150;
+        signatureCanvas.height = 100;
         
         // Estilo del trazo
         signatureCtx.strokeStyle = '#1d1d1f';

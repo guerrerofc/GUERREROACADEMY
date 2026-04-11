@@ -1427,22 +1427,30 @@
         </div>
       `).join('');
 
-      // Load announcements
-      const { data: announcements } = await sb
-        .from('announcements')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(2);
-
-      $('dashboardAnnouncements').innerHTML = (announcements || []).map(a => `
-        <div class="announcement">
-          <div class="announcement-header">
-            <span class="announcement-title">${a.title}</span>
-            <span class="announcement-date">${new Date(a.created_at).toLocaleDateString('es-DO')}</span>
-          </div>
-          <p class="announcement-text">${a.content?.substring(0, 100)}...</p>
-        </div>
-      `).join('') || '<div class="empty"><p>Sin anuncios recientes</p></div>';
+      // Load announcements (con manejo de error si la tabla no existe)
+      try {
+        const { data: announcements, error } = await sb
+          .from('announcements')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(2);
+        
+        if (!error && announcements?.length) {
+          $('dashboardAnnouncements').innerHTML = announcements.map(a => `
+            <div class="announcement">
+              <div class="announcement-header">
+                <span class="announcement-title">${a.title}</span>
+                <span class="announcement-date">${new Date(a.created_at).toLocaleDateString('es-DO')}</span>
+              </div>
+              <p class="announcement-text">${a.content?.substring(0, 100)}...</p>
+            </div>
+          `).join('');
+        } else {
+          $('dashboardAnnouncements').innerHTML = '<div class="empty"><p>Sin anuncios recientes</p></div>';
+        }
+      } catch (e) {
+        $('dashboardAnnouncements').innerHTML = '<div class="empty"><p>Sin anuncios recientes</p></div>';
+      }
     }
 
     // Children
@@ -1717,20 +1725,28 @@
 
     // Announcements
     async function loadAnnouncements() {
-      const { data: announcements } = await sb
-        .from('announcements')
-        .select('*')
-        .order('created_at', { ascending: false });
+      try {
+        const { data: announcements, error } = await sb
+          .from('announcements')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      $('announcementsList').innerHTML = (announcements || []).map(a => `
-        <div class="announcement">
-          <div class="announcement-header">
-            <span class="announcement-title">${a.title}</span>
-            <span class="announcement-date">${new Date(a.created_at).toLocaleDateString('es-DO')}</span>
-          </div>
-          <p class="announcement-text">${a.content}</p>
-        </div>
-      `).join('') || '<div class="empty"><div class="empty-icon">📢</div><p>No hay anuncios</p></div>';
+        if (!error && announcements?.length) {
+          $('announcementsList').innerHTML = announcements.map(a => `
+            <div class="announcement">
+              <div class="announcement-header">
+                <span class="announcement-title">${a.title}</span>
+                <span class="announcement-date">${new Date(a.created_at).toLocaleDateString('es-DO')}</span>
+              </div>
+              <p class="announcement-text">${a.content}</p>
+            </div>
+          `).join('');
+        } else {
+          $('announcementsList').innerHTML = '<div class="empty"><div class="empty-icon">📢</div><p>No hay anuncios</p></div>';
+        }
+      } catch (e) {
+        $('announcementsList').innerHTML = '<div class="empty"><div class="empty-icon">📢</div><p>No hay anuncios</p></div>';
+      }
     }
 
     // =====================================================
