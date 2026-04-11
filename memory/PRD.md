@@ -54,6 +54,8 @@ Sistema web completo para gestionar una academia de fútbol que incluye:
 - [x] Sección de documentos en Panel de Padres
 - [x] Estados de documentos por jugador
 - [x] Triggers automáticos para actualizar estados
+- [x] **Generación de PDF** con jsPDF
+- [x] **Panel Admin de Documentos** con estadísticas, filtros y descarga
 
 ---
 
