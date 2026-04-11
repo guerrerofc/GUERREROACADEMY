@@ -1,109 +1,199 @@
 # Guerrero Academy - PRD (Product Requirements Document)
 
-## Problema Original
-Sistema de gestión completo para academia de fútbol infantil "Guerrero Academy" en Santo Domingo, República Dominicana.
+## Información General
+- **Proyecto**: Sistema de Gestión de Academia de Fútbol
+- **Cliente**: Guerrero Academy
+- **Idioma del Usuario**: Español
+- **Stack**: Vanilla HTML/CSS/JS + Supabase + Vercel
 
-## Arquitectura
-- **Frontend**: React 18 + Tailwind CSS + Lucide React Icons
-- **Backend**: FastAPI + Motor (MongoDB async)
-- **Database**: MongoDB
-- **Auth**: JWT tokens (7 días de validez)
+---
 
-## Personas de Usuario
-1. **Padres/Tutores**: Acceden a landing page para inscribir hijos
-2. **Administrador**: Gestiona jugadores, asistencia, pagos y categorías
+## Descripción del Producto
 
-## Requisitos Core (Estáticos)
-- Categorías: Sub-10 (8-10), Sub-13 (11-13), Sub-17 (14-17)
-- Cupos: 30 por categoría
-- Mensualidad: RD$ 3,500
-- Horario: Sábados 8:00 AM - 12:00 PM
-- Ubicación: Colegio Loyola, Santo Domingo
-- WhatsApp: 829-639-6001
+Sistema web completo para gestionar una academia de fútbol que incluye:
+- Paneles separados por roles (Super Admin, Director, Staff, Padres)
+- Gestión de jugadores, categorías y asistencia
+- Sistema de pagos con Stripe
+- Sistema de documentos y firmas digitales
+- Anuncios y comunicaciones
+- Login unificado con redirección automática por rol
 
-## ✅ Implementado (10 Marzo 2026)
+---
 
-### Landing Page Pública
-- [x] Hero section con call-to-action
-- [x] Sección de categorías con cupos en tiempo real
-- [x] Información de la academia (beneficios, precio, ubicación)
-- [x] Formulario de inscripción funcional
-- [x] Validación de edad (8-17 años)
-- [x] Asignación automática de categoría por edad
-- [x] Prevención de duplicados
-- [x] Confirmación de inscripción
-- [x] Botón de WhatsApp flotante
+## Funcionalidades Implementadas
 
-### Panel Administrativo
-- [x] Login de administrador (dgexp / 123456)
-- [x] Dashboard con métricas:
-  - Total jugadores activos
-  - Pagos pendientes del mes
-  - Ingresos del mes
-  - Asistencia último sábado
-  - Cupos por categoría
-  - Últimos inscritos
-- [x] Módulo de Jugadores (CRUD completo)
-  - Crear/Editar/Eliminar jugadores
-  - Búsqueda y filtros
-  - Estados activo/inactivo
-  - Datos del tutor
-- [x] Módulo de Categorías
-  - Crear/Editar/Eliminar categorías
-  - Cupos máximos
-  - Horarios
-- [x] Módulo de Asistencia
-  - Crear jornadas
-  - Marcar presente/ausente/excusado
-  - Historial por jornada
-- [x] Módulo de Pagos
-  - Registrar pagos manuales
-  - Ver pendientes
-  - Historial por mes
-  - Métodos: efectivo/transferencia/tarjeta
+### ✅ Fase 1 - Core (Completado)
+- [x] Panel Super Admin con dashboard
+- [x] Panel Director con restricciones
+- [x] Panel Staff para entrenadores
+- [x] Panel Padres
+- [x] Gestión de jugadores CRUD
+- [x] Gestión de categorías
+- [x] Sistema de asistencia
+- [x] Pagos con Stripe
+- [x] Anuncios con envío de emails (Resend)
+- [x] Login unificado con detección de rol
 
-### Base de Datos
-- [x] Colección admins
-- [x] Colección categorias
-- [x] Colección jugadores
-- [x] Colección jornadas
-- [x] Colección asistencias
-- [x] Colección pagos
+### ✅ Fase 2 - UI/UX (Completado)
+- [x] Tema Apple/Nike (fondo blanco, minimalista)
+- [x] Override de tema oscuro legacy
+- [x] Diseño responsive
+- [x] Landing page mejorada
 
-### Validaciones de Negocio
-- [x] No sobrepasar cupos
-- [x] No duplicar jugadores
-- [x] Asignación de categoría por edad
-- [x] Cambio manual de categoría
-- [x] Historial de pagos por mes
+### ✅ Fase 3 - Documentos y Firmas (Completado - Diciembre 2025)
+- [x] Sistema de plantillas de documentos
+- [x] 5 documentos obligatorios precargados:
+  - Reglamento Interno
+  - Autorización Médica
+  - Uso de Imagen
+  - Descargo de Responsabilidad
+  - Compromiso de Pago (dinámico)
+- [x] Wizard de firma paso a paso
+- [x] Canvas de firma digital (mouse y touch)
+- [x] Almacenamiento de firmas en Supabase
+- [x] Sección de documentos en Panel de Padres
+- [x] Estados de documentos por jugador
+- [x] Triggers automáticos para actualizar estados
 
-## 📋 Backlog Priorizado
+---
 
-### P0 - Crítico (Próxima iteración)
-- [ ] Reportes exportables (Excel/PDF)
-- [ ] Recordatorio de pagos por WhatsApp
-- [ ] Notificación de inscripción al admin
+## Pendientes / Backlog
 
-### P1 - Alta prioridad
-- [ ] Multi-academia (preparar estructura)
-- [ ] Roles y permisos (asistentes)
-- [ ] Backup automático de datos
-- [ ] Estadísticas avanzadas de asistencia
+### 🔴 P0 - Crítico
+- [ ] Sincronización GitHub/Vercel (problema recurrente con "Save to GitHub")
+- [ ] Ejecutar SQL de documentos en Supabase
 
-### P2 - Media prioridad  
-- [ ] Integración pagos online (Stripe/PayPal)
-- [ ] Mensajes automáticos por eventos
-- [ ] Fotos de jugadores
-- [ ] Historial médico
+### 🟡 P1 - Alta Prioridad
+- [ ] Generación de PDF para documentos firmados
+- [ ] Almacenamiento de PDFs en Supabase Storage
+- [ ] Panel Admin para gestión de documentos
+- [ ] Integrar cupones en flujo de pago de Stripe
 
-### P3 - Futuro
-- [ ] App móvil nativa
-- [ ] Portal para padres
-- [ ] Calendario de eventos
-- [ ] Sistema de torneos
+### 🟢 P2 - Media Prioridad
+- [ ] Integración WhatsApp (Twilio) - endpoints creados, falta testing
+- [ ] Recordatorios automáticos de documentos pendientes
+- [ ] Bloqueo de activación sin documentos completos
+- [ ] Formulario de inscripción pública (arreglar wizard que salta pasos)
 
-## Próximos Pasos
-1. Pruebas con datos reales
-2. Ajustar textos según feedback
-3. Agregar más validaciones si es necesario
-4. Optimizar para móvil
+### 🔵 P3 - Baja Prioridad
+- [ ] Descarga de documentos firmados desde panel padre
+- [ ] Envío de documentos por email
+- [ ] Refactorización de archivos monolíticos
+
+---
+
+## Arquitectura Técnica
+
+### Frontend
+- **Tecnología**: Vanilla HTML/CSS/JS
+- **Estilos**: CSS custom + admin-apple-theme.css
+- **Ubicación**: /app/guerrero_uploaded/
+
+### Backend
+- **Base de datos**: Supabase (PostgreSQL)
+- **Auth**: Supabase Auth
+- **APIs serverless**: Vercel Functions (/app/api/)
+- **Storage**: Supabase Storage (para PDFs futuros)
+
+### Deployment
+- **Hosting**: Vercel
+- **CI/CD**: GitHub → Vercel (automático)
+- **Dominio**: guerreroacademy.vercel.app
+
+---
+
+## Esquema de Base de Datos
+
+### Tablas Principales
+- `players` - Jugadores
+- `categories` - Categorías
+- `users` - Usuarios del sistema
+- `payments` - Pagos
+- `announcements` - Anuncios
+- `sessions` - Sesiones de entrenamiento
+- `attendance` - Asistencia
+- `offers` - Ofertas/descuentos
+- `coupons` - Cupones
+
+### Tablas de Documentos (Nuevas)
+- `document_templates` - Plantillas de documentos
+- `document_signatures` - Firmas de documentos
+
+### Campos Agregados a Players
+```sql
+regulations_status VARCHAR(20)
+medical_status VARCHAR(20)
+image_consent_status VARCHAR(20)
+liability_status VARCHAR(20)
+payment_agreement_status VARCHAR(20)
+documents_complete BOOLEAN
+agreed_monthly_fee DECIMAL(10,2)
+agreed_payment_day INTEGER
+payment_agreement_date TIMESTAMP
+```
+
+---
+
+## Configuración de Montos
+
+```javascript
+INSCRIPTION_AMOUNT: 3500  // RD$ 3,500
+MONTHLY_AMOUNT: 4000      // RD$ 4,000
+PAYMENT_DAY: 30           // Día 30 de cada mes
+```
+
+---
+
+## Credenciales (Solo para Testing)
+
+- **Supabase URL**: https://daijiuqqafvjofafwqck.supabase.co
+- **Supabase Anon Key**: [ver en archivos .html]
+- **Resend API Key**: [configurado para emails]
+
+---
+
+## Archivos Clave
+
+### Paneles
+- `super-admin.html` - Panel Super Admin
+- `director-panel.html` - Panel Director
+- `staff-panel.html` - Panel Staff
+- `parent-panel.html` - Panel Padres
+- `login.html` - Login unificado
+- `landing-mejorado.html` - Landing page
+
+### Estilos
+- `admin-apple-theme.css` - Tema principal
+
+### JavaScript
+- `documents-system.js` - Sistema de documentos y firmas
+- `fees-system.js` - Sistema de tarifas
+- `offers-system.js` - Sistema de ofertas
+- `coupons-system.js` - Sistema de cupones
+
+### SQL
+- `SQL_DOCUMENTS_SIGNATURES.sql` - Crear tablas de documentos
+
+### Documentación
+- `GUIA_DOCUMENTOS_FIRMAS.md` - Guía del sistema de documentos
+
+---
+
+## Historial de Cambios
+
+### Diciembre 2025
+- ✅ Implementado sistema completo de documentos y firmas digitales
+- ✅ Creados 5 documentos obligatorios con contenido completo
+- ✅ Wizard de firma con canvas digital
+- ✅ Integración en Panel de Padres
+- ✅ Triggers automáticos para estados de documentos
+
+### Sesiones Anteriores
+- Tema Apple/Nike implementado
+- Login unificado con redirección por rol
+- Arreglos de UI (títulos en negro)
+- Corrección de conflictos de git
+
+---
+
+*Última actualización: Diciembre 2025*

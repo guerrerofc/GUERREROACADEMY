@@ -1019,6 +1019,10 @@
           <span class="nav-icon">📢</span>
           Anuncios
         </button>
+        <button class="nav-link" data-view="documents">
+          <span class="nav-icon">📄</span>
+          Documentos
+        </button>
       </nav>
 
       <div class="user-card">
@@ -1204,6 +1208,41 @@
 
         <div id="announcementsList"></div>
       </div>
+
+      <!-- DOCUMENTS VIEW -->
+      <div class="view" id="view-documents">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">Documentos</h1>
+            <p class="page-subtitle">Documentos obligatorios y compromisos</p>
+          </div>
+        </div>
+
+        <div class="documents-intro card" style="margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 56px; height: 56px; background: rgba(0,122,255,0.12); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 28px;">📋</div>
+            <div>
+              <h3 style="font-size: 18px; font-weight: 700; color: #1d1d1f; margin-bottom: 4px;">Documentos Obligatorios</h3>
+              <p style="font-size: 14px; color: #86868b;">Para activar a su hijo en la academia, debe firmar todos los documentos requeridos incluyendo el compromiso de pago.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="documentsPlayerSelect" style="margin-bottom: 24px;">
+          <label style="font-size: 14px; font-weight: 600; color: #1d1d1f; display: block; margin-bottom: 8px;">Selecciona un hijo:</label>
+          <select id="documentPlayerSelector" class="select" style="max-width: 400px;" onchange="loadPlayerDocuments()">
+            <option value="">-- Selecciona --</option>
+          </select>
+        </div>
+
+        <div id="documentsContainer">
+          <div class="empty-state" style="text-align: center; padding: 48px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📄</div>
+            <p style="color: #86868b;">Selecciona un hijo para ver sus documentos</p>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 
@@ -1323,6 +1362,7 @@
       if (view === 'history') loadHistory();
       if (view === 'attendance') loadAttendance();
       if (view === 'announcements') loadAnnouncements();
+      if (view === 'documents') initDocumentsSelector();
     }
 
     // Mobile menu
@@ -1689,9 +1729,221 @@
       `).join('') || '<div class="empty"><div class="empty-icon">📢</div><p>No hay anuncios</p></div>';
     }
 
+    // =====================================================
+    // SISTEMA DE DOCUMENTOS
+    // =====================================================
+    
+    // Inicializar selector de hijos para documentos
+    function initDocumentsSelector() {
+      const selector = $('documentPlayerSelector');
+      if (!selector) return;
+      
+      selector.innerHTML = '<option value="">-- Selecciona un hijo --</option>';
+      children.forEach(child => {
+        selector.innerHTML += `<option value="${child.id}">${child.nombre}</option>`;
+      });
+    }
+    
+    // Cargar documentos de un jugador
+    async function loadPlayerDocuments() {
+      const selector = $('documentPlayerSelector');
+      const container = $('documentsContainer');
+      const playerId = selector?.value;
+      
+      if (!playerId) {
+        container.innerHTML = `
+          <div class="empty-state" style="text-align: center; padding: 48px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📄</div>
+            <p style="color: #86868b;">Selecciona un hijo para ver sus documentos</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = '<div class="loading" style="padding: 40px; text-align: center;"><div class="spinner"></div> Cargando documentos...</div>';
+      
+      try {
+        // Cargar estado del jugador
+        const { data: playerData, error: playerError } = await sb
+          .from('players')
+          .select(`
+            id, name, tutor_nombre, tutor_email, tutor_telefono,
+            regulations_status, medical_status, image_consent_status,
+            liability_status, payment_agreement_status, documents_complete,
+            agreed_monthly_fee, agreed_payment_day, category_id,
+            categories(name)
+          `)
+          .eq('id', playerId)
+          .single();
+        
+        if (playerError) throw playerError;
+        
+        // Cargar plantillas de documentos
+        const { data: templates, error: templatesError } = await sb
+          .from('document_templates')
+          .select('*')
+          .eq('is_active', true)
+          .eq('is_required', true)
+          .order('type');
+        
+        if (templatesError) throw templatesError;
+        
+        // Cargar firmas existentes
+        const { data: signatures, error: signaturesError } = await sb
+          .from('document_signatures')
+          .select('*, document_templates(name, type, title, version)')
+          .eq('player_id', playerId)
+          .eq('status', 'signed');
+        
+        // Renderizar documentos
+        renderDocumentsSection(container, playerData, templates || [], signatures || []);
+        
+      } catch (err) {
+        console.error('Error cargando documentos:', err);
+        container.innerHTML = `
+          <div class="empty-state" style="text-align: center; padding: 48px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+            <p style="color: #86868b;">Error al cargar documentos. ${err.message || ''}</p>
+            <p style="color: #86868b; font-size: 13px; margin-top: 8px;">
+              Si es la primera vez, asegúrese de ejecutar el SQL de configuración.
+            </p>
+          </div>
+        `;
+      }
+    }
+    
+    // Renderizar sección de documentos
+    function renderDocumentsSection(container, playerData, templates, signatures) {
+      const statusFields = {
+        'reglamento': 'regulations_status',
+        'medico': 'medical_status',
+        'imagen': 'image_consent_status',
+        'responsabilidad': 'liability_status',
+        'pago': 'payment_agreement_status'
+      };
+      
+      const icons = {
+        'reglamento': '📋',
+        'medico': '🏥',
+        'imagen': '📷',
+        'responsabilidad': '⚖️',
+        'pago': '💳'
+      };
+      
+      let pendingCount = 0;
+      let signedCount = 0;
+      
+      let html = `
+        <div class="documents-section" style="background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 16px; overflow: hidden;">
+          <div style="padding: 20px 24px; border-bottom: 1px solid rgba(0,0,0,0.08);">
+            <h3 style="font-size: 18px; font-weight: 700; color: #1d1d1f; margin-bottom: 4px;">Documentos de ${playerData.name}</h3>
+            <p style="font-size: 14px; color: #86868b;">Estado de documentos obligatorios</p>
+          </div>
+          <div style="padding: 8px;">
+      `;
+      
+      templates.forEach(template => {
+        const statusField = statusFields[template.type];
+        const status = playerData[statusField] || 'pending';
+        const isSigned = status === 'signed';
+        const signature = signatures.find(s => s.template_id === template.id);
+        
+        if (isSigned) signedCount++;
+        else pendingCount++;
+        
+        html += `
+          <div style="display: flex; align-items: center; gap: 16px; padding: 16px; border-radius: 12px; margin-bottom: 4px; ${isSigned ? 'background: rgba(52,199,89,0.04);' : ''}">
+            <div style="width: 48px; height: 48px; background: ${isSigned ? 'rgba(52,199,89,0.12)' : '#f5f5f7'}; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+              ${icons[template.type] || '📄'}
+            </div>
+            <div style="flex: 1;">
+              <h4 style="font-size: 15px; font-weight: 600; color: #1d1d1f; margin-bottom: 2px;">${template.title}</h4>
+              <p style="font-size: 13px; color: #86868b;">Versión ${template.version}</p>
+              ${isSigned && signature ? `
+                <span style="display: block; font-size: 12px; color: #34c759; margin-top: 4px;">
+                  Firmado el ${new Date(signature.signed_at).toLocaleDateString('es-DO')} por ${signature.signer_name}
+                </span>
+              ` : ''}
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="badge ${isSigned ? 'badge-success' : 'badge-warning'}">${isSigned ? 'Firmado' : 'Pendiente'}</span>
+            </div>
+          </div>
+        `;
+      });
+      
+      html += '</div>';
+      
+      // Footer con botón de firma
+      if (pendingCount > 0) {
+        html += `
+          <div style="padding: 16px 24px; border-top: 1px solid rgba(0,0,0,0.08); background: #f5f5f7;">
+            <button class="btn btn-primary" style="width: 100%;" onclick="openDocumentsWizard('${playerData.id}')">
+              📝 Firmar Documentos Pendientes (${pendingCount})
+            </button>
+          </div>
+        `;
+      } else {
+        html += `
+          <div style="padding: 16px 24px; border-top: 1px solid rgba(0,0,0,0.08); background: rgba(52,199,89,0.08); text-align: center;">
+            <span style="color: #34c759; font-weight: 600;">✅ Todos los documentos están firmados</span>
+          </div>
+        `;
+      }
+      
+      html += '</div>';
+      
+      // Info de compromiso de pago si está firmado
+      if (playerData.payment_agreement_status === 'signed' && playerData.agreed_monthly_fee) {
+        html += `
+          <div class="card" style="margin-top: 24px;">
+            <div class="card-header">
+              <h3 class="card-title">💳 Compromiso de Pago Activo</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+              <div style="text-align: center; padding: 16px; background: #f5f5f7; border-radius: 12px;">
+                <div style="font-size: 24px; font-weight: 700; color: #1d1d1f;">RD$ ${Number(playerData.agreed_monthly_fee).toLocaleString('es-DO')}</div>
+                <div style="font-size: 13px; color: #86868b;">Mensualidad acordada</div>
+              </div>
+              <div style="text-align: center; padding: 16px; background: #f5f5f7; border-radius: 12px;">
+                <div style="font-size: 24px; font-weight: 700; color: #1d1d1f;">Día ${playerData.agreed_payment_day || 30}</div>
+                <div style="font-size: 13px; color: #86868b;">Fecha de pago</div>
+              </div>
+              <div style="text-align: center; padding: 16px; background: #f5f5f7; border-radius: 12px;">
+                <div style="font-size: 24px; font-weight: 700; color: #34c759;">Activo</div>
+                <div style="font-size: 13px; color: #86868b;">Estado</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      container.innerHTML = html;
+    }
+    
+    // Abrir wizard de documentos
+    async function openDocumentsWizard(playerId) {
+      if (typeof DocumentsSystem !== 'undefined') {
+        const tutorData = {
+          name: currentUser?.user_metadata?.nombre || '',
+          email: currentUser?.email || ''
+        };
+        await DocumentsSystem.openSignatureWizard(playerId, tutorData);
+      } else {
+        alert('El sistema de documentos no está cargado. Por favor recargue la página.');
+      }
+    }
+    
+    // Exponer función globalmente
+    window.loadPlayerDocuments = loadPlayerDocuments;
+    window.openDocumentsWizard = openDocumentsWizard;
+
     // Init
     checkAuth();
   </script>
+  
+  <!-- Sistema de Documentos y Firmas -->
+  <script src="documents-system.js"></script>
 
 </body>
 </html>
