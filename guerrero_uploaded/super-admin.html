@@ -3130,52 +3130,90 @@
           });
         }
         
-        // Query base
-        let query = sb
-          .from('players')
-          .select(`
-            id, nombre, tutor_nombre, tutor_email, category_id,
-            regulations_status, medical_status, image_consent_status,
-            liability_status, payment_agreement_status, documents_complete,
-            agreed_monthly_fee, agreed_payment_day,
-            categories(name)
-          `)
-          .eq('status', 'activo')
-          .order('nombre');
+        // Primero intentar query con columnas de documentos
+        let players = [];
+        let hasDocColumns = true;
         
-        // Aplicar filtros
-        if (filterStatus === 'complete') {
-          query = query.eq('documents_complete', true);
-        } else if (filterStatus === 'pending') {
-          query = query.eq('documents_complete', false);
+        try {
+          let query = sb
+            .from('players')
+            .select(`
+              id, nombre, tutor_nombre, tutor_email, category_id,
+              regulations_status, medical_status, image_consent_status,
+              liability_status, payment_agreement_status, documents_complete,
+              agreed_monthly_fee, agreed_payment_day,
+              categories(name)
+            `)
+            .eq('status', 'activo')
+            .order('nombre');
+          
+          if (filterCategory !== 'all') {
+            query = query.eq('category_id', filterCategory);
+          }
+          
+          const { data, error } = await query;
+          if (error) throw error;
+          players = data || [];
+        } catch (e) {
+          // Las columnas de documentos no existen, usar query básico
+          hasDocColumns = false;
+          console.log('Columnas de documentos no existen, usando query básico');
+          
+          let query = sb
+            .from('players')
+            .select('id, nombre, tutor_nombre, tutor_email, category_id, categories(name)')
+            .eq('status', 'activo')
+            .order('nombre');
+          
+          if (filterCategory !== 'all') {
+            query = query.eq('category_id', filterCategory);
+          }
+          
+          const { data } = await query;
+          players = (data || []).map(p => ({
+            ...p,
+            regulations_status: 'pending',
+            medical_status: 'pending',
+            image_consent_status: 'pending',
+            liability_status: 'pending',
+            payment_agreement_status: 'pending',
+            documents_complete: false
+          }));
         }
         
-        if (filterCategory !== 'all') {
-          query = query.eq('category_id', filterCategory);
+        // Aplicar filtro de estado si las columnas existen
+        if (hasDocColumns && filterStatus !== 'all') {
+          if (filterStatus === 'complete') {
+            players = players.filter(p => p.documents_complete);
+          } else if (filterStatus === 'pending') {
+            players = players.filter(p => !p.documents_complete);
+          }
         }
-        
-        const { data: players, error } = await query;
-        
-        if (error) throw error;
         
         // Contar estadísticas
-        const { data: allPlayers } = await sb
-          .from('players')
-          .select('documents_complete, payment_agreement_status')
-          .eq('status', 'activo');
+        let complete = 0, pending = 0, paymentAgreements = 0, totalSignatures = 0;
         
-        const { count: totalSignatures } = await sb
-          .from('document_signatures')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'signed');
+        if (hasDocColumns) {
+          complete = players.filter(p => p.documents_complete).length;
+          pending = players.filter(p => !p.documents_complete).length;
+          paymentAgreements = players.filter(p => p.payment_agreement_status === 'signed').length;
+        } else {
+          pending = players.length;
+        }
         
-        const complete = allPlayers?.filter(p => p.documents_complete).length || 0;
-        const pending = allPlayers?.filter(p => !p.documents_complete).length || 0;
-        const paymentAgreements = allPlayers?.filter(p => p.payment_agreement_status === 'signed').length || 0;
+        try {
+          const { count } = await sb
+            .from('document_signatures')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'signed');
+          totalSignatures = count || 0;
+        } catch (e) {
+          console.log('Tabla document_signatures no existe');
+        }
         
         $('docStatComplete').textContent = complete;
         $('docStatPending').textContent = pending;
-        $('docStatSignatures').textContent = totalSignatures || 0;
+        $('docStatSignatures').textContent = totalSignatures;
         $('docStatPaymentAgreements').textContent = paymentAgreements;
         
         // Renderizar tabla
