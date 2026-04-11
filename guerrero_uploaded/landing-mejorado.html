@@ -422,6 +422,223 @@
         font-size: 13px;
       }
     }
+    
+    /* ===== SECCIÓN QUIÉNES SOMOS ===== */
+    .about-section {
+      padding: 100px 0;
+      background: #fff;
+    }
+    
+    .about-header {
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto 60px;
+    }
+    
+    .about-label {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #86868b;
+      margin-bottom: 16px;
+    }
+    
+    .about-header h2 {
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 800;
+      color: #1d1d1f;
+      margin: 0 0 24px 0;
+      line-height: 1.1;
+    }
+    
+    .about-header p {
+      font-size: 18px;
+      line-height: 1.7;
+      color: #3d3d3f;
+    }
+    
+    /* Mission/Vision Cards */
+    .mv-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-bottom: 60px;
+    }
+    
+    .mv-card {
+      background: #f5f5f7;
+      border-radius: 20px;
+      padding: 40px;
+    }
+    
+    .mv-card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #86868b;
+      margin: 0 0 16px 0;
+    }
+    
+    .mv-card p {
+      font-size: 17px;
+      line-height: 1.7;
+      color: #1d1d1f;
+      margin: 0;
+    }
+    
+    /* Values */
+    .values-section {
+      margin-bottom: 60px;
+    }
+    
+    .values-title {
+      text-align: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: #1d1d1f;
+      margin: 0 0 40px 0;
+    }
+    
+    .values-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    
+    .value-card {
+      text-align: center;
+      padding: 32px 20px;
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 16px;
+      transition: all 0.3s ease;
+    }
+    
+    .value-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+    }
+    
+    .value-icon {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #1d1d1f 0%, #3d3d3f 100%);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin: 0 auto 16px;
+    }
+    
+    .value-card h4 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1d1d1f;
+      margin: 0 0 8px 0;
+    }
+    
+    .value-card p {
+      font-size: 14px;
+      color: #86868b;
+      margin: 0;
+      line-height: 1.5;
+    }
+    
+    /* Credentials */
+    .credentials-section {
+      background: #1d1d1f;
+      border-radius: 24px;
+      padding: 48px;
+      margin-bottom: 60px;
+    }
+    
+    .credentials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+    }
+    
+    .credential-item {
+      text-align: center;
+    }
+    
+    .credential-icon {
+      width: 64px;
+      height: 64px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin: 0 auto 16px;
+    }
+    
+    .credential-item h4 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin: 0 0 8px 0;
+    }
+    
+    .credential-item p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+      margin: 0;
+      line-height: 1.5;
+    }
+    
+    /* Trust Message */
+    .trust-message {
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 40px;
+      background: linear-gradient(135deg, #f5f5f7 0%, #fff 100%);
+      border-radius: 20px;
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+    
+    .trust-message h3 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1d1d1f;
+      margin: 0 0 16px 0;
+    }
+    
+    .trust-message p {
+      font-size: 16px;
+      line-height: 1.7;
+      color: #3d3d3f;
+      margin: 0;
+    }
+    
+    /* Mobile About */
+    @media (max-width: 768px) {
+      .mv-grid {
+        grid-template-columns: 1fr;
+      }
+      .values-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .credentials-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .credentials-section {
+        padding: 32px 24px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .values-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 
@@ -435,6 +652,8 @@
         <span>Guerrero Academy</span>
       </a>
       <div class="header-links">
+        <a href="#nosotros">Quiénes Somos</a>
+        <a href="#inscripcion">Inscripción</a>
         <a href="https://wa.me/18296396001" target="_blank">Contacto</a>
       </div>
     </div>
@@ -452,13 +671,93 @@
   <!-- Hero -->
   <section class="hero">
     <div class="container">
-      <p class="hero-label">Academia de Fútbol</p>
-      <h1>Formamos jugadores<br>con disciplina y carácter</h1>
-      <p class="hero-text">Entrenamiento para niños y jóvenes de 8 a 17 años. Todos los sábados en Santo Domingo.</p>
+      <p class="hero-label">Academia de Fútbol Sala</p>
+      <h1>Formando Jugadores,<br>Creando Futuro</h1>
+      <p class="hero-text">Entrenamiento profesional para niños y jóvenes de 8 a 17 años. Todos los sábados en Santo Domingo.</p>
       <div class="hero-buttons">
         <a href="#inscripcion" class="btn-dark">Inscribir ahora</a>
         <a href="https://wa.me/18296396001?text=Hola,%20quiero%20información%20sobre%20Guerrero%20Academy" target="_blank" class="btn-light">Enviar WhatsApp</a>
       </div>
+    </div>
+  </section>
+
+  <!-- Quiénes Somos -->
+  <section class="about-section" id="nosotros">
+    <div class="container">
+      
+      <!-- Header -->
+      <div class="about-header">
+        <span class="about-label">Quiénes Somos</span>
+        <h2>Más que una academia,<br>una escuela de vida</h2>
+        <p>Somos una academia oficial vinculada a un equipo profesional que compite en la <strong>Liga Nacional de Fútbol Sala Dominicana</strong>. Nuestro compromiso va más allá del entrenamiento deportivo: formamos jóvenes con técnica real, disciplina inquebrantable y un profundo entendimiento del juego moderno, preparándolos no solo para la cancha, sino para la vida.</p>
+      </div>
+      
+      <!-- Mission & Vision -->
+      <div class="mv-grid">
+        <div class="mv-card">
+          <h3>Nuestra Misión</h3>
+          <p>Desarrollar el fútbol sala en República Dominicana desde las bases, formando jugadores técnicamente competentes y seres humanos íntegros, a través de una metodología profesional que combina excelencia deportiva con formación en valores.</p>
+        </div>
+        <div class="mv-card">
+          <h3>Nuestra Visión</h3>
+          <p>Ser la academia de referencia en el país, reconocida por producir jugadores de élite con carácter ejemplar, que representen con orgullo los valores del deporte y contribuyan al crecimiento del fútbol sala dominicano.</p>
+        </div>
+      </div>
+      
+      <!-- Values -->
+      <div class="values-section">
+        <h3 class="values-title">Los valores que nos definen</h3>
+        <div class="values-grid">
+          <div class="value-card">
+            <div class="value-icon">⚡</div>
+            <h4>Disciplina</h4>
+            <p>El compromiso diario que construye campeones dentro y fuera de la cancha</p>
+          </div>
+          <div class="value-card">
+            <div class="value-icon">🤝</div>
+            <h4>Respeto</h4>
+            <p>Hacia compañeros, rivales, árbitros y el juego mismo</p>
+          </div>
+          <div class="value-card">
+            <div class="value-icon">👥</div>
+            <h4>Trabajo en Equipo</h4>
+            <p>Entendemos que los logros individuales nacen del esfuerzo colectivo</p>
+          </div>
+          <div class="value-card">
+            <div class="value-icon">📈</div>
+            <h4>Superación</h4>
+            <p>Cada entrenamiento es una oportunidad para ser mejor que ayer</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Credentials -->
+      <div class="credentials-section">
+        <div class="credentials-grid">
+          <div class="credential-item">
+            <div class="credential-icon">🏆</div>
+            <h4>Equipo Profesional</h4>
+            <p>Vinculados a un equipo que compite al más alto nivel en la Liga Nacional de Fútbol Sala</p>
+          </div>
+          <div class="credential-item">
+            <div class="credential-icon">🏛️</div>
+            <h4>Colegio Loyola</h4>
+            <p>Afiliados a una institución con más de 60 años formando líderes con valores jesuitas</p>
+          </div>
+          <div class="credential-item">
+            <div class="credential-icon">⭐</div>
+            <h4>Metodología Profesional</h4>
+            <p>Entrenadores certificados con experiencia en formación de alto rendimiento</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Trust Message -->
+      <div class="trust-message">
+        <h3>Confíe en nosotros el futuro de su hijo</h3>
+        <p>Entendemos que inscribir a su hijo en una academia deportiva es una decisión importante. Por eso, nos comprometemos a ofrecer un ambiente seguro, profesional y enriquecedor donde cada joven pueda desarrollar su potencial deportivo mientras crece como persona. <strong>Aquí no solo entrenamos jugadores, formamos individuos preparados para triunfar.</strong></p>
+      </div>
+      
     </div>
   </section>
 
