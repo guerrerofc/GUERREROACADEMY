@@ -1254,6 +1254,10 @@
     const EDGE_FUNCTIONS_URL = "https://daijiuqqafvjofafwqck.supabase.co/functions/v1";
 
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    // Hacer sb disponible globalmente para el sistema de documentos
+    window.sb = sb;
+    window.supabase = sb;
 
     // State
     let currentUser = null;

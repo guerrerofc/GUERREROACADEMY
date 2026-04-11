@@ -37,7 +37,15 @@ const DocumentsSystem = (function() {
      */
     async function init(supabaseClient) {
         window.supabase = supabaseClient;
+        window.sb = supabaseClient; // También asignar a sb por compatibilidad
         console.log('DocumentsSystem inicializado');
+    }
+    
+    /**
+     * Obtener cliente de Supabase
+     */
+    function getSupabase() {
+        return window.supabase || window.sb;
     }
     
     /**
@@ -45,7 +53,13 @@ const DocumentsSystem = (function() {
      */
     async function loadDocumentTemplates() {
         try {
-            const { data, error } = await window.supabase
+            const client = getSupabase();
+            if (!client) {
+                console.error('Supabase no está inicializado');
+                return [];
+            }
+            
+            const { data, error } = await client
                 .from('document_templates')
                 .select('*')
                 .eq('is_active', true)
@@ -65,30 +79,48 @@ const DocumentsSystem = (function() {
      */
     async function getPlayerDocumentsStatus(playerId) {
         try {
+            const client = getSupabase();
+            if (!client) {
+                console.error('Supabase no está inicializado');
+                return null;
+            }
+            
             // Primero obtener datos básicos
-            const { data: basicData, error: basicError } = await window.supabase
+            const { data: basicData, error: basicError } = await client
                 .from('players')
                 .select('id, nombre, tutor_nombre, tutor_email, category_id, categories(name)')
                 .eq('id', playerId)
                 .single();
             
-            if (basicError) throw basicError;
+            if (basicError) {
+                console.error('Error cargando datos básicos:', basicError);
+                throw basicError;
+            }
             
             let result = { ...basicData };
             
-            // Intentar obtener columnas de documentos
+            // Intentar obtener columnas de documentos (pueden no existir)
             try {
-                const { data: docsData } = await window.supabase
+                const { data: docsData, error: docsError } = await client
                     .from('players')
                     .select('regulations_status, medical_status, image_consent_status, liability_status, payment_agreement_status, documents_complete, agreed_monthly_fee, agreed_payment_day')
                     .eq('id', playerId)
                     .single();
                 
-                if (docsData) {
+                if (!docsError && docsData) {
                     result = { ...result, ...docsData };
+                } else {
+                    // Las columnas no existen, usar valores por defecto
+                    result.regulations_status = 'pending';
+                    result.medical_status = 'pending';
+                    result.image_consent_status = 'pending';
+                    result.liability_status = 'pending';
+                    result.payment_agreement_status = 'pending';
+                    result.documents_complete = false;
                 }
             } catch (e) {
                 // Las columnas no existen, usar valores por defecto
+                console.log('Usando valores por defecto para documentos');
                 result.regulations_status = 'pending';
                 result.medical_status = 'pending';
                 result.image_consent_status = 'pending';
@@ -109,7 +141,10 @@ const DocumentsSystem = (function() {
      */
     async function getPlayerSignatures(playerId) {
         try {
-            const { data, error } = await window.supabase
+            const client = getSupabase();
+            if (!client) return [];
+            
+            const { data, error } = await client
                 .from('document_signatures')
                 .select(`
                     *,
