@@ -1748,7 +1748,17 @@
     }
 
     function openModal(id) { $(id).classList.add('show'); }
-    function closeModal(id) { $(id).classList.remove('show'); }
+    function closeModal(id) { 
+      const modal = $(id);
+      if (modal) {
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+        // Si es un modal dinámico (playerDocsModal), removerlo
+        if (id === 'playerDocsModal') {
+          modal.remove();
+        }
+      }
+    }
     
     // Exponer funciones globalmente para módulos externos
     window.openModal = openModal;
@@ -3287,13 +3297,13 @@
         
         // Crear modal con información
         let modalHtml = `
-          <div class="modal" id="playerDocsModal" style="display: flex;">
-            <div class="modal-content" style="max-width: 700px;">
-              <div class="modal-header">
-                <h3>Documentos de ${player.nombre}</h3>
-                <button class="btn btn-sm" onclick="closeModal('playerDocsModal')">✕</button>
+          <div class="modal" id="playerDocsModal" style="display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;" onclick="this.remove()">
+            <div class="modal-content" style="max-width: 700px; background: #fff; border-radius: 16px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;" onclick="event.stopPropagation()">
+              <div class="modal-header" style="padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 18px; color: #1d1d1f;">Documentos de ${player.nombre}</h3>
+                <button onclick="document.getElementById('playerDocsModal').remove()" style="background: #f5f5f7; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;">✕</button>
               </div>
-              <div class="modal-body">
+              <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 20px;">
                 <div style="margin-bottom: 20px; padding: 16px; background: #f5f5f7; border-radius: 12px;">
                   <p><strong>Categoría:</strong> ${player.categories?.name || 'N/A'}</p>
                   <p><strong>Tutor:</strong> ${player.tutor_nombre || 'N/A'}</p>
@@ -3353,11 +3363,11 @@
         modalHtml += `
                 </div>
               </div>
-              <div class="modal-footer">
+              <div class="modal-footer" style="padding: 16px 20px; border-top: 1px solid rgba(0,0,0,0.08); display: flex; gap: 12px; justify-content: flex-end;">
                 ${player.documents_complete ? `
-                  <button class="btn btn-primary" onclick="downloadPlayerDocs('${playerId}')">📥 Descargar Todos</button>
+                  <button class="btn btn-primary" onclick="downloadPlayerDocs('${playerId}')" style="background: #1d1d1f; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">📥 Descargar Todos</button>
                 ` : ''}
-                <button class="btn btn-secondary" onclick="closeModal('playerDocsModal')">Cerrar</button>
+                <button onclick="document.getElementById('playerDocsModal').remove()" style="background: #f5f5f7; color: #1d1d1f; border: 1px solid rgba(0,0,0,0.08); padding: 10px 20px; border-radius: 8px; cursor: pointer;">Cerrar</button>
               </div>
             </div>
           </div>
