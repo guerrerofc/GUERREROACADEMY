@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Operativo - Guerrero Academy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin-apple-theme.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --bg: #ffffff;
+      --bg-secondary: #f5f5f7;
+      --text: #1d1d1f;
+      --text-muted: #86868b;
+      --border: rgba(0, 0, 0, 0.08);
+      --success: #34c759;
+      --warning: #ff9500;
+      --danger: #ff3b30;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg-secondary);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 16px;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 12px;
+      margin-bottom: 32px;
+    }
+    
+    .brand img {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .brand-text h1 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    
+    .brand-text span {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .nav-section {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 16px 12px 8px;
+    }
+    
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      transition: all 0.2s;
+    }
+    
+    .nav-link:hover {
+      background: var(--bg-secondary);
+      color: var(--text);
+    }
+    
+    .nav-link.active {
+      background: var(--text);
+      color: #fff;
+    }
+    
+    .nav-icon {
+      font-size: 18px;
+    }
+    
+    .user-card {
+      margin-top: auto;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+    }
+    
+    .user-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .user-role {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    
+    .btn-logout {
+      margin-top: 12px;
+      width: 100%;
+      padding: 10px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    
+    .btn-logout:hover {
+      background: var(--bg);
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+    
+    /* Main Content */
+    .main {
+      flex: 1;
+      margin-left: 260px;
+      padding: 24px;
+    }
+    
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+    }
+    
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    
+    .page-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    
+    /* Views */
+    .view {
+      display: none;
+    }
+    
+    .view.active {
+      display: block;
+    }
+    
+    /* Cards */
+    .card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    
+    /* Stats */
+    .grid {
+      display: grid;
+      gap: 20px;
+    }
+    
+    .grid-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .grid-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .grid-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (max-width: 1024px) {
+      .grid-4, .grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .grid-4, .grid-3, .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .stat-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+    
+    .stat-icon.blue { background: rgba(59, 130, 246, 0.12); }
+    .stat-icon.green { background: rgba(52, 199, 89, 0.12); }
+    .stat-icon.gold { background: rgba(255, 149, 0, 0.12); }
+    .stat-icon.pink { background: rgba(236, 72, 153, 0.12); }
+    
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    th {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    
+    /* Buttons */
+    .btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: var(--text);
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: #000;
+    }
+    
+    .btn-secondary {
+      background: var(--bg-secondary);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+    
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .badge-success {
+      background: rgba(52, 199, 89, 0.12);
+      color: #248a3d;
+    }
+    
+    .badge-warning {
+      background: rgba(255, 149, 0, 0.12);
+      color: #b25000;
+    }
+    
+    .badge-danger {
+      background: rgba(255, 59, 48, 0.12);
+      color: #d70015;
+    }
+    
+    /* Forms */
+    .input, .select, .textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      background: var(--bg);
+      color: var(--text);
+    }
+    
+    .input:focus, .select:focus, .textarea:focus {
+      outline: none;
+      border-color: var(--text);
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    
+    .modal.show {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: var(--bg);
+      border-radius: 20px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    .modal-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .modal-header h3 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    .modal-body {
+      padding: 24px;
+    }
+    
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    
+    /* Mobile */
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+      .main {
+        margin-left: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="logo-guerrero.svg" alt="Logo">
+        <div class="brand-text">
+          <h1>Guerrero Academy</h1>
+          <span>Panel Operativo</span>
+        </div>
+      </div>
+      
+      <nav>
+        <div class="nav-section">Principal</div>
+        <button class="nav-link active" data-view="dashboard"><span class="nav-icon">📊</span>Dashboard</button>
+        
+        <div class="nav-section">Gestión</div>
+        <button class="nav-link" data-view="payments"><span class="nav-icon">💳</span>Pagos</button>
+        <button class="nav-link" data-view="morosos"><span class="nav-icon">⚠️</span>Morosos</button>
+        <button class="nav-link" data-view="attendance"><span class="nav-icon">✅</span>Asistencia</button>
+        <button class="nav-link" data-view="announcements"><span class="nav-icon">📢</span>Anuncios</button>
+      </nav>
+      
+      <div class="user-card">
+        <div class="user-name" id="userName">Usuario</div>
+        <div class="user-role">Operativo</div>
+        <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+      </div>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main">
+      
+      <!-- Dashboard -->
+      <div class="view active" id="view-dashboard">
+        <div class="topbar">
+          <div>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Resumen de operaciones</p>
+          </div>
+        </div>
+        
+        <div class="grid grid-4" style="margin-bottom: 24px;">
+          <div class="stat-card">
+            <div class="stat-icon pink">💰</div>
+            <div class="stat-label">Pagos del Mes</div>
+            <div class="stat-value" id="kpiPayments">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon gold">⚠️</div>
+            <div class="stat-label">Morosos</div>
+            <div class="stat-value" id="kpiMorosos">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">👥</div>
+            <div class="stat-label">Jugadores</div>
+            <div class="stat-value" id="kpiPlayers">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">📢</div>
+            <div class="stat-label">Anuncios Pendientes</div>
+            <div class="stat-value" id="kpiAnnouncements">0</div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Morosos Actuales</h3>
+          </div>
+          <div id="dashMorosos"></div>
+        </div>
+      </div>
+      
+      <!-- Payments -->
+      <div class="view" id="view-payments">
+        <div class="topbar">
+          <div>
+            <h1 class="page-title">Pagos</h1>
+            <p class="page-subtitle">Registro de pagos manuales</p>
+          </div>
+          <button class="btn btn-primary" onclick="openPaymentModal()">+ Registrar Pago</button>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Historial de Pagos</h3>
+            <input type="month" id="paymentsMonth" class="input" style="max-width: 200px;">
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Jugador</th>
+                <th>Monto</th>
+                <th>Método</th>
+                <th>Registrado por</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="paymentsTable"></tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Morosos -->
+      <div class="view" id="view-morosos">
+        <div class="topbar">
+          <div>
+            <h1 class="page-title">Morosos</h1>
+            <p class="page-subtitle">Jugadores con pagos pendientes</p>
+          </div>
+        </div>
+        
+        <div class="card">
+          <table>
+            <thead>
+              <tr>
+                <th>Jugador</th>
+                <th>Categoría</th>
+                <th>Tutor</th>
+                <th>WhatsApp</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="morososTable"></tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Attendance -->
+      <div class="view" id="view-attendance">
+        <div class="topbar">
+          <div>
+            <h1 class="page-title">Asistencia</h1>
+            <p class="page-subtitle">Registro de asistencia</p>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Seleccionar Categoría</h3>
+          </div>
+          <div class="form-group">
+            <select id="attendanceCategory" class="select" onchange="loadAttendancePlayers()">
+              <option value="">-- Selecciona categoría --</option>
+            </select>
+          </div>
+          <div id="attendanceList"></div>
+          <button class="btn btn-primary" id="btnSaveAttendance" onclick="saveAttendance()" style="display: none; margin-top: 16px;">Guardar Asistencia</button>
+        </div>
+      </div>
+      
+      <!-- Announcements -->
+      <div class="view" id="view-announcements">
+        <div class="topbar">
+          <div>
+            <h1 class="page-title">Anuncios</h1>
+            <p class="page-subtitle">Crear anuncios (requieren aprobación del admin)</p>
+          </div>
+          <button class="btn btn-primary" onclick="openAnnouncementModal()">+ Nuevo Anuncio</button>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Mis Anuncios</h3>
+          </div>
+          <div id="announcementsList"></div>
+        </div>
+      </div>
+      
+    </main>
+  </div>
+  
+  <!-- Payment Modal -->
+  <div class="modal" id="paymentModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Registrar Pago Manual</h3>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Buscar Jugador</label>
+          <input type="text" class="input" id="paymentSearch" placeholder="Nombre del jugador..." oninput="searchPlayer()">
+          <div id="playerResults" style="margin-top: 8px;"></div>
+        </div>
+        <div id="selectedPlayerInfo" style="display: none; padding: 16px; background: var(--bg-secondary); border-radius: 10px; margin-bottom: 16px;">
+          <strong id="selectedPlayerName"></strong>
+          <input type="hidden" id="selectedPlayerId">
+        </div>
+        <div class="form-group">
+          <label>Monto (RD$)</label>
+          <input type="number" class="input" id="paymentAmount" placeholder="4000">
+        </div>
+        <div class="form-group">
+          <label>Método de Pago</label>
+          <select class="select" id="paymentMethod">
+            <option value="efectivo">Efectivo</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="tarjeta">Tarjeta</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('paymentModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="savePayment()">Registrar Pago</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Announcement Modal -->
+  <div class="modal" id="announcementModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Nuevo Anuncio</h3>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Título</label>
+          <input type="text" class="input" id="announcementTitle" placeholder="Título del anuncio">
+        </div>
+        <div class="form-group">
+          <label>Contenido</label>
+          <textarea class="textarea" id="announcementContent" rows="5" placeholder="Escribe el contenido del anuncio..."></textarea>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted);">
+          ⚠️ Los anuncios requieren aprobación del administrador antes de ser publicados.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('announcementModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveAnnouncement()">Enviar para Aprobación</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://daijiuqqafvjofafwqck.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g";
+    
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    const $ = id => document.getElementById(id);
+    const $$ = sel => document.querySelectorAll(sel);
+    
+    let currentUser = null;
+    let players = [];
+    let categories = [];
+    
+    // Auth check
+    async function checkAuth() {
+      const userData = localStorage.getItem('guerrero_user');
+      if (!userData) {
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      currentUser = JSON.parse(userData);
+      
+      // Verificar que sea operativo
+      if (currentUser.rol !== 'operativo') {
+        alert('No tienes permisos para acceder a este panel');
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      $('userName').textContent = currentUser.nombre || currentUser.email;
+      
+      loadDashboard();
+    }
+    
+    function logout() {
+      localStorage.removeItem('guerrero_user');
+      window.location.href = 'login.html';
+    }
+    
+    // Navigation
+    $$('.nav-link').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const view = btn.dataset.view;
+        showView(view);
+      });
+    });
+    
+    function showView(view) {
+      $$('.nav-link').forEach(b => b.classList.remove('active'));
+      document.querySelector(`[data-view="${view}"]`)?.classList.add('active');
+      $$('.view').forEach(v => v.classList.remove('active'));
+      $(`view-${view}`).classList.add('active');
+      
+      if (view === 'dashboard') loadDashboard();
+      if (view === 'payments') loadPayments();
+      if (view === 'morosos') loadMorosos();
+      if (view === 'attendance') loadAttendanceCategories();
+      if (view === 'announcements') loadAnnouncements();
+    }
+    
+    // Dashboard
+    async function loadDashboard() {
+      const currentMonth = new Date().toISOString().slice(0, 7) + '-01';
+      
+      const [playersRes, paymentsRes, catsRes] = await Promise.all([
+        sb.from('players').select('*, categories(name)').eq('status', 'activo'),
+        sb.from('payments').select('*').eq('month', currentMonth).eq('status', 'paid'),
+        sb.from('categories').select('*')
+      ]);
+      
+      players = playersRes.data || [];
+      categories = catsRes.data || [];
+      const payments = paymentsRes.data || [];
+      
+      const paidIds = new Set(payments.map(p => p.player_id));
+      const morosos = players.filter(p => !paidIds.has(p.id) && p.status !== 'becado');
+      
+      // Contar anuncios pendientes creados por este usuario
+      const { data: pendingAnnouncements } = await sb
+        .from('announcements')
+        .select('*')
+        .eq('status', 'pending')
+        .eq('created_by', currentUser.email);
+      
+      $('kpiPayments').textContent = payments.length;
+      $('kpiMorosos').textContent = morosos.length;
+      $('kpiPlayers').textContent = players.length;
+      $('kpiAnnouncements').textContent = (pendingAnnouncements || []).length;
+      
+      // Morosos preview
+      $('dashMorosos').innerHTML = morosos.slice(0, 5).map(p => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+          <div>
+            <strong>${p.nombre}</strong>
+            <span style="font-size: 12px; color: var(--text-muted); margin-left: 8px;">${p.categories?.name || ''}</span>
+          </div>
+          ${p.tutor_whatsapp ? `
+            <a class="btn btn-sm" href="https://wa.me/${p.tutor_whatsapp.replace(/\D/g, '')}?text=Hola, recordatorio de pago de Guerrero Academy para ${p.nombre}" target="_blank">📱</a>
+          ` : ''}
+        </div>
+      `).join('') || '<p style="color: var(--text-muted); text-align: center; padding: 20px;">¡Sin morosos! 🎉</p>';
+    }
+    
+    // Payments
+    async function loadPayments() {
+      const month = $('paymentsMonth').value || new Date().toISOString().slice(0, 7);
+      $('paymentsMonth').value = month;
+      
+      const { data: payments } = await sb
+        .from('payments')
+        .select('*')
+        .gte('month', month + '-01')
+        .lte('month', month + '-31')
+        .order('created_at', { ascending: false });
+      
+      $('paymentsTable').innerHTML = (payments || []).map(p => {
+        const player = players.find(pl => pl.id === p.player_id);
+        return `
+          <tr>
+            <td>${p.paid_at || new Date(p.created_at).toLocaleDateString('es-DO')}</td>
+            <td>${player?.nombre || '-'}</td>
+            <td><strong>RD$ ${Number(p.amount || 0).toLocaleString('es-DO')}</strong></td>
+            <td>${p.method || '-'}</td>
+            <td>${p.registered_by || 'Sistema'}</td>
+            <td><span class="badge badge-success">Pagado</span></td>
+          </tr>
+        `;
+      }).join('') || '<tr><td colspan="6" style="text-align: center;">Sin pagos</td></tr>';
+    }
+    
+    $('paymentsMonth').addEventListener('change', loadPayments);
+    
+    // Payment Modal
+    function openPaymentModal() {
+      $('paymentSearch').value = '';
+      $('playerResults').innerHTML = '';
+      $('selectedPlayerInfo').style.display = 'none';
+      $('selectedPlayerId').value = '';
+      $('paymentAmount').value = '4000';
+      $('paymentMethod').value = 'efectivo';
+      $('paymentModal').classList.add('show');
+    }
+    
+    function searchPlayer() {
+      const query = $('paymentSearch').value.toLowerCase();
+      if (query.length < 2) {
+        $('playerResults').innerHTML = '';
+        return;
+      }
+      
+      const results = players.filter(p => p.nombre.toLowerCase().includes(query)).slice(0, 5);
+      $('playerResults').innerHTML = results.map(p => `
+        <div style="padding: 10px; cursor: pointer; border-radius: 8px; margin-bottom: 4px; background: var(--bg-secondary);" onclick="selectPlayer('${p.id}', '${p.nombre}')">
+          ${p.nombre} <small style="color: var(--text-muted);">${p.categories?.name || ''}</small>
+        </div>
+      `).join('');
+    }
+    
+    function selectPlayer(id, name) {
+      $('selectedPlayerId').value = id;
+      $('selectedPlayerName').textContent = name;
+      $('selectedPlayerInfo').style.display = 'block';
+      $('playerResults').innerHTML = '';
+      $('paymentSearch').value = '';
+    }
+    
+    async function savePayment() {
+      const playerId = $('selectedPlayerId').value;
+      const amount = $('paymentAmount').value;
+      const method = $('paymentMethod').value;
+      
+      if (!playerId || !amount) {
+        alert('Selecciona un jugador y monto');
+        return;
+      }
+      
+      const currentMonth = new Date().toISOString().slice(0, 7) + '-01';
+      const today = new Date().toISOString().split('T')[0];
+      
+      const { error } = await sb.from('payments').insert({
+        player_id: playerId,
+        amount: Number(amount),
+        month: currentMonth,
+        method: method,
+        status: 'paid',
+        paid_at: today,
+        registered_by: currentUser.nombre || currentUser.email
+      });
+      
+      if (error) {
+        alert('Error: ' + error.message);
+        return;
+      }
+      
+      alert('Pago registrado correctamente');
+      closeModal('paymentModal');
+      loadPayments();
+      loadDashboard();
+    }
+    
+    // Morosos
+    async function loadMorosos() {
+      const currentMonth = new Date().toISOString().slice(0, 7) + '-01';
+      
+      const { data: payments } = await sb
+        .from('payments')
+        .select('player_id')
+        .eq('month', currentMonth)
+        .eq('status', 'paid');
+      
+      const paidIds = new Set((payments || []).map(p => p.player_id));
+      const morosos = players.filter(p => !paidIds.has(p.id) && p.status !== 'becado');
+      
+      $('morososTable').innerHTML = morosos.map(p => `
+        <tr>
+          <td><strong>${p.nombre}</strong></td>
+          <td>${p.categories?.name || '-'}</td>
+          <td>${p.tutor_nombre || '-'}</td>
+          <td>${p.tutor_whatsapp || '-'}</td>
+          <td>
+            ${p.tutor_whatsapp ? `
+              <a class="btn btn-sm" href="https://wa.me/${p.tutor_whatsapp.replace(/\D/g, '')}?text=Hola, recordatorio de pago de Guerrero Academy para ${p.nombre}" target="_blank">📱 Recordar</a>
+            ` : '-'}
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="5" style="text-align: center;">¡Sin morosos! 🎉</td></tr>';
+    }
+    
+    // Attendance
+    async function loadAttendanceCategories() {
+      $('attendanceCategory').innerHTML = '<option value="">-- Selecciona categoría --</option>' +
+        categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    }
+    
+    function loadAttendancePlayers() {
+      const categoryId = $('attendanceCategory').value;
+      if (!categoryId) {
+        $('attendanceList').innerHTML = '';
+        $('btnSaveAttendance').style.display = 'none';
+        return;
+      }
+      
+      const categoryPlayers = players.filter(p => p.category_id === categoryId);
+      
+      $('attendanceList').innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Jugador</th>
+              <th>Presente</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${categoryPlayers.map(p => `
+              <tr>
+                <td>${p.nombre}</td>
+                <td>
+                  <input type="checkbox" id="att_${p.id}" checked style="width: 20px; height: 20px;">
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+      
+      $('btnSaveAttendance').style.display = 'block';
+    }
+    
+    async function saveAttendance() {
+      const categoryId = $('attendanceCategory').value;
+      const categoryPlayers = players.filter(p => p.category_id === categoryId);
+      const today = new Date().toISOString().split('T')[0];
+      
+      const records = categoryPlayers.map(p => ({
+        player_id: p.id,
+        date: today,
+        present: document.getElementById(`att_${p.id}`)?.checked || false,
+        registered_by: currentUser.nombre || currentUser.email
+      }));
+      
+      const { error } = await sb.from('attendance').upsert(records, { onConflict: 'player_id,date' });
+      
+      if (error) {
+        alert('Error: ' + error.message);
+        return;
+      }
+      
+      alert('Asistencia guardada correctamente');
+    }
+    
+    // Announcements
+    async function loadAnnouncements() {
+      const { data: announcements } = await sb
+        .from('announcements')
+        .select('*')
+        .eq('created_by', currentUser.email)
+        .order('created_at', { ascending: false });
+      
+      $('announcementsList').innerHTML = (announcements || []).map(a => `
+        <div style="padding: 16px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong>${a.title}</strong>
+            <span class="badge ${a.status === 'approved' ? 'badge-success' : a.status === 'rejected' ? 'badge-danger' : 'badge-warning'}">
+              ${a.status === 'approved' ? 'Aprobado' : a.status === 'rejected' ? 'Rechazado' : 'Pendiente'}
+            </span>
+          </div>
+          <p style="color: var(--text-muted); font-size: 14px;">${a.content}</p>
+          <small style="color: var(--text-muted);">${new Date(a.created_at).toLocaleDateString('es-DO')}</small>
+        </div>
+      `).join('') || '<p style="text-align: center; color: var(--text-muted);">No has creado anuncios</p>';
+    }
+    
+    function openAnnouncementModal() {
+      $('announcementTitle').value = '';
+      $('announcementContent').value = '';
+      $('announcementModal').classList.add('show');
+    }
+    
+    async function saveAnnouncement() {
+      const title = $('announcementTitle').value.trim();
+      const content = $('announcementContent').value.trim();
+      
+      if (!title || !content) {
+        alert('Completa todos los campos');
+        return;
+      }
+      
+      const { error } = await sb.from('announcements').insert({
+        title,
+        content,
+        status: 'pending',
+        created_by: currentUser.email
+      });
+      
+      if (error) {
+        alert('Error: ' + error.message);
+        return;
+      }
+      
+      alert('Anuncio enviado para aprobación');
+      closeModal('announcementModal');
+      loadAnnouncements();
+    }
+    
+    // Modal helpers
+    function closeModal(id) {
+      $(id).classList.remove('show');
+    }
+    
+    // Click outside modal to close
+    $$('.modal').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('show');
+        }
+      });
+    });
+    
+    // Init
+    checkAuth();
+  </script>
+</body>
+</html>
