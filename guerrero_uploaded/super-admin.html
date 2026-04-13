@@ -1136,7 +1136,9 @@
                 <th>Jugador</th>
                 <th>Monto</th>
                 <th>Método</th>
+                <th>Registrado por</th>
                 <th>Estado</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="historyTable"></tbody>
@@ -2661,10 +2663,14 @@
             <td>${player?.nombre || '-'}</td>
             <td><strong>${formatMoney(p.amount)}</strong></td>
             <td>${p.method || '-'}</td>
+            <td>${p.registered_by || 'Sistema'}</td>
             <td><span class="badge badge-success">Pagado</span></td>
+            <td>
+              <button class="btn btn-sm btn-danger" onclick="deletePayment('${p.id}')" title="Eliminar pago">🗑️</button>
+            </td>
           </tr>
         `;
-      }).join('') || '<tr><td colspan="5" style="text-align: center;">Sin pagos</td></tr>';
+      }).join('') || '<tr><td colspan="7" style="text-align: center;">Sin pagos</td></tr>';
     }
 
     // Payment tabs
@@ -3355,7 +3361,10 @@
                 ${isSigned && signature ? `<br><small style="color: #86868b;">Firmado el ${new Date(signature.signed_at).toLocaleDateString('es-DO')} por ${signature.signer_name}</small>` : ''}
               </div>
               <span class="badge ${isSigned ? 'badge-success' : 'badge-warning'}">${isSigned ? 'Firmado' : 'Pendiente'}</span>
-              ${isSigned && signature ? `<button class="btn btn-sm" onclick="downloadDocPDF('${signature.id}')">📥</button>` : ''}
+              ${isSigned && signature ? `
+                <button class="btn btn-sm" onclick="downloadDocPDF('${signature.id}')" title="Descargar">📥</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteDocumentSignature('${signature.id}', '${playerId}')" title="Eliminar firma">🗑️</button>
+              ` : ''}
             </div>
           `;
         });
@@ -3374,11 +3383,14 @@
         modalHtml += `
                 </div>
               </div>
-              <div class="modal-footer" style="padding: 16px 20px; border-top: 1px solid rgba(0,0,0,0.08); display: flex; gap: 12px; justify-content: flex-end;">
-                ${player.documents_complete ? `
-                  <button class="btn btn-primary" onclick="downloadPlayerDocs('${playerId}')" style="background: #1d1d1f; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">📥 Descargar Todos</button>
-                ` : ''}
-                <button onclick="document.getElementById('playerDocsModal').remove()" style="background: #f5f5f7; color: #1d1d1f; border: 1px solid rgba(0,0,0,0.08); padding: 10px 20px; border-radius: 8px; cursor: pointer;">Cerrar</button>
+              <div class="modal-footer" style="padding: 16px 20px; border-top: 1px solid rgba(0,0,0,0.08); display: flex; gap: 12px; justify-content: space-between;">
+                <button onclick="deleteAllPlayerSignatures('${playerId}')" style="background: #fee2e2; color: #dc2626; border: 1px solid rgba(220,38,38,0.2); padding: 10px 20px; border-radius: 8px; cursor: pointer;">🗑️ Eliminar Todas</button>
+                <div style="display: flex; gap: 12px;">
+                  ${player.documents_complete ? `
+                    <button class="btn btn-primary" onclick="downloadPlayerDocs('${playerId}')" style="background: #1d1d1f; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">📥 Descargar Todos</button>
+                  ` : ''}
+                  <button onclick="document.getElementById('playerDocsModal').remove()" style="background: #f5f5f7; color: #1d1d1f; border: 1px solid rgba(0,0,0,0.08); padding: 10px 20px; border-radius: 8px; cursor: pointer;">Cerrar</button>
+                </div>
               </div>
             </div>
           </div>
@@ -3411,6 +3423,103 @@
         alert('El generador de PDF no está cargado. Recarga la página.');
       }
     }
+    
+    // =====================================================
+    // FUNCIONES DE ELIMINACIÓN (SUPER ADMIN)
+    // =====================================================
+    
+    // Eliminar pago
+    async function deletePayment(paymentId) {
+      if (!confirm('¿Estás seguro de eliminar este pago? Esta acción no se puede deshacer.')) return;
+      
+      try {
+        const { error } = await sb.from('payments').delete().eq('id', paymentId);
+        if (error) throw error;
+        
+        alert('Pago eliminado correctamente');
+        loadPaymentsHistory($('paymentsMonth').value + '-01');
+        loadDashboard();
+      } catch (err) {
+        console.error('Error eliminando pago:', err);
+        alert('Error al eliminar: ' + err.message);
+      }
+    }
+    
+    // Eliminar firma de documento
+    async function deleteDocumentSignature(signatureId, playerId) {
+      if (!confirm('¿Estás seguro de eliminar esta firma? El jugador tendrá que volver a firmar el documento.')) return;
+      
+      try {
+        // Obtener info del documento para actualizar el estado del jugador
+        const { data: signature } = await sb
+          .from('document_signatures')
+          .select('*, document_templates(type)')
+          .eq('id', signatureId)
+          .single();
+        
+        // Eliminar firma
+        const { error } = await sb.from('document_signatures').delete().eq('id', signatureId);
+        if (error) throw error;
+        
+        // Actualizar estado del jugador
+        if (signature?.document_templates?.type) {
+          const type = signature.document_templates.type;
+          const updates = { documents_complete: false };
+          
+          if (type === 'reglamento') updates.regulations_status = 'pending';
+          if (type === 'medico') updates.medical_status = 'pending';
+          if (type === 'imagen') updates.image_consent_status = 'pending';
+          if (type === 'responsabilidad') updates.liability_status = 'pending';
+          if (type === 'pago') {
+            updates.payment_agreement_status = 'pending';
+            updates.agreed_monthly_fee = null;
+            updates.agreed_payment_day = null;
+          }
+          
+          await sb.from('players').update(updates).eq('id', playerId);
+        }
+        
+        alert('Firma eliminada correctamente');
+        loadDocumentsAdmin();
+      } catch (err) {
+        console.error('Error eliminando firma:', err);
+        alert('Error al eliminar: ' + err.message);
+      }
+    }
+    
+    // Eliminar todas las firmas de un jugador
+    async function deleteAllPlayerSignatures(playerId) {
+      if (!confirm('¿Estás seguro de eliminar TODAS las firmas de este jugador? Tendrá que firmar todos los documentos de nuevo.')) return;
+      
+      try {
+        const { error } = await sb.from('document_signatures').delete().eq('player_id', playerId);
+        if (error) throw error;
+        
+        // Resetear estado del jugador
+        await sb.from('players').update({
+          regulations_status: 'pending',
+          medical_status: 'pending',
+          image_consent_status: 'pending',
+          liability_status: 'pending',
+          payment_agreement_status: 'pending',
+          documents_complete: false,
+          agreed_monthly_fee: null,
+          agreed_payment_day: null
+        }).eq('id', playerId);
+        
+        alert('Todas las firmas eliminadas correctamente');
+        loadDocumentsAdmin();
+        document.getElementById('playerDocsModal')?.remove();
+      } catch (err) {
+        console.error('Error eliminando firmas:', err);
+        alert('Error al eliminar: ' + err.message);
+      }
+    }
+    
+    // Exponer funciones globalmente
+    window.deletePayment = deletePayment;
+    window.deleteDocumentSignature = deleteDocumentSignature;
+    window.deleteAllPlayerSignatures = deleteAllPlayerSignatures;
     
     // Exportar reporte de documentos
     function exportDocumentsReport() {
