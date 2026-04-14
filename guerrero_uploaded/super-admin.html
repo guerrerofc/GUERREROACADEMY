@@ -1018,10 +1018,10 @@
           </div>
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">Últimos Pagos</h3>
-              <button class="btn btn-sm" onclick="showView('payments')">Ver todos →</button>
+              <h3 class="card-title">Ingresos por Categoría</h3>
+              <button class="btn btn-sm" onclick="showView('payments')">Ver pagos →</button>
             </div>
-            <div id="dashPayments"></div>
+            <div id="dashCategoryIncome"></div>
           </div>
         </div>
       </div>
@@ -2110,19 +2110,30 @@
         </div>
       `).join('') || '<p style="color: var(--text-muted); text-align: center; padding: 20px;">¡Sin morosos! 🎉</p>';
 
-      // Recent payments
-      $('dashPayments').innerHTML = payments.slice(0, 5).map(p => {
+      // Ingresos por categoría
+      const incomeByCategory = {};
+      payments.forEach(p => {
         const player = players.find(pl => pl.id === p.player_id);
-        return `
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+        const catName = player?.categories?.name || 'Sin categoría';
+        const catColor = categories.find(c => c.id === player?.category_id)?.color || '#86868b';
+        if (!incomeByCategory[catName]) incomeByCategory[catName] = { total: 0, count: 0, color: catColor };
+        incomeByCategory[catName].total += Number(p.amount || 0);
+        incomeByCategory[catName].count++;
+      });
+
+      const catEntries = Object.entries(incomeByCategory).sort((a, b) => b[1].total - a[1].total);
+      $('dashCategoryIncome').innerHTML = catEntries.map(([name, data]) => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 10px; height: 10px; border-radius: 50%; background: ${data.color};"></div>
             <div>
-              <strong>${player?.nombre || '-'}</strong>
-              <span style="font-size: 12px; color: var(--text-muted); margin-left: 8px;">${p.paid_at || ''}</span>
+              <strong>${name}</strong>
+              <span style="font-size: 12px; color: var(--text-muted); margin-left: 8px;">${data.count} pagos</span>
             </div>
-            <span style="color: var(--success); font-weight: 700;">${formatMoney(p.amount)}</span>
           </div>
-        `;
-      }).join('') || '<p style="color: var(--text-muted); text-align: center; padding: 20px;">Sin pagos este mes</p>';
+          <span style="color: var(--success); font-weight: 700;">${formatMoney(data.total)}</span>
+        </div>
+      `).join('') || '<p style="color: var(--text-muted); text-align: center; padding: 20px;">Sin pagos este mes</p>';
     }
 
     function renderDocumentsChart(complete, pending) {
