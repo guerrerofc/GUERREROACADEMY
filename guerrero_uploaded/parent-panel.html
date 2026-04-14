@@ -967,7 +967,7 @@
       <div id="loginStatus" class="status-msg"></div>
 
       <p style="margin-top: 24px; text-align: center; font-size: 12px; color: var(--text-muted);">
-        <a href="./landing-mejorado.html" style="color: var(--accent);">← Volver al sitio</a>
+        <a href="/landing" style="color: var(--accent);">← Volver al sitio</a>
       </p>
     </div>
   </div>
@@ -1344,7 +1344,7 @@
     $('btnLogout').addEventListener('click', async () => {
       localStorage.removeItem('guerrero_user');
       await sb.auth.signOut();
-      window.location.href = './login.html';
+      window.location.href = '/login';
     });
 
     // Navigation

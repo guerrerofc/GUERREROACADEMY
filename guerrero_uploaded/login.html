@@ -167,7 +167,7 @@
 <body>
 
   <div class="login-container">
-    <a class="logo" href="./landing-mejorado.html">
+    <a class="logo" href="/landing">
       <img src="logo-guerrero.svg" alt="Guerrero Academy">
       <span>Guerrero Academy</span>
     </a>
@@ -192,7 +192,7 @@
         <button type="submit" class="btn" id="btnLogin">Iniciar sesión</button>
       </form>
       
-      <a class="back-link" href="./landing-mejorado.html">← Volver al inicio</a>
+      <a class="back-link" href="/landing">← Volver al inicio</a>
     </div>
   </div>
 
@@ -205,16 +205,16 @@
     
     // Mapeo de roles a paneles
     const rolePanels = {
-      'super_admin': 'super-admin.html',
-      'superadmin': 'super-admin.html',
-      'admin': 'super-admin.html',
-      'director': 'director-panel.html',
-      'staff': 'staff-panel.html',
-      'entrenador': 'staff-panel.html',
-      'padre': 'parent-panel.html',
-      'parent': 'parent-panel.html',
-      'tutor': 'parent-panel.html',
-      'operativo': 'operativo-panel.html'
+      'super_admin': '/admin',
+      'superadmin': '/admin',
+      'admin': '/admin',
+      'director': '/director',
+      'staff': '/staff',
+      'entrenador': '/staff',
+      'padre': '/padres',
+      'parent': '/padres',
+      'tutor': '/padres',
+      'operativo': '/operativo'
     };
     
     const form = document.getElementById('loginForm');
@@ -335,12 +335,12 @@
       }));
       
       // Buscar el panel correspondiente
-      const panel = rolePanels[rol] || 'parent-panel.html';
+      const panel = rolePanels[rol] || '/padres';
       
       btn.innerHTML = 'Redirigiendo...';
       
       // Redirigir
-      window.location.href = './' + panel;
+      window.location.href = panel;
     }
     
     // Verificar si ya hay sesión activa
