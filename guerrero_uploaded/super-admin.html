@@ -1832,13 +1832,17 @@
       return `https://wa.me/1${p}?text=${encodeURIComponent(msg)}`;
     }
 
-    function openModal(id) { $(id).classList.add('show'); }
+    function openModal(id) { 
+      const modal = $(id);
+      if (modal) {
+        modal.style.display = '';
+        modal.classList.add('show');
+      }
+    }
     function closeModal(id) { 
       const modal = $(id);
       if (modal) {
         modal.classList.remove('show');
-        modal.style.display = 'none';
-        // Si es un modal dinámico (playerDocsModal), removerlo
         if (id === 'playerDocsModal') {
           modal.remove();
         }
