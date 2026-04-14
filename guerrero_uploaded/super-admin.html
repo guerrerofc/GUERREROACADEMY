@@ -1064,9 +1064,11 @@
               <thead>
                 <tr>
                   <th>Jugador</th>
+                  <th>Foto</th>
                   <th>Categoría</th>
                   <th>Tutor</th>
                   <th>WhatsApp</th>
+                  <th>Acta</th>
                   <th>Estado</th>
                   <th>Acciones</th>
                 </tr>
@@ -1519,6 +1521,20 @@
             Los porteros aparecen en su categoría por edad Y en la categoría "Porteros"
           </div>
         </div>
+
+        <!-- Foto del Jugador -->
+        <div class="form-group">
+          <label>Foto del Jugador (año ${new Date().getFullYear()})</label>
+          <input type="file" id="playerPhoto" accept="image/*" class="input" style="padding: 10px;">
+          <div id="playerPhotoPreview" style="margin-top: 8px;"></div>
+        </div>
+
+        <!-- Acta de Nacimiento -->
+        <div class="form-group">
+          <label>Acta de Nacimiento (PDF o imagen)</label>
+          <input type="file" id="playerActa" accept="image/*,.pdf" class="input" style="padding: 10px;">
+          <div id="playerActaPreview" style="margin-top: 8px;"></div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn" onclick="closeModal('playerModal')">Cancelar</button>
@@ -1703,8 +1719,69 @@
     </div>
   </div>
 
+  <!-- Modal: Fotos del Jugador -->
+  <div class="modal" id="photosModal">
+    <div class="modal-content" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3 id="photosModalTitle">Fotos del Jugador</h3>
+        <button class="btn btn-sm" onclick="closeModal('photosModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="photosPlayerId">
+        <div style="margin-bottom: 16px;">
+          <label style="font-weight: 600; display: block; margin-bottom: 8px;">Subir nueva foto (${new Date().getFullYear()}):</label>
+          <input type="file" id="newPlayerPhoto" accept="image/*" class="input" style="padding: 10px;">
+          <button class="btn btn-primary btn-sm" onclick="uploadPlayerPhoto()" style="margin-top: 8px;">Subir Foto</button>
+        </div>
+        <div id="photosGallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px;"></div>
+      </div>
+    </div>
+  </div>
 
-  <script>
+  <!-- Modal: Acta de Nacimiento -->
+  <div class="modal" id="actaModal">
+    <div class="modal-content" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3 id="actaModalTitle">Acta de Nacimiento</h3>
+        <button class="btn btn-sm" onclick="closeModal('actaModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="actaPlayerId">
+        <div style="margin-bottom: 16px;">
+          <label style="font-weight: 600; display: block; margin-bottom: 8px;">Subir acta de nacimiento:</label>
+          <input type="file" id="newActaFile" accept="image/*,.pdf" class="input" style="padding: 10px;">
+          <button class="btn btn-primary btn-sm" onclick="uploadActa()" style="margin-top: 8px;">Subir Acta</button>
+        </div>
+        <div id="actasList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Cambiar Contraseña -->
+  <div class="modal" id="changePasswordModal">
+    <div class="modal-content" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3>Cambiar Contraseña</h3>
+        <button class="btn btn-sm" onclick="closeModal('changePasswordModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="cpUserId">
+        <p style="margin-bottom: 16px; color: var(--text-dim); font-size: 14px;">Usuario: <strong id="cpUserEmail"></strong></p>
+        <div class="form-group">
+          <label>Nueva Contraseña</label>
+          <input type="password" id="cpNewPassword" class="input" placeholder="Nueva contraseña (min. 6 caracteres)" minlength="6">
+        </div>
+        <div class="form-group">
+          <label>Confirmar Contraseña</label>
+          <input type="password" id="cpConfirmPassword" class="input" placeholder="Confirmar contraseña">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('changePasswordModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveNewPassword()">Guardar Contraseña</button>
+      </div>
+    </div>
+  </div>
     const SUPABASE_URL = "https://daijiuqqafvjofafwqck.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -2116,17 +2193,23 @@
       $('playersTable').innerHTML = filtered.map(p => `
         <tr>
           <td><strong>${p.nombre || '-'}</strong></td>
+          <td>
+            ${p.foto_url ? `<img src="${p.foto_url}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;cursor:pointer;" onclick="verFotosJugador('${p.id}','${(p.nombre||'').replace(/'/g,'\\&#39;')}')">` : `<span style="width:36px;height:36px;border-radius:50%;background:var(--bg-secondary,#f5f5f7);display:inline-flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;" onclick="verFotosJugador('${p.id}','${(p.nombre||'').replace(/'/g,'\\&#39;')}')">📷</span>`}
+          </td>
           <td><span class="badge badge-info">${p.categories?.name || '-'}</span></td>
           <td>${p.tutor_nombre || '-'}${p.tutor_email ? `<br><small style="color: #6B7280;">${p.tutor_email}</small>` : ''}</td>
           <td>${p.tutor_whatsapp || '-'}</td>
+          <td>
+            <button class="btn btn-sm" onclick="verActaJugador('${p.id}','${(p.nombre||'').replace(/'/g,'\\&#39;')}')" title="Ver/Subir Acta" style="font-size:12px;">📄 Acta</button>
+          </td>
           <td><span class="badge badge-${p.status === 'activo' ? 'success' : p.status === 'becado' ? 'blue' : 'warning'}">${p.status || '-'}</span></td>
           <td style="white-space: nowrap;">
             <button class="btn btn-sm" onclick="editPlayer('${p.id}')" title="Editar jugador">✏️</button>
             ${p.tutor_email ? `<button class="btn btn-sm" style="background: #8B5CF6;" onclick="reenviarEmailPadre('${p.id}', '${p.tutor_email}', '${p.nombre}')" title="Reenviar email de bienvenida">📧</button>` : ''}
-            <button class="btn btn-sm" style="background: #EF4444;" onclick="eliminarJugador('${p.id}', '${p.nombre}')" title="Eliminar jugador (Solo Super Admin)">🗑️</button>
+            <button class="btn btn-sm" style="background: #EF4444;" onclick="eliminarJugador('${p.id}', '${p.nombre}')" title="Eliminar jugador">🗑️</button>
           </td>
         </tr>
-      `).join('') || '<tr><td colspan="6" style="text-align: center;">Sin jugadores</td></tr>';
+      `).join('') || '<tr><td colspan="8" style="text-align: center;">Sin jugadores</td></tr>';
     }
 
     $('searchPlayers')?.addEventListener('input', renderPlayersTable);
@@ -2141,6 +2224,10 @@
       $('tutorWhatsapp').value = '';
       $('tutorEmail').value = '';
       $('playerStatus').value = 'activo';
+      $('playerPhoto').value = '';
+      $('playerActa').value = '';
+      $('playerPhotoPreview').innerHTML = '';
+      $('playerActaPreview').innerHTML = '';
       $('playerCategory').innerHTML = categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
       
       // Cargar lista de padres
@@ -2160,7 +2247,11 @@
       $('tutorWhatsapp').value = player.tutor_whatsapp || '';
       $('tutorEmail').value = player.tutor_email || '';
       $('playerStatus').value = player.status || 'activo';
-      $('playerPortero').checked = player.es_portero || false; // Cargar estado portero
+      $('playerPortero').checked = player.es_portero || false;
+      $('playerPhoto').value = '';
+      $('playerActa').value = '';
+      $('playerPhotoPreview').innerHTML = player.foto_url ? `<img src="${player.foto_url}" style="width:60px;height:60px;border-radius:10px;object-fit:cover;">` : '';
+      $('playerActaPreview').innerHTML = '';
       $('playerCategory').innerHTML = categories.map(c => `<option value="${c.id}" ${c.id === player.category_id ? 'selected' : ''}>${c.name}</option>`).join('');
       
       // Cargar lista de padres
@@ -2199,16 +2290,17 @@
       console.log('💾 Guardando jugador...', { id, esPortero, tutor_email: data.tutor_email, category_id: data.category_id });
 
       try {
+        let savedId = id;
         if (id) {
           const { error } = await sb.from('players').update(data).eq('id', id);
           if (error) throw error;
           
           console.log('✅ Jugador actualizado, ahora actualizando categorías...');
-          // Actualizar categorías si cambió el estado de portero
           await actualizarCategoriasPortero(id, esPortero, data.category_id);
         } else {
           const { data: newPlayer, error } = await sb.from('players').insert(data).select().single();
           if (error) throw error;
+          savedId = newPlayer?.id;
           
           console.log('✅ Jugador creado, ahora actualizando categorías...');
           if (newPlayer) {
@@ -2218,6 +2310,37 @@
 
         alert('✅ Jugador guardado correctamente' + (esPortero ? ' como PORTERO' : ''));
         closeModal('playerModal');
+        
+        // Subir foto si se seleccionó
+        const photoFile = $('playerPhoto')?.files[0];
+        if (photoFile && savedId) {
+          try {
+            const base64 = await fileToBase64(photoFile);
+            const year = new Date().getFullYear();
+            await sb.from('player_photos').upsert({
+              player_id: savedId,
+              photo_data: base64,
+              year: year,
+              uploaded_by: currentUser?.email || 'admin'
+            }, { onConflict: 'player_id,year' });
+            await sb.from('players').update({ foto_url: base64 }).eq('id', savedId);
+          } catch(e) { console.error('Error subiendo foto:', e); }
+        }
+        
+        // Subir acta si se seleccionó
+        const actaFile = $('playerActa')?.files[0];
+        if (actaFile && savedId) {
+          try {
+            const base64 = await fileToBase64(actaFile);
+            await sb.from('player_birth_certificates').insert({
+              player_id: savedId,
+              file_data: base64,
+              file_name: actaFile.name,
+              uploaded_by: currentUser?.email || 'admin'
+            });
+          } catch(e) { console.error('Error subiendo acta:', e); }
+        }
+        
         const { data: newPlayers } = await sb.from('players').select('*, categories(name)');
         players = newPlayers || [];
         renderPlayersTable();
@@ -2858,7 +2981,11 @@
             <td>${u.nombre || '-'}</td>
             <td><span class="badge badge-${u.rol === 'super_admin' ? 'danger' : u.rol === 'director' ? 'warning' : u.rol === 'operativo' ? 'info' : 'info'}">${u.rol || '-'}</span></td>
             <td><span class="badge badge-success">Activo</span></td>
-            <td><button class="btn btn-sm" onclick="editUser('${u.id}')">✏️</button></td>
+            <td style="white-space: nowrap;">
+              <button class="btn btn-sm" onclick="editUser('${u.id}')" title="Editar">✏️</button>
+              <button class="btn btn-sm" onclick="changeUserPassword('${u.id}','${(u.email||'').replace(/'/g,'')}')" title="Cambiar clave">🔑</button>
+              <button class="btn btn-sm" style="background:#EF4444;" onclick="deleteUser('${u.id}','${(u.email||'').replace(/'/g,'')}')" title="Eliminar">🗑️</button>
+            </td>
           </tr>
         `).join('') || '<tr><td colspan="5" style="text-align: center;">Sin personal</td></tr>';
         
@@ -2901,7 +3028,9 @@
                 <button class="btn btn-sm" onclick="manageChildren('${u.email}', '${u.nombre}')" title="Gestionar hijos">
                   👨‍👩‍👧‍👦
                 </button>
-                <button class="btn btn-sm" onclick="editUser('${u.id}')">✏️</button>
+                <button class="btn btn-sm" onclick="editUser('${u.id}')" title="Editar">✏️</button>
+                <button class="btn btn-sm" onclick="changeUserPassword('${u.id}','${(u.email||'').replace(/'/g,'')}')" title="Cambiar clave">🔑</button>
+                <button class="btn btn-sm" style="background:#EF4444;" onclick="deleteUser('${u.id}','${(u.email||'').replace(/'/g,'')}')" title="Eliminar">🗑️</button>
               </td>
             </tr>
           `;
@@ -3539,6 +3668,284 @@
     window.downloadPlayerDocs = downloadPlayerDocs;
     window.downloadDocPDF = downloadDocPDF;
     window.exportDocumentsReport = exportDocumentsReport;
+
+    // ======================================
+    // GESTIÓN DE USUARIOS: Editar, Eliminar, Cambiar Clave
+    // ======================================
+    
+    window.editUser = async function(id) {
+      const { data: user } = await sb.from('users').select('*').eq('id', id).single();
+      if (!user) return alert('Usuario no encontrado');
+      
+      $('userModalTitle').textContent = 'Editar Usuario';
+      $('editUserId').value = user.id;
+      $('newUserEmail').value = user.email || '';
+      $('newUserName').value = user.nombre || '';
+      $('newUserPassword').value = '';
+      $('newUserRole').value = user.rol || '';
+      if ($('newUserPhone')) $('newUserPhone').value = user.telefono || '';
+      
+      // Ocultar campo password en edición
+      $('passwordGroup').style.display = 'none';
+      $('saveUser').textContent = 'Guardar Cambios';
+      
+      openModal('userModal');
+    };
+
+    window.deleteUser = async function(id, email) {
+      if (!confirm('¿Estás seguro de eliminar al usuario ' + email + '? Esta acción no se puede deshacer.')) return;
+      
+      try {
+        const { error } = await sb.from('users').delete().eq('id', id);
+        if (error) throw error;
+        alert('Usuario eliminado correctamente');
+        loadUsersTable();
+      } catch (err) {
+        alert('Error al eliminar: ' + err.message);
+      }
+    };
+
+    window.changeUserPassword = function(id, email) {
+      $('cpUserId').value = id;
+      $('cpUserEmail').textContent = email;
+      $('cpNewPassword').value = '';
+      $('cpConfirmPassword').value = '';
+      openModal('changePasswordModal');
+    };
+
+    window.saveNewPassword = async function() {
+      const id = $('cpUserId').value;
+      const newPw = $('cpNewPassword').value;
+      const confirmPw = $('cpConfirmPassword').value;
+      
+      if (!newPw || newPw.length < 6) {
+        alert('La contraseña debe tener al menos 6 caracteres');
+        return;
+      }
+      if (newPw !== confirmPw) {
+        alert('Las contraseñas no coinciden');
+        return;
+      }
+      
+      try {
+        const { error } = await sb.from('users').update({ password: newPw }).eq('id', id);
+        if (error) throw error;
+        alert('Contraseña actualizada correctamente');
+        closeModal('changePasswordModal');
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    };
+
+    // Actualizar saveUser para manejar crear y editar
+    $('saveUser').addEventListener('click', async () => {
+      const id = $('editUserId').value;
+      const email = $('newUserEmail').value.trim();
+      const nombre = $('newUserName').value.trim();
+      const rol = $('newUserRole').value;
+      const password = $('newUserPassword').value;
+      
+      if (!email || !nombre || !rol) {
+        alert('Completa todos los campos obligatorios');
+        return;
+      }
+      
+      try {
+        if (id) {
+          // Editar usuario existente
+          const updateData = { email, nombre, rol };
+          const { error } = await sb.from('users').update(updateData).eq('id', id);
+          if (error) throw error;
+          alert('Usuario actualizado correctamente');
+        } else {
+          // Crear nuevo usuario
+          if (!password || password.length < 6) {
+            alert('La contraseña es obligatoria (min. 6 caracteres)');
+            return;
+          }
+          const { error } = await sb.from('users').insert({ email, nombre, rol, password });
+          if (error) throw error;
+          alert('Usuario creado correctamente');
+        }
+        
+        closeModal('userModal');
+        // Resetear modal para siguiente uso
+        $('editUserId').value = '';
+        $('passwordGroup').style.display = 'block';
+        $('saveUser').textContent = 'Crear Usuario';
+        loadUsersTable();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    });
+
+    // Al cerrar el userModal, resetear el formulario
+    const origCloseUserModal = () => {
+      $('editUserId').value = '';
+      $('passwordGroup').style.display = 'block';
+      $('saveUser').textContent = 'Crear Usuario';
+      $('userModalTitle').textContent = 'Nuevo Usuario';
+    };
+
+    // ======================================
+    // FOTOS DE JUGADORES
+    // ======================================
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    window.verFotosJugador = async function(playerId, nombre) {
+      $('photosPlayerId').value = playerId;
+      $('photosModalTitle').textContent = 'Fotos de ' + nombre;
+      $('newPlayerPhoto').value = '';
+      
+      // Cargar fotos existentes
+      const { data: photos } = await sb.from('player_photos')
+        .select('*')
+        .eq('player_id', playerId)
+        .order('year', { ascending: false });
+      
+      $('photosGallery').innerHTML = (photos || []).map(p => `
+        <div style="border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg-secondary, #f5f5f7);">
+          <img src="${p.photo_data}" style="width: 100%; height: 150px; object-fit: cover;">
+          <div style="padding: 8px; text-align: center;">
+            <strong style="font-size: 14px;">${p.year}</strong>
+            <br><small style="color: var(--text-dim);">${new Date(p.created_at).toLocaleDateString('es-DO')}</small>
+          </div>
+        </div>
+      `).join('') || '<p style="color: var(--text-dim); text-align: center; grid-column: 1/-1;">Sin fotos registradas</p>';
+      
+      openModal('photosModal');
+    };
+
+    window.uploadPlayerPhoto = async function() {
+      const playerId = $('photosPlayerId').value;
+      const file = $('newPlayerPhoto').files[0];
+      if (!file) return alert('Selecciona una foto');
+      
+      if (file.size > 2 * 1024 * 1024) {
+        alert('La foto no puede pesar más de 2MB');
+        return;
+      }
+      
+      try {
+        const base64 = await fileToBase64(file);
+        const year = new Date().getFullYear();
+        
+        // Upsert: si ya existe foto de este año, la reemplaza
+        const { error } = await sb.from('player_photos').upsert({
+          player_id: playerId,
+          photo_data: base64,
+          year: year,
+          uploaded_by: currentUser?.email || 'admin'
+        }, { onConflict: 'player_id,year' });
+        
+        if (error) throw error;
+        
+        // Actualizar foto_url en players para acceso rápido
+        await sb.from('players').update({ foto_url: base64 }).eq('id', playerId);
+        
+        alert('Foto ' + year + ' subida correctamente');
+        
+        // Recargar galería
+        const nombre = $('photosModalTitle').textContent.replace('Fotos de ', '');
+        verFotosJugador(playerId, nombre);
+        
+        // Actualizar tabla de jugadores
+        const { data: updatedPlayers } = await sb.from('players').select('*, categories(name)');
+        if (updatedPlayers) players = updatedPlayers;
+        renderPlayersTable();
+      } catch (err) {
+        alert('Error al subir foto: ' + err.message);
+      }
+    };
+
+    // ======================================
+    // ACTAS DE NACIMIENTO
+    // ======================================
+
+    window.verActaJugador = async function(playerId, nombre) {
+      $('actaPlayerId').value = playerId;
+      $('actaModalTitle').textContent = 'Acta de Nacimiento - ' + nombre;
+      $('newActaFile').value = '';
+      
+      const { data: actas } = await sb.from('player_birth_certificates')
+        .select('*')
+        .eq('player_id', playerId)
+        .order('created_at', { ascending: false });
+      
+      $('actasList').innerHTML = (actas || []).map(a => {
+        const isPdf = (a.file_name || '').toLowerCase().endsWith('.pdf');
+        return `
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              ${isPdf 
+                ? `<span style="font-size: 24px;">📄</span>` 
+                : `<img src="${a.file_data}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 8px;">`}
+              <div>
+                <strong style="font-size: 14px;">${a.file_name || 'Acta'}</strong>
+                <br><small style="color: var(--text-dim);">Subido por ${a.uploaded_by || '-'} el ${new Date(a.created_at).toLocaleDateString('es-DO')}</small>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <a href="${a.file_data}" target="_blank" class="btn btn-sm" title="Ver">👁️</a>
+              <button class="btn btn-sm" style="background:#EF4444;" onclick="deleteActa('${a.id}','${playerId}','${(nombre||'').replace(/'/g,'')}')" title="Eliminar (Solo Super Admin)">🗑️</button>
+            </div>
+          </div>
+        `;
+      }).join('') || '<p style="color: var(--text-dim); text-align: center;">Sin acta de nacimiento</p>';
+      
+      openModal('actaModal');
+    };
+
+    window.uploadActa = async function() {
+      const playerId = $('actaPlayerId').value;
+      const file = $('newActaFile').files[0];
+      if (!file) return alert('Selecciona un archivo');
+      
+      if (file.size > 5 * 1024 * 1024) {
+        alert('El archivo no puede pesar más de 5MB');
+        return;
+      }
+      
+      try {
+        const base64 = await fileToBase64(file);
+        
+        const { error } = await sb.from('player_birth_certificates').insert({
+          player_id: playerId,
+          file_data: base64,
+          file_name: file.name,
+          uploaded_by: currentUser?.email || 'admin'
+        });
+        
+        if (error) throw error;
+        
+        alert('Acta subida correctamente');
+        const nombre = $('actaModalTitle').textContent.replace('Acta de Nacimiento - ', '');
+        verActaJugador(playerId, nombre);
+      } catch (err) {
+        alert('Error al subir acta: ' + err.message);
+      }
+    };
+
+    window.deleteActa = async function(actaId, playerId, nombre) {
+      if (!confirm('¿Estás seguro de eliminar esta acta de nacimiento?')) return;
+      
+      try {
+        const { error } = await sb.from('player_birth_certificates').delete().eq('id', actaId);
+        if (error) throw error;
+        alert('Acta eliminada correctamente');
+        verActaJugador(playerId, nombre);
+      } catch (err) {
+        alert('Error al eliminar: ' + err.message);
+      }
+    };
 
     checkAuth();
   </script>
