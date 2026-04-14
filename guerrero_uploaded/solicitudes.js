@@ -291,8 +291,9 @@ async function aprobarYCrearJugador(solicitudId) {
         nombre: solicitud.jugador_nombre,
         tutor_nombre: solicitud.tutor_nombre,
         tutor_whatsapp: solicitud.tutor_whatsapp,
+        tutor_email: solicitud.tutor_email || null,
         es_portero: solicitud.es_portero || false,
-        category_id: categoryId, // Mantener por compatibilidad
+        category_id: categoryId,
         status: 'activo'
       }])
       .select();
