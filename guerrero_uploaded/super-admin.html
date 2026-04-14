@@ -1157,7 +1157,8 @@
             <h1 class="page-title">Morosos</h1>
             <p class="page-subtitle">Jugadores con pagos pendientes</p>
           </div>
-          <button class="btn" id="btnWhatsappAll">📱 Enviar recordatorio masivo</button>
+          <button class="btn" id="btnWhatsappAll">📱 Recordatorio WhatsApp</button>
+          <button class="btn btn-primary" id="btnEmailMorosos" onclick="enviarEmailMorosos()">📧 Recordatorio Email</button>
         </div>
 
         <div class="card">
@@ -2502,19 +2503,35 @@
 
         if (inviteError) throw inviteError;
 
-        // Enviar email
+        // Enviar email usando el nuevo sistema
         const inviteLink = `${window.location.origin}/establecer-password.html?token=${token}`;
         
-        const { data: emailData, error: emailError } = await sb.functions.invoke('send-welcome-email', {
-          body: {
+        if (window.EmailSystem) {
+          const emailResult = await EmailSystem.sendWelcome({
             email: player.tutor_email,
             nombre: player.tutor_nombre,
             playerName: playerName,
             magicLink: inviteLink
-          }
-        });
-
-        if (emailError) throw emailError;
+          });
+          
+          if (!emailResult.success) throw new Error(emailResult.error || 'Error enviando email');
+        } else {
+          // Fallback al API directo
+          const response = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'welcome',
+              body: {
+                email: player.tutor_email,
+                nombre: player.tutor_nombre,
+                playerName: playerName,
+                magicLink: inviteLink
+              }
+            })
+          });
+          if (!response.ok) throw new Error('Error enviando email');
+        }
 
         alert(`✅ Email reenviado exitosamente a ${player.tutor_email}`);
         console.log('✅ Email reenviado:', emailData);
@@ -2570,17 +2587,34 @@
 
         if (inviteError) throw inviteError;
 
-        // Enviar email
+        // Enviar email usando el nuevo sistema
         const inviteLink = `${window.location.origin}/establecer-password.html?token=${token}`;
         
-        const { data: emailData, error: emailError } = await sb.functions.invoke('send-welcome-email', {
-          body: {
+        if (window.EmailSystem) {
+          const emailResult = await EmailSystem.sendWelcome({
             email: parentEmail,
             nombre: parentName,
             playerName: firstChild.nombre,
             magicLink: inviteLink
-          }
-        });
+          });
+          
+          if (!emailResult.success) throw new Error(emailResult.error || 'Error enviando email');
+        } else {
+          const response = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'welcome',
+              body: {
+                email: parentEmail,
+                nombre: parentName,
+                playerName: firstChild.nombre,
+                magicLink: inviteLink
+              }
+            })
+          });
+          if (!response.ok) throw new Error('Error enviando email');
+        }
 
         if (emailError) throw emailError;
 
@@ -2858,22 +2892,40 @@
       if (!selectedPaymentPlayer) return alert('Selecciona un jugador');
 
       const player = players.find(p => p.id === selectedPaymentPlayer.id);
+      const amount = Number($('paymentAmount').value);
+      const method = $('paymentMethod').value;
       
       await sb.from('payments').insert({
         player_id: selectedPaymentPlayer.id,
         category_id: player?.category_id,
-        amount: Number($('paymentAmount').value),
+        amount: amount,
         currency: 'DOP',
-        method: $('paymentMethod').value,
+        method: method,
         month: monthISO(),
         paid_at: new Date().toISOString().slice(0, 10),
         status: 'paid',
-        note: $('paymentNote').value
+        note: $('paymentNote').value,
+        registered_by: currentUser?.email || 'admin'
       });
 
       closeModal('paymentModal');
       loadPayments();
       loadDashboard();
+      
+      // Enviar email de confirmación al tutor
+      if (window.EmailSystem && player?.tutor_email) {
+        const monthName = new Date().toLocaleDateString('es-DO', { month: 'long', year: 'numeric' });
+        EmailSystem.sendPaymentConfirmation({
+          email: player.tutor_email,
+          nombre: player.tutor_nombre || 'Padre/Madre',
+          playerName: player.nombre,
+          amount: amount.toLocaleString('es-DO'),
+          method: method,
+          month: monthName
+        }).then(r => {
+          if (r.success) console.log('Email de confirmacion enviado');
+        });
+      }
     });
 
     // Morosos
@@ -3224,6 +3276,19 @@
       await sb.from('announcements').insert({ title, content });
       closeModal('announcementModal');
       loadAnnouncements();
+      
+      // Enviar por email a todos los padres
+      if (window.EmailSystem) {
+        const sendEmail = confirm('Anuncio publicado. ¿Enviar por email a todos los padres?');
+        if (sendEmail) {
+          const result = await EmailSystem.broadcastAnnouncement(title, content);
+          if (result.success) {
+            alert('Email enviado a los padres exitosamente');
+          } else {
+            alert('Error enviando email: ' + (result.error || 'Error desconocido'));
+          }
+        }
+      }
     });
 
     // Reports
@@ -3672,6 +3737,51 @@
     window.exportDocumentsReport = exportDocumentsReport;
 
     // ======================================
+    // EMAILS - Funciones integradas
+    // ======================================
+
+    window.enviarEmailMorosos = async function() {
+      if (!window.EmailSystem) {
+        alert('Sistema de email no cargado. Recargue la pagina.');
+        return;
+      }
+      
+      const btn = document.getElementById('btnEmailMorosos');
+      if (!confirm('Enviar recordatorio de pago por email a todos los morosos con email registrado?')) return;
+      
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+      
+      try {
+        const result = await EmailSystem.sendBulkPaymentReminders();
+        if (result.success) {
+          alert('Emails enviados!\n\nEnviados: ' + result.sent + '\nFallidos: ' + result.failed + '\nTotal morosos: ' + result.total);
+        } else {
+          alert('Error: ' + (result.error || 'Error desconocido'));
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+      
+      btn.disabled = false;
+      btn.textContent = 'Recordatorio Email';
+    };
+
+    // Enviar anuncio por email al crear desde Super Admin
+    window.enviarAnuncioEmail = async function(title, content) {
+      if (!window.EmailSystem) return;
+      
+      try {
+        const result = await EmailSystem.broadcastAnnouncement(title, content);
+        if (result.success) {
+          console.log('Anuncio enviado por email');
+        }
+      } catch (err) {
+        console.error('Error enviando anuncio por email:', err);
+      }
+    };
+
+    // ======================================
     // GESTIÓN DE USUARIOS: Editar, Eliminar, Cambiar Clave
     // ======================================
     
@@ -3964,6 +4074,9 @@
 
   <!-- Sistema de Solicitudes -->
   <script src="solicitudes.js"></script>
+
+  <!-- Sistema de Emails (Resend) -->
+  <script src="email-system.js"></script>
 
   <!-- Sistema de anuncios con email -->
   <script src="announcements-email.js"></script>
