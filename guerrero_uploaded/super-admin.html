@@ -2505,7 +2505,7 @@
         if (inviteError) throw inviteError;
 
         // Enviar email usando el nuevo sistema
-        const inviteLink = `${window.location.origin}/establecer-password.html?token=${token}`;
+        const inviteLink = `${window.location.origin}/password?token=${token}`;
         
         if (window.EmailSystem) {
           const emailResult = await EmailSystem.sendWelcome({
@@ -2589,7 +2589,7 @@
         if (inviteError) throw inviteError;
 
         // Enviar email usando el nuevo sistema
-        const inviteLink = `${window.location.origin}/establecer-password.html?token=${token}`;
+        const inviteLink = `${window.location.origin}/password?token=${token}`;
         
         if (window.EmailSystem) {
           const emailResult = await EmailSystem.sendWelcome({
