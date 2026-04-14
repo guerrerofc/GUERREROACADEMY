@@ -1890,6 +1890,10 @@
               targetUrl = 'director-panel.html';
               targetName = 'Director';
               break;
+            case 'operativo':
+              targetUrl = 'operativo-panel.html';
+              targetName = 'Operativo';
+              break;
             case 'staff':
               targetUrl = 'staff-panel.html';
               targetName = 'Staff';
@@ -2844,7 +2848,7 @@
 
       if (currentUserTab === 'personal') {
         // Mostrar solo staff, director, super_admin
-        const personal = (users || []).filter(u => ['staff', 'director', 'super_admin'].includes(u.rol));
+        const personal = (users || []).filter(u => ['staff', 'director', 'super_admin', 'operativo'].includes(u.rol));
         
         console.log('  - Personal encontrado:', personal.length);
         
@@ -2852,7 +2856,7 @@
           <tr>
             <td>${u.email || '-'}</td>
             <td>${u.nombre || '-'}</td>
-            <td><span class="badge badge-${u.rol === 'super_admin' ? 'danger' : u.rol === 'director' ? 'warning' : 'info'}">${u.rol || '-'}</span></td>
+            <td><span class="badge badge-${u.rol === 'super_admin' ? 'danger' : u.rol === 'director' ? 'warning' : u.rol === 'operativo' ? 'info' : 'info'}">${u.rol || '-'}</span></td>
             <td><span class="badge badge-success">Activo</span></td>
             <td><button class="btn btn-sm" onclick="editUser('${u.id}')">✏️</button></td>
           </tr>
