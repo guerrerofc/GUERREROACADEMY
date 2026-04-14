@@ -940,12 +940,12 @@
       
       const records = categoryPlayers.map(p => ({
         player_id: p.id,
-        date: today,
+        fecha: today,
         present: document.getElementById(`att_${p.id}`)?.checked || false,
         registered_by: currentUser.nombre || currentUser.email
       }));
       
-      const { error } = await sb.from('attendance').upsert(records, { onConflict: 'player_id,date' });
+      const { error } = await sb.from('attendance').upsert(records, { onConflict: 'player_id,fecha' });
       
       if (error) {
         alert('Error: ' + error.message);
