@@ -1065,6 +1065,7 @@
               <thead>
                 <tr>
                   <th>Jugador</th>
+                  <th>Edad</th>
                   <th>Foto</th>
                   <th>Categoría</th>
                   <th>Tutor</th>
@@ -1481,6 +1482,10 @@
         <div class="form-group">
           <label>Nombre del Jugador</label>
           <input type="text" id="playerName" class="input" placeholder="Nombre completo">
+        </div>
+        <div class="form-group">
+          <label>Fecha de Nacimiento</label>
+          <input type="date" id="playerBirthDate" class="input">
         </div>
         <div class="form-group">
           <label>Nombre del Tutor</label>
@@ -2132,7 +2137,7 @@
           labels: ['Completos', 'Pendientes'],
           datasets: [{
             data: [complete, pending],
-            backgroundColor: ['rgba(52, 199, 89, 0.7)', 'rgba(255, 149, 0, 0.7)'],
+            backgroundColor: ['#34c759', '#ef4444'],
             borderWidth: 0
           }]
         },
@@ -2201,9 +2206,12 @@
       if (catFilter) filtered = filtered.filter(p => p.category_id === catFilter);
       if (statusFilter) filtered = filtered.filter(p => p.status === statusFilter);
 
-      $('playersTable').innerHTML = filtered.map(p => `
+      $('playersTable').innerHTML = filtered.map(p => {
+        const edad = p.fecha_nacimiento ? Math.floor((Date.now() - new Date(p.fecha_nacimiento).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : '-';
+        return `
         <tr>
           <td><strong>${p.nombre || '-'}</strong></td>
+          <td>${edad !== '-' ? edad + ' años' : '-'}</td>
           <td>
             ${p.foto_url ? `<img src="${p.foto_url}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;cursor:pointer;" onclick="verFotosJugador('${p.id}','${(p.nombre||'').replace(/'/g,'\\&#39;')}')">` : `<span style="width:36px;height:36px;border-radius:50%;background:var(--bg-secondary,#f5f5f7);display:inline-flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;" onclick="verFotosJugador('${p.id}','${(p.nombre||'').replace(/'/g,'\\&#39;')}')">📷</span>`}
           </td>
@@ -2220,7 +2228,7 @@
             <button class="btn btn-sm" style="background: #EF4444;" onclick="eliminarJugador('${p.id}', '${p.nombre}')" title="Eliminar jugador">🗑️</button>
           </td>
         </tr>
-      `).join('') || '<tr><td colspan="8" style="text-align: center;">Sin jugadores</td></tr>';
+      `}).join('') || '<tr><td colspan="9" style="text-align: center;">Sin jugadores</td></tr>';
     }
 
     $('searchPlayers')?.addEventListener('input', renderPlayersTable);
@@ -2231,6 +2239,7 @@
       $('playerModalTitle').textContent = 'Nuevo Jugador';
       $('editPlayerId').value = '';
       $('playerName').value = '';
+      $('playerBirthDate').value = '';
       $('tutorName').value = '';
       $('tutorWhatsapp').value = '';
       $('tutorEmail').value = '';
@@ -2254,6 +2263,7 @@
       $('playerModalTitle').textContent = 'Editar Jugador';
       $('editPlayerId').value = player.id;
       $('playerName').value = player.nombre || '';
+      $('playerBirthDate').value = player.fecha_nacimiento || '';
       $('tutorName').value = player.tutor_nombre || '';
       $('tutorWhatsapp').value = player.tutor_whatsapp || '';
       $('tutorEmail').value = player.tutor_email || '';
@@ -2288,6 +2298,7 @@
       const esPortero = $('playerPortero').checked;
       const data = {
         nombre: $('playerName').value.trim(),
+        fecha_nacimiento: $('playerBirthDate').value || null,
         tutor_nombre: $('tutorName').value.trim(),
         tutor_whatsapp: $('tutorWhatsapp').value.trim(),
         tutor_email: $('tutorEmail').value || null,
