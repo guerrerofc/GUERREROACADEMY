@@ -2151,11 +2151,13 @@
 
     function renderOccupancyChart() {
       const ctx = $('chartOccupancy');
+      if (!ctx) return;
       if (charts.occupancy) charts.occupancy.destroy();
 
-      const catData = categories.map(c => {
+      const defaultColors = ['#3b82f6', '#8b5cf6', '#10b981', '#f97316', '#ec4899', '#06b6d4', '#f59e0b', '#ef4444'];
+      const catData = categories.map((c, i) => {
         const count = players.filter(p => p.category_id === c.id && (p.status === 'activo' || p.status === 'becado')).length;
-        return { name: c.name, count, max: c.max_players || 30 };
+        return { name: c.name, count, max: c.max_players || 30, color: c.color || defaultColors[i % defaultColors.length] };
       });
 
       charts.occupancy = new Chart(ctx, {
@@ -2164,7 +2166,7 @@
           labels: catData.map(c => c.name),
           datasets: [{
             data: catData.map(c => c.count),
-            backgroundColor: ['rgba(59, 130, 246, 0.7)', 'rgba(139, 92, 246, 0.7)', 'rgba(16, 185, 129, 0.7)', 'rgba(249, 115, 22, 0.7)', 'rgba(236, 72, 153, 0.7)'],
+            backgroundColor: catData.map(c => c.color),
             borderWidth: 0
           }]
         },
@@ -2669,21 +2671,27 @@
         const pct = Math.round((count / max) * 100);
 
         return `
-          <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-              <h3 class="card-title">${c.name}</h3>
+          <div class="card" style="position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: ${c.color || '#1d1d1f'};"></div>
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; margin-top: 4px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 14px; height: 14px; border-radius: 50%; background: ${c.color || '#1d1d1f'}; flex-shrink: 0;"></div>
+                <h3 class="card-title">${c.name}</h3>
+              </div>
               <div style="display: flex; gap: 4px;">
                 <button class="btn btn-sm" onclick="editCategory('${c.id}')" title="Editar">✏️</button>
                 <button class="btn btn-sm btn-danger" onclick="deleteCategory('${c.id}')" title="Eliminar">🗑️</button>
               </div>
             </div>
             ${c.description ? `<p style="color: var(--text-dim); font-size: 13px; margin-bottom: 12px;">${c.description}</p>` : ''}
+            ${c.coach_name ? `<p style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px;">Coach: ${c.coach_name}</p>` : ''}
+            ${c.training_time ? `<p style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px;">Horario: ${c.training_time}${c.training_days?.length ? ' | ' + c.training_days.join(', ') : ''}</p>` : ''}
             <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
               <span style="color: var(--text-muted);">Ocupación</span>
               <strong>${count} / ${max}</strong>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill" style="width: ${pct}%;"></div>
+              <div class="progress-fill" style="width: ${pct}%; background: ${c.color || 'var(--gradient)'};"></div>
             </div>
             <p style="margin-top: 16px; font-size: 32px; font-weight: 700; color: ${pct >= 90 ? 'var(--danger)' : 'var(--success)'};">
               ${max - count} <span style="font-size: 14px; color: var(--text-muted); font-weight: 500;">disponibles</span>
