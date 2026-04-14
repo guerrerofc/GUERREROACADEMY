@@ -3035,7 +3035,7 @@
           <tr>
             <td>${u.email || '-'}</td>
             <td>${u.nombre || '-'}</td>
-            <td><span class="badge badge-${u.rol === 'super_admin' ? 'danger' : u.rol === 'director' ? 'warning' : u.rol === 'operativo' ? 'info' : 'info'}">${u.rol || '-'}</span></td>
+            <td><span class="badge badge-${u.rol === 'super_admin' ? 'danger' : u.rol === 'director' ? 'warning' : u.rol === 'operativo' ? 'info' : 'info'}">${u.rol === 'staff' ? 'coach' : u.rol || '-'}</span></td>
             <td><span class="badge badge-success">Activo</span></td>
             <td style="white-space: nowrap;">
               <button class="btn btn-sm" onclick="editUser('${u.id}')" title="Editar">✏️</button>

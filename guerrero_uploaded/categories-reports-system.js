@@ -121,12 +121,16 @@ function addCategoryModal() {
           <div id="categoryTabStaff" class="tab-content" style="display:none;">
             <div class="form-group">
               <label>Coach Principal</label>
-              <input type="text" id="categoryCoachName" class="input" placeholder="Nombre del coach principal">
+              <select id="categoryCoachName" class="input">
+                <option value="">Seleccionar coach...</option>
+              </select>
             </div>
 
             <div class="form-group">
               <label>Coach Asistente (Opcional)</label>
-              <input type="text" id="categoryAssistantCoachName" class="input" placeholder="Nombre del coach asistente">
+              <select id="categoryAssistantCoachName" class="input">
+                <option value="">Seleccionar coach asistente...</option>
+              </select>
             </div>
           </div>
 
@@ -354,7 +358,6 @@ async function saveCategory() {
 window.editCategory = async function(id) {
   console.log('✏️ Editando categoría:', id);
   
-  // Esperar a que sb esté disponible
   let sb = window.sb;
   let attempts = 0;
   while (!sb && attempts < 10) {
@@ -364,8 +367,7 @@ window.editCategory = async function(id) {
   }
 
   if (!sb) {
-    alert('Error: Supabase no disponible después de esperar');
-    console.error('window.sb sigue siendo undefined');
+    alert('Error: Supabase no disponible');
     return;
   }
   
@@ -373,11 +375,8 @@ window.editCategory = async function(id) {
   
   if (error || !category) {
     alert('Error al cargar categoría: ' + (error?.message || 'No encontrada'));
-    console.error('Error:', error);
     return;
   }
-
-  console.log('Categoría cargada:', category);
 
   document.getElementById('categoryModalTitle').textContent = 'Editar Categoría';
   document.getElementById('editCategoryId').value = category.id;
@@ -387,14 +386,11 @@ window.editCategory = async function(id) {
   document.getElementById('categoryAgeMax').value = category.age_max || '';
   document.getElementById('categoryMaxPlayers').value = category.max_players || 30;
   document.getElementById('categoryColor').value = category.color || '#D87093';
-  
-  // Cargar campos adicionales
   document.getElementById('categoryMonthlyFee').value = category.monthly_fee || '';
   document.getElementById('categoryLocation').value = category.location || '';
   document.getElementById('categoryStatus').value = category.status || 'active';
   document.getElementById('categoryInscriptionsOpen').value = category.inscriptions_open !== false ? 'true' : 'false';
   
-  // Horarios
   if (category.training_time) {
     const parts = category.training_time.split('-');
     document.getElementById('categoryTimeStart').value = parts[0] || '';
@@ -404,19 +400,43 @@ window.editCategory = async function(id) {
     document.getElementById('categoryTimeEnd').value = '';
   }
   
-  // Días de entrenamiento
   document.querySelectorAll('.training-day').forEach(cb => {
     cb.checked = (category.training_days || []).includes(cb.value);
   });
   
-  // Coach
-  const coachInput = document.getElementById('categoryCoachName');
-  const assistantInput = document.getElementById('categoryAssistantCoachName');
-  if (coachInput) coachInput.value = category.coach_name || '';
-  if (assistantInput) assistantInput.value = category.assistant_coach_name || '';
+  // Cargar lista de coaches desde usuarios
+  await loadCoachesList(category.coach_name, category.assistant_coach_name);
   
   openModal('categoryModal');
 };
+
+// Cargar lista de coaches desde tabla users (rol staff)
+async function loadCoachesList(selectedCoach, selectedAssistant) {
+  const sb = window.sb;
+  if (!sb) return;
+  
+  const { data: coaches } = await sb
+    .from('users')
+    .select('nombre, email')
+    .eq('rol', 'staff')
+    .order('nombre');
+  
+  const coachSelect = document.getElementById('categoryCoachName');
+  const assistantSelect = document.getElementById('categoryAssistantCoachName');
+  
+  const options = '<option value="">Seleccionar coach...</option>' +
+    (coaches || []).map(c => `<option value="${c.nombre || c.email}">${c.nombre || c.email}</option>`).join('');
+  
+  if (coachSelect) {
+    coachSelect.innerHTML = options;
+    if (selectedCoach) coachSelect.value = selectedCoach;
+  }
+  if (assistantSelect) {
+    assistantSelect.innerHTML = options;
+    if (selectedAssistant) assistantSelect.value = selectedAssistant;
+  }
+}
+
 
 window.deleteCategory = async function(id) {
   console.log('🗑️ Intentando eliminar categoría:', id);
