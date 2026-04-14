@@ -366,19 +366,21 @@ async function aprobarYCrearJugador(solicitudId) {
 
     // 5. Enviar email de bienvenida usando nuestra API de Vercel
     try {
-      const inviteLink = `${window.location.origin}/establecer-password.html?token=${token}`;
+      const inviteLink = `${window.location.origin}/password?token=${token}`;
       
-      // Llamar a nuestra API en Vercel (sin CORS)
       const response = await fetch('/api/send-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: solicitud.tutor_email,
-          nombre: solicitud.tutor_nombre,
-          playerName: solicitud.jugador_nombre,
-          magicLink: inviteLink
+          type: 'welcome',
+          body: {
+            email: solicitud.tutor_email,
+            nombre: solicitud.tutor_nombre,
+            playerName: solicitud.jugador_nombre,
+            magicLink: inviteLink
+          }
         })
       });
 
