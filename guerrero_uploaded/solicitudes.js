@@ -49,9 +49,13 @@ async function cargarSolicitudes(filtro = 'pending') {
   console.log(`📡 Cargando solicitudes con filtro: ${filtro}`);
   
   // Verificar que sb exista
+  if (typeof sb === 'undefined' && typeof window.sb !== 'undefined') {
+    // Intentar desde window
+    var sb = window.sb;
+  }
+  
   if (typeof sb === 'undefined') {
-    console.error('❌ sb no está definido');
-    alert('Error: Supabase no está configurado correctamente');
+    console.warn('⚠️ sb no está definido aún, reintentando...');
     return [];
   }
 
