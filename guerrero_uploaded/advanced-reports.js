@@ -7,32 +7,35 @@ let incomeChart, retentionChart, attendanceChart;
 async function loadReports() {
   console.log('📊 Cargando reportes avanzados...');
   
-  // Cargar datos en paralelo
-  const [
-    { data: payments },
-    { data: playersData },
-    { data: playerCats },
-    { data: sessions },
-    { data: attendance }
-  ] = await Promise.all([
-    sb.from('payments').select('*'),
-    sb.from('players').select('*'),
-    sb.from('player_categories').select('player_id, category_id'),
-    sb.from('sessions').select('*'),
-    sb.from('attendance').select('*')
-  ]);
+  try {
+    // Cargar datos en paralelo (con fallbacks para tablas que no existan)
+    const [paymentsRes, playersRes, playerCatsRes, attendanceRes] = await Promise.all([
+      sb.from('payments').select('*'),
+      sb.from('players').select('*'),
+      sb.from('player_categories').select('player_id, category_id'),
+      sb.from('attendance').select('*')
+    ]);
+    
+    const payments = paymentsRes.data || [];
+    const playersData = playersRes.data || [];
+    const playerCats = playerCatsRes.data || [];
+    const attendance = attendanceRes.data || [];
+    const sessions = [];
 
-  // 1. DASHBOARD EJECUTIVO
-  await loadExecutiveDashboard(payments, playersData, playerCats, sessions, attendance);
+    // 1. DASHBOARD EJECUTIVO
+    await loadExecutiveDashboard(payments, playersData, playerCats, sessions, attendance);
 
-  // 2. INGRESOS MENSUALES
-  await loadIncomeChart(payments);
+    // 2. INGRESOS MENSUALES
+    await loadIncomeChart(payments);
 
-  // 3. FIDELIDAD POR CATEGORÍA
-  await loadRetentionAnalysis(playersData, playerCats);
+    // 3. FIDELIDAD POR CATEGORÍA
+    await loadRetentionAnalysis(playersData, playerCats);
 
-  // 4. ASISTENCIA POR CATEGORÍA
-  await loadAttendanceChart(sessions, attendance, playerCats);
+    // 4. ASISTENCIA POR CATEGORÍA
+    await loadAttendanceChart(sessions, attendance, playerCats);
+  } catch (err) {
+    console.error('Error cargando reportes:', err);
+  }
 }
 
 async function loadExecutiveDashboard(payments, playersData, playerCats, sessions, attendance) {
