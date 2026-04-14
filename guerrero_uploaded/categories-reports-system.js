@@ -27,7 +27,7 @@ function addCategoryModal() {
           <div class="tabs" style="margin-bottom: 20px;">
             <button class="tab active" onclick="switchCategoryTab('info')">📋 Información</button>
             <button class="tab" onclick="switchCategoryTab('schedule')">📅 Horarios</button>
-            <button class="tab" onclick="switchCategoryTab('staff')">👨‍🏫 Staff</button>
+            <button class="tab" onclick="switchCategoryTab('staff')">🏋️ Coach</button>
             <button class="tab" onclick="switchCategoryTab('config')">⚙️ Configuración</button>
           </div>
 
@@ -121,16 +121,12 @@ function addCategoryModal() {
           <div id="categoryTabStaff" class="tab-content" style="display:none;">
             <div class="form-group">
               <label>Coach Principal</label>
-              <select id="categoryCoachId" class="input">
-                <option value="">Seleccionar coach...</option>
-              </select>
+              <input type="text" id="categoryCoachName" class="input" placeholder="Nombre del coach principal">
             </div>
 
             <div class="form-group">
               <label>Coach Asistente (Opcional)</label>
-              <select id="categoryAssistantCoachId" class="input">
-                <option value="">Seleccionar coach asistente...</option>
-              </select>
+              <input type="text" id="categoryAssistantCoachName" class="input" placeholder="Nombre del coach asistente">
             </div>
           </div>
 
@@ -282,8 +278,8 @@ async function saveCategory() {
   // Nuevos campos
   const monthlyFee = parseFloat(document.getElementById('categoryMonthlyFee').value) || 0;
   const location = document.getElementById('categoryLocation').value.trim();
-  const coachId = document.getElementById('categoryCoachId').value || null;
-  const assistantCoachId = document.getElementById('categoryAssistantCoachId').value || null;
+  const coachName = document.getElementById('categoryCoachName').value.trim();
+  const assistantCoachName = document.getElementById('categoryAssistantCoachName').value.trim();
   const status = document.getElementById('categoryStatus').value || 'active';
   const inscriptionsOpen = document.getElementById('categoryInscriptionsOpen').value === 'true';
   
@@ -330,8 +326,8 @@ async function saveCategory() {
   if (trainingDays.length > 0) data.training_days = trainingDays;
   if (trainingTime) data.training_time = trainingTime;
   if (location) data.location = location;
-  if (coachId) data.coach_id = coachId;
-  if (assistantCoachId) data.assistant_coach_id = assistantCoachId;
+  if (coachName) data.coach_name = coachName;
+  if (assistantCoachName) data.assistant_coach_name = assistantCoachName;
   if (status) data.status = status;
   data.inscriptions_open = inscriptionsOpen;
 
@@ -414,10 +410,10 @@ window.editCategory = async function(id) {
   });
   
   // Coach
-  const coachSelect = document.getElementById('categoryCoachId');
-  const assistantSelect = document.getElementById('categoryAssistantCoachId');
-  if (coachSelect) coachSelect.value = category.coach_id || '';
-  if (assistantSelect) assistantSelect.value = category.assistant_coach_id || '';
+  const coachInput = document.getElementById('categoryCoachName');
+  const assistantInput = document.getElementById('categoryAssistantCoachName');
+  if (coachInput) coachInput.value = category.coach_name || '';
+  if (assistantInput) assistantInput.value = category.assistant_coach_name || '';
   
   openModal('categoryModal');
 };
