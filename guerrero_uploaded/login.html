@@ -268,20 +268,17 @@
             return;
           }
           
-          // SEGURIDAD: Verificar que existe password y coincide
-          // Si no hay password en la tabla, NO permitir acceso
-          if (!userData.password) {
-            showError('Usuario no tiene contraseña configurada. Contacte al administrador.');
-            btn.disabled = false;
-            btn.innerHTML = 'Iniciar sesión';
-            return;
-          }
-          
-          if (userData.password !== password) {
-            showError('Email o contraseña incorrectos');
-            btn.disabled = false;
-            btn.innerHTML = 'Iniciar sesión';
-            return;
+          // Si el usuario tiene password en la tabla, verificar
+          if (userData.password) {
+            if (userData.password !== password) {
+              showError('Email o contraseña incorrectos');
+              btn.disabled = false;
+              btn.innerHTML = 'Iniciar sesión';
+              return;
+            }
+          } else {
+            // No tiene password guardado - guardar el que ingresó ahora
+            await sb.from('users').update({ password: password }).eq('email', email);
           }
           
           // Usuario encontrado y contraseña correcta, redirigir según rol
