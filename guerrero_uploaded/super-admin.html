@@ -2002,6 +2002,7 @@
         // Cerrar sidebar en móvil al hacer click en un enlace
         if (window.innerWidth <= 1024) {
           $('sidebar').classList.remove('open');
+          $('sidebarOverlay').classList.remove('active');
           $('overlay').classList.remove('show');
         }
       });
@@ -2505,7 +2506,7 @@
         if (inviteError) throw inviteError;
 
         // Enviar email usando el nuevo sistema
-        const inviteLink = `${window.location.origin}/establecer-password.html?token=${token}`;
+        const inviteLink = `${window.location.origin}/password?token=${token}`;
         
         if (window.EmailSystem) {
           const emailResult = await EmailSystem.sendWelcome({
@@ -2589,7 +2590,7 @@
         if (inviteError) throw inviteError;
 
         // Enviar email usando el nuevo sistema
-        const inviteLink = `${window.location.origin}/establecer-password.html?token=${token}`;
+        const inviteLink = `${window.location.origin}/password?token=${token}`;
         
         if (window.EmailSystem) {
           const emailResult = await EmailSystem.sendWelcome({
