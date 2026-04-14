@@ -1,6 +1,13 @@
 {
-  "buildCommand": null,
-  "outputDirectory": ".",
-  "framework": null,
-  "installCommand": null
+  "rewrites": [
+    { "source": "/", "destination": "/guerrero_uploaded/landing-mejorado.html" },
+    { "source": "/landing", "destination": "/guerrero_uploaded/landing-mejorado.html" },
+    { "source": "/login", "destination": "/guerrero_uploaded/login.html" },
+    { "source": "/admin", "destination": "/guerrero_uploaded/super-admin.html" },
+    { "source": "/director", "destination": "/guerrero_uploaded/director-panel.html" },
+    { "source": "/staff", "destination": "/guerrero_uploaded/staff-panel.html" },
+    { "source": "/padres", "destination": "/guerrero_uploaded/parent-panel.html" },
+    { "source": "/operativo", "destination": "/guerrero_uploaded/operativo-panel.html" },
+    { "source": "/password", "destination": "/guerrero_uploaded/establecer-password.html" }
+  ]
 }

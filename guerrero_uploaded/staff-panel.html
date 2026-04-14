@@ -808,7 +808,7 @@
     $('btnLogout').addEventListener('click', async () => {
       localStorage.removeItem('guerrero_user');
       await sb.auth.signOut();
-      window.location.href = './login.html';
+      window.location.href = '/login';
     });
 
     // Navigation

@@ -681,7 +681,7 @@
     async function checkAuth() {
       const userData = localStorage.getItem('guerrero_user');
       if (!userData) {
-        window.location.href = 'login.html';
+        window.location.href = '/login';
         return;
       }
       
@@ -690,7 +690,7 @@
       // Verificar que sea operativo
       if (currentUser.rol !== 'operativo') {
         alert('No tienes permisos para acceder a este panel');
-        window.location.href = 'login.html';
+        window.location.href = '/login';
         return;
       }
       
