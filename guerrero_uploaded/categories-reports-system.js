@@ -322,16 +322,18 @@ async function saveCategory() {
     age_min: ageMin,
     age_max: ageMax,
     max_players: maxPlayers,
-    color,
-    monthly_fee: monthlyFee,
-    training_days: trainingDays,
-    training_time: trainingTime,
-    location,
-    coach_id: coachId,
-    assistant_coach_id: assistantCoachId,
-    status,
-    inscriptions_open: inscriptionsOpen
+    color
   };
+  
+  // Solo agregar campos opcionales si tienen valor o si la columna existe
+  if (monthlyFee) data.monthly_fee = monthlyFee;
+  if (trainingDays.length > 0) data.training_days = trainingDays;
+  if (trainingTime) data.training_time = trainingTime;
+  if (location) data.location = location;
+  if (coachId) data.coach_id = coachId;
+  if (assistantCoachId) data.assistant_coach_id = assistantCoachId;
+  if (status) data.status = status;
+  data.inscriptions_open = inscriptionsOpen;
 
   try {
     if (id) {
