@@ -448,7 +448,7 @@ async function rechazarSolicitudUI(solicitudId) {
 }
 
 // Inicializar panel de solicitudes si existe (solo en super-admin)
-document.addEventListener('DOMContentLoaded', async () => {
+(async function initSolicitudes() {
   console.log('🔍 Verificando si hay panel de solicitudes...');
   
   const contenedor = document.getElementById('tablaSolicitudes');
@@ -503,6 +503,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const solicitudes = await cargarSolicitudes('pending');
   console.log(`✅ ${solicitudes.length} solicitudes cargadas`);
   renderizarTablaSolicitudes(solicitudes, contenedor);
-});
+})();
 
 console.log('✅ Sistema de solicitudes cargado');

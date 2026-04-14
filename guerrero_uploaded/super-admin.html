@@ -4101,27 +4101,37 @@
 
   <!-- Inicializar nuevos sistemas -->
   <script>
-    // Esperar a que el sistema principal esté listo
-    window.addEventListener('DOMContentLoaded', () => {
-      // Inicializar sistemas después de un pequeño delay
-      setTimeout(() => {
-        if (window.offersSystem) {
-          window.offersSystem.init();
-        }
-        if (window.feesSystem) {
-          window.feesSystem.init();
-        }
-        if (window.couponsSystem) {
-          window.couponsSystem.init();
-        }
-        if (window.categoriesReportsSystem) {
-          window.categoriesReportsSystem.init();
-        }
-        if (window.usersManagement) {
-          window.usersManagement.init();
-        }
-      }, 500);
-    });
+    // Inicializar sistemas inmediatamente (DOMContentLoaded ya pasó a esta altura)
+    (function initSystems() {
+      console.log('🔄 Inicializando sistemas externos...');
+      
+      if (window.offersSystem) {
+        try { window.offersSystem.init(); } catch(e) { console.error('Error init offers:', e); }
+      } else if (typeof initOffersSystem === 'function') {
+        try { initOffersSystem(); } catch(e) { console.error('Error init offers:', e); }
+      }
+      
+      if (window.feesSystem) {
+        try { window.feesSystem.init(); } catch(e) { console.error('Error init fees:', e); }
+      } else if (typeof initFeesSystem === 'function') {
+        try { initFeesSystem(); } catch(e) { console.error('Error init fees:', e); }
+      }
+      
+      if (window.couponsSystem) {
+        try { window.couponsSystem.init(); } catch(e) { console.error('Error init coupons:', e); }
+      } else if (typeof initCouponsSystem === 'function') {
+        try { initCouponsSystem(); } catch(e) { console.error('Error init coupons:', e); }
+      }
+      
+      if (window.categoriesReportsSystem) {
+        try { window.categoriesReportsSystem.init(); } catch(e) { console.error('Error init categories:', e); }
+      }
+      if (window.usersManagement) {
+        try { window.usersManagement.init(); } catch(e) { console.error('Error init users:', e); }
+      }
+      
+      console.log('✅ Sistemas externos inicializados');
+    })();
   </script>
 
   <!-- Reportes Avanzados -->
