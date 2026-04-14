@@ -1,4 +1,14 @@
 {
+  "redirects": [
+    { "source": "/guerrero_uploaded/landing-mejorado.html", "destination": "/landing", "permanent": true },
+    { "source": "/guerrero_uploaded/login.html", "destination": "/login", "permanent": true },
+    { "source": "/guerrero_uploaded/super-admin.html", "destination": "/admin", "permanent": true },
+    { "source": "/guerrero_uploaded/parent-panel.html", "destination": "/padres", "permanent": true },
+    { "source": "/guerrero_uploaded/director-panel.html", "destination": "/director", "permanent": true },
+    { "source": "/guerrero_uploaded/staff-panel.html", "destination": "/staff", "permanent": true },
+    { "source": "/guerrero_uploaded/operativo-panel.html", "destination": "/operativo", "permanent": true },
+    { "source": "/guerrero_uploaded/establecer-password.html", "destination": "/password", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/", "destination": "/guerrero_uploaded/landing-mejorado.html" },
     { "source": "/landing", "destination": "/guerrero_uploaded/landing-mejorado.html" },

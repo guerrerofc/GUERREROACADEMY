@@ -277,8 +277,11 @@
               return;
             }
           } else {
-            // No tiene password guardado - guardar el que ingresó ahora
-            await sb.from('users').update({ password: password }).eq('email', email);
+            // No tiene password - no permitir acceso
+            showError('Usuario no tiene contraseña. Use el link de invitación o contacte al administrador.');
+            btn.disabled = false;
+            btn.innerHTML = 'Iniciar sesión';
+            return;
           }
           
           // Usuario encontrado y contraseña correcta, redirigir según rol

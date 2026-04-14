@@ -1361,6 +1361,34 @@ credentials.json
 *.pem
 *.key
 .credentials
+ conflict_100426_1854
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
 
 
 
@@ -1402,6 +1430,8 @@ credentials.json
 
 
 
+
+ main
  main
  main
  main
