@@ -390,6 +390,33 @@ window.editCategory = async function(id) {
   document.getElementById('categoryMaxPlayers').value = category.max_players || 30;
   document.getElementById('categoryColor').value = category.color || '#D87093';
   
+  // Cargar campos adicionales
+  document.getElementById('categoryMonthlyFee').value = category.monthly_fee || '';
+  document.getElementById('categoryLocation').value = category.location || '';
+  document.getElementById('categoryStatus').value = category.status || 'active';
+  document.getElementById('categoryInscriptionsOpen').value = category.inscriptions_open !== false ? 'true' : 'false';
+  
+  // Horarios
+  if (category.training_time) {
+    const parts = category.training_time.split('-');
+    document.getElementById('categoryTimeStart').value = parts[0] || '';
+    document.getElementById('categoryTimeEnd').value = parts[1] || '';
+  } else {
+    document.getElementById('categoryTimeStart').value = '';
+    document.getElementById('categoryTimeEnd').value = '';
+  }
+  
+  // Días de entrenamiento
+  document.querySelectorAll('.training-day').forEach(cb => {
+    cb.checked = (category.training_days || []).includes(cb.value);
+  });
+  
+  // Coach
+  const coachSelect = document.getElementById('categoryCoachId');
+  const assistantSelect = document.getElementById('categoryAssistantCoachId');
+  if (coachSelect) coachSelect.value = category.coach_id || '';
+  if (assistantSelect) assistantSelect.value = category.assistant_coach_id || '';
+  
   openModal('categoryModal');
 };
 
