@@ -1485,7 +1485,8 @@
         </div>
         <div class="form-group">
           <label>Fecha de Nacimiento</label>
-          <input type="date" id="playerBirthDate" class="input">
+          <input type="date" id="playerBirthDate" class="input" onchange="autoSelectCategory()">
+          <div id="playerAgeDisplay" style="font-size: 13px; color: var(--text-dim); margin-top: 6px;"></div>
         </div>
         <div class="form-group">
           <label>Nombre del Tutor</label>
@@ -2303,6 +2304,25 @@
       $('tutorEmail').innerHTML = '<option value="">Sin cuenta de padre</option>' +
         (users || []).map(u => `<option value="${u.email}" ${u.email === selectedEmail ? 'selected' : ''}>${u.nombre || u.email}</option>`).join('');
     }
+
+    // Auto-seleccionar categoría por edad
+    window.autoSelectCategory = function() {
+      const birthDate = $('playerBirthDate').value;
+      if (!birthDate) {
+        $('playerAgeDisplay').textContent = '';
+        return;
+      }
+      
+      const age = Math.floor((Date.now() - new Date(birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+      $('playerAgeDisplay').textContent = 'Edad: ' + age + ' años';
+      
+      // Buscar categoría que coincida con la edad
+      const matched = categories.find(c => c.age_min && c.age_max && age >= c.age_min && age <= c.age_max);
+      if (matched) {
+        $('playerCategory').value = matched.id;
+        $('playerAgeDisplay').textContent = 'Edad: ' + age + ' años → ' + matched.name;
+      }
+    };
 
     $('savePlayer').addEventListener('click', async () => {
       const id = $('editPlayerId').value;
