@@ -1463,7 +1463,9 @@
       $('childrenGrid').innerHTML = children.map(child => `
         <div class="card">
           <div class="player-card" style="border: none; padding: 0;">
-            <div class="player-avatar">${(child.nombre || 'J')[0]}</div>
+            ${child.foto_url 
+              ? `<img src="${child.foto_url}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;">` 
+              : `<div class="player-avatar">${(child.nombre || 'J')[0]}</div>`}
             <div class="player-info">
               <h3>${child.nombre}</h3>
               <p>${child.categories?.name || 'Sin categoría'}</p>
@@ -1479,6 +1481,16 @@
               <span>WhatsApp</span>
               <span>${child.tutor_whatsapp || '-'}</span>
             </div>
+          </div>
+          <div style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+            <label style="cursor:pointer;padding:8px 14px;background:#f5f5f7;border:1px solid rgba(0,0,0,0.08);border-radius:10px;font-size:13px;font-weight:600;">
+              📷 Subir Foto ${new Date().getFullYear()}
+              <input type="file" accept="image/*" style="display:none;" onchange="parentUploadPhoto('${child.id}', this)">
+            </label>
+            <label style="cursor:pointer;padding:8px 14px;background:#f5f5f7;border:1px solid rgba(0,0,0,0.08);border-radius:10px;font-size:13px;font-weight:600;">
+              📄 Subir Acta
+              <input type="file" accept="image/*,.pdf" style="display:none;" onchange="parentUploadActa('${child.id}', this)">
+            </label>
           </div>
         </div>
       `).join('');
@@ -1999,6 +2011,84 @@
     // Exponer función globalmente
     window.loadPlayerDocuments = loadPlayerDocuments;
     window.openDocumentsWizard = openDocumentsWizard;
+
+    // ======================================
+    // FOTOS Y ACTAS - Funciones para padres
+    // ======================================
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    window.parentUploadPhoto = async function(playerId, input) {
+      const file = input.files[0];
+      if (!file) return;
+      
+      if (file.size > 2 * 1024 * 1024) {
+        alert('La foto no puede pesar más de 2MB');
+        input.value = '';
+        return;
+      }
+      
+      try {
+        const base64 = await fileToBase64(file);
+        const year = new Date().getFullYear();
+        
+        const { error } = await sb.from('player_photos').upsert({
+          player_id: playerId,
+          photo_data: base64,
+          year: year,
+          uploaded_by: currentUser?.email || 'padre'
+        }, { onConflict: 'player_id,year' });
+        
+        if (error) throw error;
+        
+        await sb.from('players').update({ foto_url: base64 }).eq('id', playerId);
+        
+        alert('Foto ' + year + ' subida correctamente');
+        
+        // Recargar hijos para ver la foto
+        const { data: updatedPlayers } = await sb.from('players').select('*, categories(name)').eq('tutor_email', currentUser?.email);
+        if (updatedPlayers) children = updatedPlayers;
+        loadChildren();
+      } catch (err) {
+        alert('Error al subir foto: ' + err.message);
+      }
+      input.value = '';
+    };
+
+    window.parentUploadActa = async function(playerId, input) {
+      const file = input.files[0];
+      if (!file) return;
+      
+      if (file.size > 5 * 1024 * 1024) {
+        alert('El archivo no puede pesar más de 5MB');
+        input.value = '';
+        return;
+      }
+      
+      try {
+        const base64 = await fileToBase64(file);
+        
+        const { error } = await sb.from('player_birth_certificates').insert({
+          player_id: playerId,
+          file_data: base64,
+          file_name: file.name,
+          uploaded_by: currentUser?.email || 'padre'
+        });
+        
+        if (error) throw error;
+        alert('Acta de nacimiento subida correctamente');
+      } catch (err) {
+        alert('Error al subir acta: ' + err.message);
+      }
+      input.value = '';
+    };
 
     // Init
     checkAuth();
