@@ -907,6 +907,7 @@
 
         <div class="nav-section">Campamento</div>
         <button class="nav-link" data-view="camp-inscriptions"><span class="nav-icon">🏕️</span>Inscripciones Camp.</button>
+        <button class="nav-link" data-view="camp-players"><span class="nav-icon">⚽</span>Jugadores Camp.</button>
         <button class="nav-link" data-view="camp-payments"><span class="nav-icon">💳</span>Pagos Camp.</button>
 
         <div class="nav-section">Sistema</div>
@@ -1555,6 +1556,65 @@
                 </tr>
               </thead>
               <tbody id="campInscriptionsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- CAMPAMENTO: JUGADORES -->
+      <div class="view" id="view-camp-players">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">⚽ Jugadores del Campamento</h1>
+            <p class="page-subtitle">Jugadores aprobados e inscritos en el Campamento de Verano 2026</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <select id="campPlayersWeekFilter" class="input" style="width: auto;" onchange="renderCampPlayersTable()">
+              <option value="all">Todas las semanas</option>
+              <option value="1">Semana 1 (Jul 6-10)</option>
+              <option value="2">Semana 2 (Jul 13-17)</option>
+              <option value="3">Semana 3 (Jul 20-24)</option>
+              <option value="4">Semana 4 (Jul 27-31)</option>
+              <option value="5">Semana 5 (Ago 3-7)</option>
+              <option value="6">Semana 6 (Ago 10-14)</option>
+              <option value="7">Semana 7 (Ago 17-21)</option>
+              <option value="8">Semana 8 (Ago 24-28)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom: 24px;">
+          <div class="card stat-card">
+            <div class="stat-label">Total Jugadores</div>
+            <div class="stat-value" id="campPlayersTotal">0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Pagados</div>
+            <div class="stat-value" id="campPlayersPaid" style="color: var(--success);">0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Pago Pendiente</div>
+            <div class="stat-value" id="campPlayersPending" style="color: var(--danger);">0</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Jugador</th>
+                  <th>Edad</th>
+                  <th>Talla</th>
+                  <th>Tutor</th>
+                  <th>WhatsApp</th>
+                  <th>Semanas</th>
+                  <th>Pago</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="campPlayersTable"></tbody>
             </table>
           </div>
         </div>
@@ -2330,6 +2390,7 @@
       if (view === 'coupons' && window.couponsSystem) window.couponsSystem.load();
       if (view === 'documents') loadDocumentsAdmin();
       if (view === 'camp-inscriptions') loadCampInscriptions();
+      if (view === 'camp-players') loadCampPlayers();
       if (view === 'camp-payments') loadCampPayments();
       if (view === 'landing-config') loadLandingConfig();
     }
@@ -4139,6 +4200,59 @@
         console.log('Camp dashboard:', e.message);
       }
     }
+
+    // ======================================
+    // CAMPAMENTO - Jugadores
+    // ======================================
+
+    let campPlayers = [];
+
+    async function loadCampPlayers() {
+      const { data } = await sb.from('camp_inscriptions').select('*').eq('status', 'approved').order('jugador_nombre');
+      campPlayers = data || [];
+
+      const paid = campPlayers.filter(i => i.payment_status === 'paid').length;
+      const pending = campPlayers.filter(i => i.payment_status !== 'paid').length;
+
+      if ($('campPlayersTotal')) $('campPlayersTotal').textContent = campPlayers.length;
+      if ($('campPlayersPaid')) $('campPlayersPaid').textContent = paid;
+      if ($('campPlayersPending')) $('campPlayersPending').textContent = pending;
+
+      renderCampPlayersTable();
+    }
+
+    window.renderCampPlayersTable = function() {
+      const tbody = $('campPlayersTable');
+      if (!tbody) return;
+
+      const weekFilter = $('campPlayersWeekFilter')?.value || 'all';
+      let filtered = campPlayers;
+      if (weekFilter !== 'all') {
+        const w = parseInt(weekFilter);
+        filtered = campPlayers.filter(i => (i.semanas || []).includes(w));
+      }
+
+      tbody.innerHTML = filtered.map(i => {
+        const edad = i.fecha_nacimiento ? Math.floor((Date.now() - new Date(i.fecha_nacimiento).getTime()) / (365.25*24*60*60*1000)) : '-';
+        const weeksStr = (i.semanas || []).map(w => 'S' + w).join(', ');
+        const payBadge = i.payment_status === 'paid' ? 'success' : i.payment_status === 'partial' ? 'warning' : 'danger';
+        const paidPct = i.precio_total > 0 ? Math.round((Number(i.paid_amount || 0) / Number(i.precio_total)) * 100) : 0;
+
+        return `<tr>
+          <td><strong>${i.jugador_nombre}</strong></td>
+          <td>${edad !== '-' ? edad + ' años' : '-'}</td>
+          <td>${i.talla_tshirt || '-'}</td>
+          <td>${i.tutor_nombre}<br><small style="color:var(--text-dim);">${i.tutor_email || ''}</small></td>
+          <td>${i.tutor_whatsapp || '-'}</td>
+          <td><span style="font-size:12px;">${weeksStr}</span></td>
+          <td>
+            <span class="badge badge-${payBadge}">${paidPct}%</span>
+            <br><small>${formatMoney(i.paid_amount || 0)} / ${formatMoney(i.precio_total)}</small>
+          </td>
+          <td><span class="badge badge-success">Aprobado</span></td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="8" style="text-align:center;">Sin jugadores aprobados</td></tr>';
+    };
 
     // ======================================
     // CAMPAMENTO - Inscripciones
