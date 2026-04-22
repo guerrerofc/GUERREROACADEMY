@@ -4,41 +4,35 @@
 - Frontend: Vanilla HTML/CSS/JS (`/app/guerrero_uploaded/`)
 - Backend API: Vercel Serverless (`/app/api/`)
 - Database: Supabase PostgreSQL
-- Email: Resend (`notificaciones@guerrerofcsd.com`)
-- Pagos: Stripe
+- Email: Resend | Pagos: Stripe
 
 ## Implementado
 
 ### Core
-- Login unificado, paneles por rol, URLs limpias, firmas digitales, dashboard real
+- Login unificado, paneles por rol, URLs limpias, firmas digitales, dashboard
 
-### Jugadores Academia
-- CRUD, foto anual, acta nacimiento, edad auto → categoría auto
-
-### Campamento 2026
-- Landing: Hero animado, precios/ofertas rosado, formulario wizard 4 pasos
-- Métodos pago reactivos (reservación 20%, completo, 2 cuotas)
-- Stripe Checkout, creación auto usuario padre
-- Admin: Inscripciones (aprobar/rechazar + email coherente con estado)
-- Admin: Jugadores Camp (editar perfil completo: nombre, fecha nac, talla, semanas, tutor, foto)
-- Admin: Pagos Camp (registrar, tracking)
-- Admin: Semanas (8 cards con cupos editables, ocupación, disponibles, quitar jugador de semana)
-- Admin: Fotos (albums por fecha/semana, enviar a padres)
+### Campamento 2026 — Completo
+- Landing: Hero animado, precios/ofertas, formulario wizard 4 pasos
+- Métodos pago reactivos, Stripe Checkout, creación auto padre
+- Admin: Inscripciones (aprobar + email coherente + token password)
+- Admin: Jugadores (editar perfil completo + foto + semanas)
+- Admin: Pagos (registrar, tracking)
+- Admin: Semanas (cupos editables, ocupación, quitar jugadores)
+- Admin: Fotos (albums, enviar a padres por email)
+- Admin: **Asistencia** (por día/semana, marcar todos, resumen semanal con % por día)
+- Admin: **Documentos** (subir por jugador: acuerdos, autorizaciones, comprobantes, médicos; filtros por jugador/tipo)
 - Admin: Reportes (6 KPIs + 6 gráficos)
-- **Migrar a Academia** — Botón en jugadores camp para convertir a academia (seleccionar categoría, cuota, preserva historial)
-- Acuerdo de pago HTML + email
-- Emails coherentes: "Solicitud Recibida" (pendiente/en proceso) vs "Cupo Confirmado" (pagado)
-- Creación automática de usuario padre con token seguro al aprobar
+- **Migrar a Academia** (preserva datos, selecciona categoría/cuota)
+- Emails premium coherentes con estado real
 
-### Emails Premium (Resend)
-- 7 tipos con diseño premium: header GUERRERO ACADEMY, responsive, profesional
+### Landing Config
+- 7 toggles secciones, textos editables, precios editables
 
-### Admin Landing Config
-- 7 toggles secciones, textos editables, precios campamento editables
+## SQLs a ejecutar
+- SQL_CAMP_ASISTENCIA_DOCS.sql (camp_attendance + camp_documents)
 
 ## Backlog
-- P1: Asistencia Campamento (por día/semana)
-- P2: Documentos Campamento (por jugador)
-- P3: WhatsApp (Twilio) verificar
-- P4: Bug formulario inscripción academia salta pasos
-- P5: Refactoring archivos monolíticos
+- P1: WhatsApp (Twilio)
+- P2: Bug formulario inscripción academia salta pasos
+- P3: Galería fotos en panel padres
+- P4: Refactoring archivos monolíticos

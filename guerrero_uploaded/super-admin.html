@@ -912,6 +912,8 @@
         <button class="nav-link" data-view="camp-weeks"><span class="nav-icon">📅</span>Semanas Camp.</button>
         <button class="nav-link" data-view="camp-reports"><span class="nav-icon">📊</span>Reportes Camp.</button>
         <button class="nav-link" data-view="camp-photos"><span class="nav-icon">📸</span>Fotos Camp.</button>
+        <button class="nav-link" data-view="camp-attendance"><span class="nav-icon">📋</span>Asistencia Camp.</button>
+        <button class="nav-link" data-view="camp-docs"><span class="nav-icon">📁</span>Documentos Camp.</button>
 
         <div class="nav-section">Sistema</div>
         <button class="nav-link" data-view="landing-config"><span class="nav-icon">🌐</span>Landing</button>
@@ -1809,6 +1811,162 @@
         <div id="campPhotosGrid"></div>
       </div>
 
+      <!-- CAMPAMENTO: ASISTENCIA -->
+      <div class="view" id="view-camp-attendance">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">📋 Asistencia del Campamento</h1>
+            <p class="page-subtitle">Marca asistencia diaria por semana</p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 20px;">
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: end;">
+            <div>
+              <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Semana</label>
+              <select id="attWeekFilter" class="input" style="width: auto; padding: 8px 12px;" onchange="loadCampAttendance()">
+                <option value="1">Semana 1 (Jul 6-10)</option>
+                <option value="2">Semana 2 (Jul 13-17)</option>
+                <option value="3">Semana 3 (Jul 20-24)</option>
+                <option value="4">Semana 4 (Jul 27-31)</option>
+                <option value="5">Semana 5 (Ago 3-7)</option>
+                <option value="6">Semana 6 (Ago 10-14)</option>
+                <option value="7">Semana 7 (Ago 17-21)</option>
+                <option value="8">Semana 8 (Ago 24-28)</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Dia</label>
+              <select id="attDayFilter" class="input" style="width: auto; padding: 8px 12px;" onchange="loadCampAttendance()">
+                <option value="lunes">Lunes</option>
+                <option value="martes">Martes</option>
+                <option value="miercoles">Miercoles</option>
+                <option value="jueves">Jueves</option>
+                <option value="viernes">Viernes</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="saveCampAttendance()" style="padding: 8px 20px;">Guardar Asistencia</button>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom: 20px;">
+          <div class="card stat-card">
+            <div class="stat-label">Total Esperados</div>
+            <div class="stat-value" id="attTotal">0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Presentes</div>
+            <div class="stat-value" id="attPresent" style="color: var(--success);">0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Ausentes</div>
+            <div class="stat-value" id="attAbsent" style="color: var(--danger);">0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">% Asistencia</div>
+            <div class="stat-value" id="attPct">0%</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 class="card-title" id="attTitle">Asistencia</h3>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-sm" onclick="markAllCampAtt(true)">Todos presentes</button>
+              <button class="btn btn-sm" onclick="markAllCampAtt(false)">Todos ausentes</button>
+            </div>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 50px;">
+                    <input type="checkbox" id="attCheckAll" onchange="markAllCampAtt(this.checked)" style="width:18px;height:18px;cursor:pointer;">
+                  </th>
+                  <th>Jugador</th>
+                  <th>Edad</th>
+                  <th>Tutor</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="attTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Resumen semanal -->
+        <div class="card" style="margin-top: 20px;">
+          <h3 class="card-title" style="margin-bottom: 12px;">Resumen de la Semana</h3>
+          <div id="attWeekSummary"></div>
+        </div>
+      </div>
+
+      <!-- CAMPAMENTO: DOCUMENTOS -->
+      <div class="view" id="view-camp-docs">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">📁 Documentos del Campamento</h1>
+            <p class="page-subtitle">Acuerdos, autorizaciones y comprobantes por jugador</p>
+          </div>
+          <div>
+            <button class="btn btn-primary" onclick="openModal('uploadCampDocModal')">+ Subir Documento</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 20px;">
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: end;">
+            <div>
+              <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Jugador</label>
+              <select id="docsPlayerFilter" class="input" style="width: auto; padding: 8px 12px;" onchange="loadCampDocs()">
+                <option value="all">Todos</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Tipo</label>
+              <select id="docsTypeFilter" class="input" style="width: auto; padding: 8px 12px;" onchange="loadCampDocs()">
+                <option value="all">Todos</option>
+                <option value="acuerdo_pago">Acuerdo de Pago</option>
+                <option value="autorizacion">Autorizacion</option>
+                <option value="comprobante">Comprobante</option>
+                <option value="medico">Documento Medico</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom: 20px;">
+          <div class="card stat-card">
+            <div class="stat-label">Total Documentos</div>
+            <div class="stat-value" id="docsTotal">0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Jugadores con Docs</div>
+            <div class="stat-value" id="docsPlayers">0</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Jugador</th>
+                  <th>Tipo</th>
+                  <th>Nombre del Archivo</th>
+                  <th>Subido por</th>
+                  <th>Fecha</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="docsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- CAMPAMENTO: SEMANAS -->
       <div class="view" id="view-camp-weeks">
         <div class="topbar">
@@ -2297,6 +2455,44 @@
       <div class="modal-footer">
         <button class="btn" onclick="closeModal('changePasswordModal')">Cancelar</button>
         <button class="btn btn-primary" onclick="saveNewPassword()">Guardar Contraseña</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Subir Documento Campamento -->
+  <div class="modal" id="uploadCampDocModal">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3>Subir Documento</h3>
+        <button class="btn btn-sm" onclick="closeModal('uploadCampDocModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Jugador</label>
+          <select id="docPlayer" class="input"></select>
+        </div>
+        <div class="form-group">
+          <label>Tipo de Documento</label>
+          <select id="docType" class="input">
+            <option value="acuerdo_pago">Acuerdo de Pago</option>
+            <option value="autorizacion">Autorizacion</option>
+            <option value="comprobante">Comprobante de Pago</option>
+            <option value="medico">Documento Medico</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Archivo (PDF o imagen)</label>
+          <input type="file" id="docFile" accept="image/*,.pdf" class="input" style="padding: 10px;">
+        </div>
+        <div class="form-group">
+          <label>Nota (opcional)</label>
+          <input type="text" id="docNote" class="input" placeholder="Descripcion breve">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('uploadCampDocModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveCampDoc()">Subir</button>
       </div>
     </div>
   </div>
@@ -2810,6 +3006,8 @@
       if (view === 'camp-reports') loadCampReports();
       if (view === 'camp-weeks') loadCampWeeks();
       if (view === 'camp-photos') loadCampPhotos();
+      if (view === 'camp-attendance') loadCampAttendance();
+      if (view === 'camp-docs') loadCampDocs();
       if (view === 'landing-config') loadLandingConfig();
     }
     
@@ -4777,6 +4975,236 @@
           </div>`;
         }).join('') + '</div>' || '<p style="color:var(--text-dim);text-align:center;">Sin datos</p>';
     }
+
+    // ======================================
+    // CAMPAMENTO - Asistencia
+    // ======================================
+
+    const CAMP_WEEK_DATES = {
+      1: ['2026-07-06','2026-07-07','2026-07-08','2026-07-09','2026-07-10'],
+      2: ['2026-07-13','2026-07-14','2026-07-15','2026-07-16','2026-07-17'],
+      3: ['2026-07-20','2026-07-21','2026-07-22','2026-07-23','2026-07-24'],
+      4: ['2026-07-27','2026-07-28','2026-07-29','2026-07-30','2026-07-31'],
+      5: ['2026-08-03','2026-08-04','2026-08-05','2026-08-06','2026-08-07'],
+      6: ['2026-08-10','2026-08-11','2026-08-12','2026-08-13','2026-08-14'],
+      7: ['2026-08-17','2026-08-18','2026-08-19','2026-08-20','2026-08-21'],
+      8: ['2026-08-24','2026-08-25','2026-08-26','2026-08-27','2026-08-28']
+    };
+    const DAY_NAMES = ['lunes','martes','miercoles','jueves','viernes'];
+    let campAttData = [];
+    let campAttPlayers = [];
+
+    async function loadCampAttendance() {
+      const week = parseInt($('attWeekFilter')?.value || '1');
+      const dayIdx = DAY_NAMES.indexOf($('attDayFilter')?.value || 'lunes');
+      const dateStr = CAMP_WEEK_DATES[week]?.[dayIdx] || '';
+
+      // Get players for this week
+      const { data: inscs } = await sb.from('camp_inscriptions').select('*').eq('status', 'approved');
+      campAttPlayers = (inscs || []).filter(i => (i.semanas || []).includes(week));
+
+      // Get existing attendance for this date
+      const { data: attRecords } = await sb.from('camp_attendance').select('*').eq('attendance_date', dateStr);
+      campAttData = attRecords || [];
+
+      const attMap = {};
+      campAttData.forEach(r => { attMap[r.inscription_id] = r.present; });
+
+      $('attTitle').textContent = 'Semana ' + week + ' - ' + ($('attDayFilter')?.value || 'lunes').charAt(0).toUpperCase() + ($('attDayFilter')?.value || 'lunes').slice(1) + ' (' + dateStr + ')';
+
+      // Render table
+      $('attTable').innerHTML = campAttPlayers.map(p => {
+        const edad = p.fecha_nacimiento ? Math.floor((Date.now() - new Date(p.fecha_nacimiento).getTime()) / (365.25*24*60*60*1000)) : '-';
+        const isPresent = attMap[p.id] !== undefined ? attMap[p.id] : true;
+        return `<tr>
+          <td><input type="checkbox" class="camp-att-cb" data-id="${p.id}" ${isPresent ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;" onchange="updateAttStats()"></td>
+          <td><strong>${p.jugador_nombre}</strong></td>
+          <td>${edad !== '-' ? edad + ' años' : '-'}</td>
+          <td>${p.tutor_nombre || '-'}</td>
+          <td><span class="badge badge-${isPresent ? 'success' : 'danger'}" id="attBadge_${p.id}">${isPresent ? 'Presente' : 'Ausente'}</span></td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="5" style="text-align:center;">Sin jugadores en esta semana</td></tr>';
+
+      updateAttStats();
+      loadAttWeekSummary(week);
+    }
+
+    window.updateAttStats = function() {
+      const cbs = document.querySelectorAll('.camp-att-cb');
+      const total = cbs.length;
+      const present = Array.from(cbs).filter(cb => cb.checked).length;
+      const absent = total - present;
+      const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+
+      $('attTotal').textContent = total;
+      $('attPresent').textContent = present;
+      $('attAbsent').textContent = absent;
+      $('attPct').textContent = pct + '%';
+
+      // Update individual badges
+      cbs.forEach(cb => {
+        const badge = document.getElementById('attBadge_' + cb.dataset.id);
+        if (badge) {
+          badge.className = 'badge badge-' + (cb.checked ? 'success' : 'danger');
+          badge.textContent = cb.checked ? 'Presente' : 'Ausente';
+        }
+      });
+    };
+
+    window.markAllCampAtt = function(val) {
+      document.querySelectorAll('.camp-att-cb').forEach(cb => cb.checked = val);
+      if ($('attCheckAll')) $('attCheckAll').checked = val;
+      updateAttStats();
+    };
+
+    window.saveCampAttendance = async function() {
+      const week = parseInt($('attWeekFilter')?.value || '1');
+      const dayIdx = DAY_NAMES.indexOf($('attDayFilter')?.value || 'lunes');
+      const dateStr = CAMP_WEEK_DATES[week]?.[dayIdx] || '';
+
+      const records = Array.from(document.querySelectorAll('.camp-att-cb')).map(cb => ({
+        inscription_id: cb.dataset.id,
+        attendance_date: dateStr,
+        week_number: week,
+        present: cb.checked,
+        registered_by: currentUser?.email || 'admin'
+      }));
+
+      try {
+        // Delete existing records for this date then insert
+        await sb.from('camp_attendance').delete().eq('attendance_date', dateStr);
+        if (records.length > 0) {
+          const { error } = await sb.from('camp_attendance').insert(records);
+          if (error) throw error;
+        }
+        alert('Asistencia guardada para ' + dateStr);
+        loadAttWeekSummary(week);
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    };
+
+    async function loadAttWeekSummary(week) {
+      const dates = CAMP_WEEK_DATES[week] || [];
+      const { data: allAtt } = await sb.from('camp_attendance').select('*').eq('week_number', week);
+      const records = allAtt || [];
+
+      $('attWeekSummary').innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
+          ${dates.map((d, idx) => {
+            const dayRecords = records.filter(r => r.attendance_date === d);
+            const present = dayRecords.filter(r => r.present).length;
+            const total = dayRecords.length;
+            const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+            const hasData = total > 0;
+            return `<div style="text-align:center;padding:16px 8px;background:${hasData ? (pct >= 80 ? 'rgba(52,199,89,0.08)' : 'rgba(255,149,0,0.08)') : 'var(--bg-secondary,#f5f5f7)'};border-radius:12px;">
+              <div style="font-size:12px;font-weight:700;color:var(--text-dim);">${DAY_NAMES[idx].charAt(0).toUpperCase() + DAY_NAMES[idx].slice(1)}</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">${d}</div>
+              ${hasData ? `<div style="font-size:24px;font-weight:800;color:${pct >= 80 ? '#34c759' : '#ff9500'};">${pct}%</div>
+              <div style="font-size:11px;color:var(--text-dim);">${present}/${total}</div>` : '<div style="font-size:13px;color:var(--text-muted);">Sin datos</div>'}
+            </div>`;
+          }).join('')}
+        </div>`;
+    }
+
+    // ======================================
+    // CAMPAMENTO - Documentos
+    // ======================================
+
+    let campDocsData = [];
+
+    async function loadCampDocs() {
+      const playerFilter = $('docsPlayerFilter')?.value || 'all';
+      const typeFilter = $('docsTypeFilter')?.value || 'all';
+
+      // Load players for filter dropdown
+      const { data: inscs } = await sb.from('camp_inscriptions').select('id, jugador_nombre').eq('status', 'approved');
+      const playerSelect = $('docsPlayerFilter');
+      const docPlayerSelect = $('docPlayer');
+      const playerOptions = '<option value="all">Todos</option>' + (inscs || []).map(i => `<option value="${i.id}">${i.jugador_nombre}</option>`).join('');
+      const docPlayerOptions = (inscs || []).map(i => `<option value="${i.id}">${i.jugador_nombre}</option>`).join('');
+      if (playerSelect) playerSelect.innerHTML = playerOptions;
+      if (docPlayerSelect) docPlayerSelect.innerHTML = docPlayerOptions;
+      // Restore filter
+      if (playerFilter !== 'all') playerSelect.value = playerFilter;
+
+      // Load docs
+      let query = sb.from('camp_documents').select('*').order('created_at', { ascending: false });
+      if (playerFilter !== 'all') query = query.eq('inscription_id', playerFilter);
+      if (typeFilter !== 'all') query = query.eq('doc_type', typeFilter);
+
+      const { data } = await query;
+      campDocsData = data || [];
+
+      const uniquePlayers = new Set(campDocsData.map(d => d.inscription_id));
+      $('docsTotal').textContent = campDocsData.length;
+      $('docsPlayers').textContent = uniquePlayers.size;
+
+      const typeLabels = { acuerdo_pago: 'Acuerdo de Pago', autorizacion: 'Autorizacion', comprobante: 'Comprobante', medico: 'Medico', otro: 'Otro' };
+
+      $('docsTable').innerHTML = campDocsData.map(d => {
+        const typeBadge = d.doc_type === 'acuerdo_pago' ? 'info' : d.doc_type === 'comprobante' ? 'success' : d.doc_type === 'medico' ? 'danger' : 'warning';
+        return `<tr>
+          <td><strong>${d.player_name || '-'}</strong></td>
+          <td><span class="badge badge-${typeBadge}">${typeLabels[d.doc_type] || d.doc_type}</span></td>
+          <td>${d.file_name || '-'}</td>
+          <td>${d.uploaded_by || '-'}</td>
+          <td>${new Date(d.created_at).toLocaleDateString('es-DO')}</td>
+          <td style="white-space:nowrap;">
+            <a href="${d.file_data}" target="_blank" class="btn btn-sm" title="Ver">👁️</a>
+            <button class="btn btn-sm" style="background:#EF4444;" onclick="deleteCampDoc('${d.id}')" title="Eliminar">🗑️</button>
+          </td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="6" style="text-align:center;">Sin documentos</td></tr>';
+    }
+
+    window.saveCampDoc = async function() {
+      const inscId = $('docPlayer').value;
+      const docType = $('docType').value;
+      const file = $('docFile').files[0];
+      const note = $('docNote').value.trim();
+
+      if (!inscId || !file) return alert('Selecciona jugador y archivo');
+      if (file.size > 5 * 1024 * 1024) return alert('Archivo max 5MB');
+
+      try {
+        const base64 = await new Promise((res, rej) => {
+          const reader = new FileReader();
+          reader.onload = () => res(reader.result);
+          reader.onerror = rej;
+          reader.readAsDataURL(file);
+        });
+
+        // Get player name
+        const opt = $('docPlayer').options[$('docPlayer').selectedIndex];
+        const playerName = opt ? opt.textContent : '';
+
+        const { error } = await sb.from('camp_documents').insert({
+          inscription_id: inscId,
+          player_name: playerName,
+          doc_type: docType,
+          file_data: base64,
+          file_name: file.name,
+          note: note || null,
+          uploaded_by: currentUser?.email || 'admin'
+        });
+
+        if (error) throw error;
+        closeModal('uploadCampDocModal');
+        $('docFile').value = '';
+        $('docNote').value = '';
+        alert('Documento subido');
+        loadCampDocs();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    };
+
+    window.deleteCampDoc = async function(id) {
+      if (!confirm('¿Eliminar este documento?')) return;
+      await sb.from('camp_documents').delete().eq('id', id);
+      loadCampDocs();
+    };
 
     // ======================================
     // CAMPAMENTO - Fotos
