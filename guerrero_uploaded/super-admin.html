@@ -909,6 +909,7 @@
         <button class="nav-link" data-view="camp-inscriptions"><span class="nav-icon">🏕️</span>Inscripciones Camp.</button>
         <button class="nav-link" data-view="camp-players"><span class="nav-icon">⚽</span>Jugadores Camp.</button>
         <button class="nav-link" data-view="camp-payments"><span class="nav-icon">💳</span>Pagos Camp.</button>
+        <button class="nav-link" data-view="camp-reports"><span class="nav-icon">📊</span>Reportes Camp.</button>
 
         <div class="nav-section">Sistema</div>
         <button class="nav-link" data-view="landing-config"><span class="nav-icon">🌐</span>Landing</button>
@@ -1664,6 +1665,87 @@
               </thead>
               <tbody id="campPaymentsTable"></tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- CAMPAMENTO: REPORTES -->
+      <div class="view" id="view-camp-reports">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">📊 Reportes del Campamento</h1>
+            <p class="page-subtitle">Estadísticas y análisis del Campamento de Verano 2026</p>
+          </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="stats-grid" style="margin-bottom: 24px;">
+          <div class="card stat-card">
+            <div class="stat-label">Total Inscritos</div>
+            <div class="stat-value" id="crTotalInscritos">0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Aprobados</div>
+            <div class="stat-value" id="crAprobados" style="color: var(--success);">0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Tasa de Conversion</div>
+            <div class="stat-value" id="crConversion">0%</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Ingresos Totales</div>
+            <div class="stat-value" id="crIngresos" style="color: var(--success);">RD$ 0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Pendiente Cobrar</div>
+            <div class="stat-value" id="crPendiente" style="color: var(--danger);">RD$ 0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Prom. Semanas/Jugador</div>
+            <div class="stat-value" id="crAvgWeeks">0</div>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-bottom: 24px;">
+          <!-- Ocupación por Semana -->
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom: 16px;">Ocupacion por Semana</h3>
+            <div id="crWeeksChart"></div>
+          </div>
+
+          <!-- Distribución por Método de Pago -->
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom: 16px;">Metodos de Pago</h3>
+            <div id="crPayMethodsChart"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-bottom: 24px;">
+          <!-- Distribución por Talla -->
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom: 16px;">Tallas de T-shirt</h3>
+            <div id="crTallasChart"></div>
+          </div>
+
+          <!-- Distribución por Edad -->
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom: 16px;">Distribucion por Edad</h3>
+            <div id="crEdadesChart"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <!-- Estado de Pagos -->
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom: 16px;">Estado de Pagos</h3>
+            <div id="crPayStatusChart"></div>
+          </div>
+
+          <!-- Timeline de Inscripciones -->
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom: 16px;">Inscripciones por Dia</h3>
+            <div id="crTimelineChart"></div>
           </div>
         </div>
       </div>
@@ -2427,6 +2509,7 @@
       if (view === 'camp-inscriptions') loadCampInscriptions();
       if (view === 'camp-players') loadCampPlayers();
       if (view === 'camp-payments') loadCampPayments();
+      if (view === 'camp-reports') loadCampReports();
       if (view === 'landing-config') loadLandingConfig();
     }
     
@@ -4234,6 +4317,165 @@
       } catch(e) {
         console.log('Camp dashboard:', e.message);
       }
+    }
+
+    // ======================================
+    // CAMPAMENTO - Reportes
+    // ======================================
+
+    async function loadCampReports() {
+      const { data: allInscs } = await sb.from('camp_inscriptions').select('*');
+      const { data: payments } = await sb.from('camp_payments').select('*');
+      const inscs = allInscs || [];
+      const pays = payments || [];
+      const approved = inscs.filter(i => i.status === 'approved');
+
+      // KPIs
+      const totalCobrado = pays.reduce((s, p) => s + Number(p.amount || 0), 0);
+      const totalExpected = approved.reduce((s, i) => s + Number(i.precio_total || 0), 0);
+      const totalPaid = approved.reduce((s, i) => s + Number(i.paid_amount || 0), 0);
+      const avgWeeks = approved.length > 0 ? (approved.reduce((s, i) => s + (i.total_semanas || 0), 0) / approved.length).toFixed(1) : '0';
+      const conversion = inscs.length > 0 ? Math.round((approved.length / inscs.length) * 100) : 0;
+
+      $('crTotalInscritos').textContent = inscs.length;
+      $('crAprobados').textContent = approved.length;
+      $('crConversion').textContent = conversion + '%';
+      $('crIngresos').textContent = formatMoney(totalCobrado);
+      $('crPendiente').textContent = formatMoney(totalExpected - totalPaid);
+      $('crAvgWeeks').textContent = avgWeeks;
+
+      // Ocupación por Semana (bar chart)
+      const weekCounts = {};
+      for (let w = 1; w <= 8; w++) weekCounts[w] = 0;
+      approved.forEach(i => (i.semanas || []).forEach(w => weekCounts[w]++));
+      const maxW = Math.max(...Object.values(weekCounts), 1);
+      const weekLabels = ['Jul 6-10', 'Jul 13-17', 'Jul 20-24', 'Jul 27-31', 'Ago 3-7', 'Ago 10-14', 'Ago 17-21', 'Ago 24-28'];
+
+      $('crWeeksChart').innerHTML = `<div style="display:grid;grid-template-columns:repeat(8,1fr);gap:8px;">` +
+        Object.entries(weekCounts).map(([w, count]) => {
+          const pct = Math.round((count / maxW) * 100);
+          return `<div style="text-align:center;">
+            <div style="height:120px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:6px;">
+              <div style="width:100%;max-width:40px;height:${Math.max(pct, 5)}%;background:linear-gradient(to top,#D87093,#E8A0B8);border-radius:8px 8px 0 0;position:relative;">
+                <span style="position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:14px;font-weight:800;">${count}</span>
+              </div>
+            </div>
+            <div style="font-size:11px;font-weight:700;">S${w}</div>
+            <div style="font-size:9px;color:var(--text-dim);">${weekLabels[w-1]}</div>
+          </div>`;
+        }).join('') + '</div>';
+
+      // Métodos de Pago
+      const methods = {};
+      inscs.forEach(i => {
+        const m = (i.metodo_pago || 'sin definir').replace('stripe_', '');
+        methods[m] = (methods[m] || 0) + 1;
+      });
+      const methodNames = { reservacion: 'Reservacion (20%)', completo: 'Pago Completo', '2cuotas': '2 Cuotas', 'sin definir': 'Sin definir' };
+      const methodColors = { reservacion: '#007aff', completo: '#34c759', '2cuotas': '#ff9500', 'sin definir': '#aeaeb2' };
+
+      $('crPayMethodsChart').innerHTML = Object.entries(methods).map(([m, count]) => {
+        const pct = inscs.length > 0 ? Math.round((count / inscs.length) * 100) : 0;
+        return `<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:${methodColors[m] || '#86868b'};flex-shrink:0;"></div>
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <span style="font-size:13px;font-weight:600;">${methodNames[m] || m}</span>
+              <span style="font-size:13px;font-weight:700;">${count} (${pct}%)</span>
+            </div>
+            <div style="height:6px;background:var(--bg-secondary,#f0f0f0);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:${pct}%;background:${methodColors[m] || '#86868b'};border-radius:3px;"></div>
+            </div>
+          </div>
+        </div>`;
+      }).join('') || '<p style="color:var(--text-dim);text-align:center;">Sin datos</p>';
+
+      // Tallas
+      const tallas = {};
+      inscs.forEach(i => { const t = i.talla_tshirt || 'N/A'; tallas[t] = (tallas[t] || 0) + 1; });
+      const tallaTotal = inscs.length || 1;
+
+      $('crTallasChart').innerHTML = Object.entries(tallas).sort((a, b) => b[1] - a[1]).map(([t, count]) => {
+        const pct = Math.round((count / tallaTotal) * 100);
+        return `<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+          <span style="width:40px;text-align:center;font-weight:800;font-size:14px;color:#D87093;">${t}</span>
+          <div style="flex:1;height:24px;background:var(--bg-secondary,#f0f0f0);border-radius:6px;overflow:hidden;position:relative;">
+            <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#D87093,#E8A0B8);border-radius:6px;"></div>
+            <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;">${count}</span>
+          </div>
+        </div>`;
+      }).join('') || '<p style="color:var(--text-dim);text-align:center;">Sin datos</p>';
+
+      // Edades
+      const edades = {};
+      inscs.forEach(i => {
+        if (i.fecha_nacimiento) {
+          const age = Math.floor((Date.now() - new Date(i.fecha_nacimiento).getTime()) / (365.25*24*60*60*1000));
+          edades[age] = (edades[age] || 0) + 1;
+        }
+      });
+      const edadMax = Math.max(...Object.values(edades), 1);
+
+      $('crEdadesChart').innerHTML = `<div style="display:flex;align-items:flex-end;gap:6px;height:120px;">` +
+        Object.entries(edades).sort((a, b) => Number(a[0]) - Number(b[0])).map(([age, count]) => {
+          const pct = Math.round((count / edadMax) * 100);
+          return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;">
+            <span style="font-size:12px;font-weight:700;margin-bottom:4px;">${count}</span>
+            <div style="width:100%;max-width:36px;height:${Math.max(pct, 8)}%;background:#1d1d1f;border-radius:6px 6px 0 0;"></div>
+            <span style="font-size:11px;margin-top:4px;">${age}</span>
+          </div>`;
+        }).join('') + '</div>' || '<p style="color:var(--text-dim);text-align:center;">Sin datos</p>';
+
+      // Estado de Pagos (donut visual)
+      const paid = approved.filter(i => i.payment_status === 'paid').length;
+      const partial = approved.filter(i => i.payment_status === 'partial').length;
+      const pending = approved.filter(i => !i.payment_status || i.payment_status === 'pending').length;
+      const payTotal = approved.length || 1;
+
+      $('crPayStatusChart').innerHTML = `
+        <div style="display:flex;justify-content:center;gap:24px;margin-bottom:16px;">
+          <div style="text-align:center;">
+            <div style="width:64px;height:64px;border-radius:50%;background:conic-gradient(#34c759 0% ${Math.round(paid/payTotal*100)}%, #ff9500 ${Math.round(paid/payTotal*100)}% ${Math.round((paid+partial)/payTotal*100)}%, #ef4444 ${Math.round((paid+partial)/payTotal*100)}% 100%);display:flex;align-items:center;justify-content:center;">
+              <div style="width:44px;height:44px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;">${approved.length}</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;gap:8px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:12px;height:12px;border-radius:50%;background:#34c759;"></div>
+            <span style="font-size:13px;">Pagado completo</span>
+            <span style="margin-left:auto;font-weight:700;">${paid}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:12px;height:12px;border-radius:50%;background:#ff9500;"></div>
+            <span style="font-size:13px;">Pago parcial</span>
+            <span style="margin-left:auto;font-weight:700;">${partial}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:12px;height:12px;border-radius:50%;background:#ef4444;"></div>
+            <span style="font-size:13px;">Sin pago</span>
+            <span style="margin-left:auto;font-weight:700;">${pending}</span>
+          </div>
+        </div>`;
+
+      // Timeline inscripciones por día
+      const timeline = {};
+      inscs.forEach(i => {
+        const day = new Date(i.created_at).toLocaleDateString('es-DO', { day: '2-digit', month: 'short' });
+        timeline[day] = (timeline[day] || 0) + 1;
+      });
+      const tlMax = Math.max(...Object.values(timeline), 1);
+      const tlEntries = Object.entries(timeline).slice(-14); // últimos 14 días
+
+      $('crTimelineChart').innerHTML = `<div style="display:flex;align-items:flex-end;gap:4px;height:100px;">` +
+        tlEntries.map(([day, count]) => {
+          const pct = Math.round((count / tlMax) * 100);
+          return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;">
+            <span style="font-size:11px;font-weight:700;margin-bottom:2px;">${count}</span>
+            <div style="width:100%;height:${Math.max(pct, 5)}%;background:#D87093;border-radius:4px 4px 0 0;"></div>
+            <span style="font-size:8px;color:var(--text-dim);margin-top:2px;writing-mode:vertical-lr;transform:rotate(180deg);max-height:40px;overflow:hidden;">${day}</span>
+          </div>`;
+        }).join('') + '</div>' || '<p style="color:var(--text-dim);text-align:center;">Sin datos</p>';
     }
 
     // ======================================
