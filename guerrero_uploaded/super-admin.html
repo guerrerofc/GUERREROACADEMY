@@ -5093,15 +5093,19 @@
         const weeksStr = (i.semanas || []).map(w => 'S' + w).join(', ');
         const statusBadge = i.status === 'approved' ? 'success' : i.status === 'rejected' ? 'danger' : 'warning';
         const payBadge = i.payment_status === 'paid' ? 'success' : i.payment_status === 'partial' ? 'warning' : 'danger';
+        const statusLabel = i.status === 'approved' ? 'Aprobado' : i.status === 'rejected' ? 'Rechazado' : 'Pendiente';
+        const payLabel = i.payment_status === 'paid' ? 'Pagado' : i.payment_status === 'partial' ? 'Parcial' : 'Sin pago';
+        const metodoClean = (i.metodo_pago || '').replace('stripe_', '');
+        const metodoLabel = metodoClean === 'reservacion' ? 'Reserva 20%' : metodoClean === '2cuotas' ? '2 Cuotas' : metodoClean === 'completo' ? 'Completo' : metodoClean || '-';
         return `<tr>
           <td><strong>${i.jugador_nombre}</strong><br><small style="color:var(--text-dim);">${edad} años</small></td>
           <td>${i.tutor_nombre}<br><small style="color:var(--text-dim);">${i.tutor_email || ''}</small></td>
           <td>${i.tutor_whatsapp || '-'}</td>
           <td><span style="font-size:12px;">${weeksStr}</span><br><small>${i.total_semanas} sem.</small></td>
           <td>${i.talla_tshirt || '-'}</td>
-          <td><strong>${formatMoney(i.precio_total)}</strong></td>
-          <td><span class="badge badge-${payBadge}">${i.payment_status === 'paid' ? 'Pagado' : i.payment_status === 'partial' ? 'Parcial' : 'Pendiente'}</span></td>
-          <td><span class="badge badge-${statusBadge}">${i.status === 'approved' ? 'Aprobado' : i.status === 'rejected' ? 'Rechazado' : 'Pendiente'}</span></td>
+          <td><strong>${formatMoney(i.precio_total)}</strong><br><small style="color:var(--text-dim);">${metodoLabel}</small></td>
+          <td><span class="badge badge-${payBadge}">${payLabel}</span></td>
+          <td><span class="badge badge-${statusBadge}">${statusLabel}</span></td>
           <td style="white-space: nowrap;">
             ${i.status === 'pending' ? `
               <button class="btn btn-sm" style="background:var(--success);" onclick="approveCampInscription('${i.id}')" title="Aprobar">✓</button>
@@ -5117,8 +5121,9 @@
     window.approveCampInscription = async function(id) {
       if (!confirm('¿Aprobar esta inscripción?')) return;
       const insc = campInscriptions.find(i => i.id === id);
+      if (!insc) return;
       
-      // Crear jugador en players vinculado al campamento
+      // 1. Crear jugador en players
       const { data: player } = await sb.from('players').insert({
         nombre: insc.jugador_nombre,
         fecha_nacimiento: insc.fecha_nacimiento,
@@ -5128,38 +5133,147 @@
         status: 'activo'
       }).select().single();
       
+      // 2. Crear o vincular usuario padre
+      let parentUser = null;
+      if (insc.tutor_email) {
+        const { data: existing } = await sb.from('users').select('*').eq('email', insc.tutor_email).single();
+        if (!existing) {
+          // Generar token seguro para set password
+          const token = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substring(2);
+          const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+          
+          const { data: newUser } = await sb.from('users').insert({
+            email: insc.tutor_email,
+            nombre: insc.tutor_nombre,
+            telefono: insc.tutor_whatsapp,
+            rol: 'parent'
+          }).select().single();
+          
+          // Crear invitación con token
+          await sb.from('parent_invitations').insert({
+            email: insc.tutor_email,
+            token: token,
+            player_id: player?.id,
+            expires_at: expires,
+            used: false
+          });
+          
+          parentUser = { isNew: true, token };
+        } else {
+          parentUser = { isNew: false };
+        }
+      }
+      
+      // 3. Actualizar inscripción
+      const isPaid = insc.payment_status === 'paid' || (insc.paid_amount && Number(insc.paid_amount) >= Number(insc.precio_total));
       await sb.from('camp_inscriptions').update({ 
         status: 'approved',
         player_id: player?.id || null
       }).eq('id', id);
       
-      // Enviar email de confirmación
+      // 4. Enviar email correcto según estado de pago
       if (window.EmailSystem && insc.tutor_email) {
+        const weeksText = (insc.semanas||[]).map(w=>'Semana '+w).join(', ');
+        const metodoClean = (insc.metodo_pago || '').replace('stripe_', '');
+        const metodoLabel = metodoClean === 'reservacion' ? 'Reservacion (20%)' : metodoClean === '2cuotas' ? '2 Cuotas' : metodoClean === 'completo' ? 'Pago Completo' : metodoClean;
+        const passwordLink = parentUser?.isNew ? `${window.location.origin}/password?token=${parentUser.token}` : null;
+        
+        let emailContent = '';
+        
+        if (isPaid) {
+          // PAGO COMPLETADO
+          emailContent = `
+            <div style="text-align:center;margin-bottom:24px;">
+              <div style="display:inline-flex;width:56px;height:56px;border-radius:50%;background:rgba(52,199,89,0.1);align-items:center;justify-content:center;">
+                <span style="font-size:28px;color:#34c759;">&#10003;</span>
+              </div>
+            </div>
+            <h1 style="font-size:22px;font-weight:700;color:#1d1d1f;margin:0 0 8px;text-align:center;">Cupo Confirmado</h1>
+            <p style="font-size:15px;color:#86868b;margin:0 0 24px;text-align:center;">Hola ${insc.tutor_nombre}, la inscripcion de <strong>${insc.jugador_nombre}</strong> ha sido aprobada y su pago confirmado.</p>
+            <div style="background:#f5f5f7;border-radius:14px;padding:20px;margin-bottom:16px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="padding:8px 0;font-size:14px;color:#86868b;">Jugador</td><td style="padding:8px 0;text-align:right;font-weight:700;">${insc.jugador_nombre}</td></tr>
+                <tr><td style="padding:8px 0;font-size:14px;color:#86868b;">Semanas</td><td style="padding:8px 0;text-align:right;">${weeksText}</td></tr>
+                <tr><td style="padding:8px 0;font-size:14px;color:#86868b;">Horario</td><td style="padding:8px 0;text-align:right;">L-V 8:00 AM - 12:00 PM</td></tr>
+                <tr><td style="padding:8px 0;font-size:14px;color:#86868b;">Lugar</td><td style="padding:8px 0;text-align:right;">Colegio Loyola</td></tr>
+              </table>
+            </div>
+            <div style="background:rgba(52,199,89,0.06);border:1px solid rgba(52,199,89,0.15);border-radius:14px;padding:20px;margin-bottom:24px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="padding:8px 0;font-size:14px;color:#86868b;">Total</td><td style="padding:8px 0;text-align:right;font-weight:700;">RD$ ${Number(insc.precio_total).toLocaleString('es-DO')}</td></tr>
+                <tr><td style="padding:8px 0;font-size:14px;color:#86868b;">Metodo</td><td style="padding:8px 0;text-align:right;">${metodoLabel}</td></tr>
+                <tr><td style="padding:8px 0;font-size:14px;color:#86868b;">Estado</td><td style="padding:8px 0;text-align:right;font-weight:700;color:#34c759;">Pagado</td></tr>
+              </table>
+            </div>
+            <p style="font-size:15px;color:#1d1d1f;text-align:center;font-weight:600;">El cupo de ${insc.jugador_nombre} esta asegurado. Nos vemos en julio!</p>
+          `;
+        } else {
+          // APROBADO PERO PAGO PENDIENTE
+          const paidAmount = Number(insc.paid_amount || 0);
+          const remaining = Number(insc.precio_total) - paidAmount;
+          emailContent = `
+            <h1 style="font-size:22px;font-weight:700;color:#1d1d1f;margin:0 0 8px;text-align:center;">Inscripcion Aprobada</h1>
+            <p style="font-size:15px;color:#86868b;margin:0 0 24px;text-align:center;">Hola ${insc.tutor_nombre}, la inscripcion de <strong>${insc.jugador_nombre}</strong> al Campamento de Verano ha sido aprobada.</p>
+            <div style="background:#f5f5f7;border-radius:14px;padding:20px;margin-bottom:16px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="padding:8px 0;font-size:14px;color:#86868b;">Jugador</td><td style="padding:8px 0;text-align:right;font-weight:700;">${insc.jugador_nombre}</td></tr>
+                <tr><td style="padding:8px 0;font-size:14px;color:#86868b;">Semanas</td><td style="padding:8px 0;text-align:right;">${weeksText}</td></tr>
+                <tr><td style="padding:8px 0;font-size:14px;color:#86868b;">Horario</td><td style="padding:8px 0;text-align:right;">L-V 8:00 AM - 12:00 PM</td></tr>
+                <tr><td style="padding:8px 0;font-size:14px;color:#86868b;">Lugar</td><td style="padding:8px 0;text-align:right;">Colegio Loyola</td></tr>
+              </table>
+            </div>
+            <div style="background:rgba(255,149,0,0.06);border:1px solid rgba(255,149,0,0.15);border-radius:14px;padding:20px;margin-bottom:24px;">
+              <div style="font-size:12px;color:#ff9500;font-weight:600;letter-spacing:0.05em;margin-bottom:12px;">PAGO PENDIENTE</div>
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="padding:8px 0;font-size:14px;color:#86868b;">Total</td><td style="padding:8px 0;text-align:right;font-weight:700;">RD$ ${Number(insc.precio_total).toLocaleString('es-DO')}</td></tr>
+                <tr><td style="padding:8px 0;font-size:14px;color:#86868b;">Plan</td><td style="padding:8px 0;text-align:right;">${metodoLabel}</td></tr>
+                ${paidAmount > 0 ? `<tr><td style="padding:8px 0;font-size:14px;color:#86868b;">Pagado</td><td style="padding:8px 0;text-align:right;color:#34c759;">RD$ ${paidAmount.toLocaleString('es-DO')}</td></tr>` : ''}
+                <tr><td style="padding:8px 0;font-size:14px;color:#86868b;">Pendiente</td><td style="padding:8px 0;text-align:right;font-weight:700;color:#ff9500;font-size:18px;">RD$ ${remaining.toLocaleString('es-DO')}</td></tr>
+              </table>
+            </div>
+            <p style="font-size:14px;color:#3d3d3f;text-align:center;line-height:1.6;">Para asegurar el cupo, completa el pago pendiente. Puedes hacerlo por transferencia o contactarnos por WhatsApp.</p>
+          `;
+        }
+        
+        // Agregar link de password si es usuario nuevo
+        if (passwordLink) {
+          emailContent += `
+            <div style="border-top:1px solid #f0f0f0;margin-top:24px;padding-top:24px;">
+              <p style="font-size:14px;color:#3d3d3f;text-align:center;">Hemos creado tu cuenta de padre. Configura tu contrasena para acceder al portal:</p>
+              <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:16px 0;">
+                <a href="${passwordLink}" style="display:inline-block;background:#D87093;color:#fff;padding:14px 36px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;">Crear mi Contrasena</a>
+              </td></tr></table>
+              <p style="font-size:12px;color:#aeaeb2;text-align:center;">Este enlace es valido por 7 dias.</p>
+            </div>
+          `;
+        }
+        
+        // Wrap in premium email template
+        const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+          <body style="margin:0;padding:0;background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f7;padding:32px 16px;">
+          <tr><td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+            <tr><td style="background:#1d1d1f;padding:32px 40px;text-align:center;border-radius:20px 20px 0 0;">
+              <div style="font-size:24px;font-weight:800;color:#fff;letter-spacing:-0.02em;">GUERRERO</div>
+              <div style="font-size:11px;font-weight:600;color:#D87093;letter-spacing:0.15em;margin-top:4px;">ACADEMY</div>
+              <div style="margin-top:8px;"><span style="display:inline-block;background:rgba(216,112,147,0.15);color:#D87093;padding:4px 12px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:0.08em;">CAMPAMENTO DE VERANO 2026</span></div>
+            </td></tr>
+            <tr><td style="background:#ffffff;padding:40px;">${emailContent}</td></tr>
+            <tr><td style="background:#fafafa;padding:24px 40px;border-radius:0 0 20px 20px;border-top:1px solid #f0f0f0;">
+              <p style="font-size:12px;color:#aeaeb2;margin:0;line-height:1.6;"><strong style="color:#86868b;">Guerrero Academy</strong> | Colegio Loyola, Santo Domingo<br>
+              <a href="https://wa.me/18296396001" style="color:#D87093;text-decoration:none;">+1 829-639-6001</a> | <a href="https://guerrerofcsd.com" style="color:#D87093;text-decoration:none;">guerrerofcsd.com</a></p>
+            </td></tr>
+          </table></td></tr></table></body></html>`;
+        
         EmailSystem.send('custom', {
           email: insc.tutor_email,
-          subject: 'Inscripcion Aprobada - Campamento Guerrero Academy',
-          html: `<div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
-            <div style="background:#1d1d1f;color:#fff;padding:30px;text-align:center;border-radius:16px 16px 0 0;">
-              <h1 style="margin:0;font-size:22px;">Guerrero Academy</h1>
-              <p style="color:#ffd700;margin:8px 0 0;font-weight:700;">CAMPAMENTO DE VERANO 2026</p>
-            </div>
-            <div style="background:#fff;padding:30px;border:1px solid #e5e5e5;">
-              <h2 style="margin:0 0 16px;">Inscripcion Aprobada</h2>
-              <p>Hola ${insc.tutor_nombre},</p>
-              <p>La inscripcion de <strong>${insc.jugador_nombre}</strong> al Campamento de Verano ha sido aprobada.</p>
-              <p><strong>Semanas:</strong> ${(insc.semanas||[]).map(w=>'Semana '+w).join(', ')}</p>
-              <p><strong>Total:</strong> RD$ ${Number(insc.precio_total).toLocaleString('es-DO')}</p>
-              <p><strong>Metodo:</strong> ${insc.metodo_pago}</p>
-              <p>Te contactaremos por WhatsApp para coordinar el pago.</p>
-            </div>
-            <div style="background:#f5f5f7;padding:20px;text-align:center;border-radius:0 0 16px 16px;">
-              <p style="color:#86868b;font-size:12px;margin:0;">Guerrero Academy | guerrerofcsd.com</p>
-            </div>
-          </div>`
+          subject: isPaid ? 'Cupo Confirmado - Campamento Guerrero 2026' : 'Inscripcion Aprobada - Campamento Guerrero 2026',
+          html: fullHtml
         });
       }
       
-      alert('Inscripción aprobada y email enviado');
+      alert('Inscripción aprobada' + (parentUser?.isNew ? ' + cuenta de padre creada con link de contraseña' : '') + '. Email enviado.');
       loadCampInscriptions();
     };
 
