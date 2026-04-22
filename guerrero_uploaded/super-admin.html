@@ -905,7 +905,12 @@
         <button class="nav-link" data-view="morosos"><span class="nav-icon">⚠️</span>Morosos</button>
         <button class="nav-link" data-view="reports"><span class="nav-icon">📈</span>Reportes</button>
 
+        <div class="nav-section">Campamento</div>
+        <button class="nav-link" data-view="camp-inscriptions"><span class="nav-icon">🏕️</span>Inscripciones Camp.</button>
+        <button class="nav-link" data-view="camp-payments"><span class="nav-icon">💳</span>Pagos Camp.</button>
+
         <div class="nav-section">Sistema</div>
+        <button class="nav-link" data-view="landing-config"><span class="nav-icon">🌐</span>Landing</button>
         <button class="nav-link" data-view="users"><span class="nav-icon">🔐</span>Usuarios</button>
         <button class="nav-link" data-view="requests">
           <span class="nav-icon">📋</span>Solicitudes
@@ -1467,6 +1472,182 @@
         </div>
       </div>
 
+      <!-- CAMPAMENTO: INSCRIPCIONES -->
+      <div class="view" id="view-camp-inscriptions">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">🏕️ Inscripciones Campamento</h1>
+            <p class="page-subtitle">Gestiona las inscripciones del Campamento de Verano 2026</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <select id="campStatusFilter" class="input" style="width: auto;" onchange="loadCampInscriptions()">
+              <option value="all">Todas</option>
+              <option value="pending" selected>Pendientes</option>
+              <option value="approved">Aprobadas</option>
+              <option value="rejected">Rechazadas</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom: 24px;">
+          <div class="card stat-card">
+            <div class="stat-label">Total Inscritos</div>
+            <div class="stat-value" id="campTotalInscritos">0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Pendientes</div>
+            <div class="stat-value" id="campPendientes" style="color: var(--warning);">0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Aprobados</div>
+            <div class="stat-value" id="campAprobados" style="color: var(--success);">0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Ingresos Esperados</div>
+            <div class="stat-value" id="campIngresos" style="color: var(--accent);">RD$ 0</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Jugador</th>
+                  <th>Tutor</th>
+                  <th>WhatsApp</th>
+                  <th>Semanas</th>
+                  <th>Talla</th>
+                  <th>Total</th>
+                  <th>Pago</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="campInscriptionsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- CAMPAMENTO: PAGOS -->
+      <div class="view" id="view-camp-payments">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">💳 Pagos Campamento</h1>
+            <p class="page-subtitle">Historial de pagos del Campamento de Verano</p>
+          </div>
+          <div>
+            <button class="btn btn-primary" onclick="openModal('campPaymentModal')">+ Registrar Pago</button>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom: 24px;">
+          <div class="card stat-card">
+            <div class="stat-label">Total Cobrado</div>
+            <div class="stat-value" id="campTotalCobrado" style="color: var(--success);">RD$ 0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Pendiente por Cobrar</div>
+            <div class="stat-value" id="campPendienteCobrar" style="color: var(--danger);">RD$ 0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Pagos Registrados</div>
+            <div class="stat-value" id="campTotalPagos">0</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Jugador</th>
+                  <th>Tutor</th>
+                  <th>Monto</th>
+                  <th>Tipo</th>
+                  <th>Metodo</th>
+                  <th>Fecha</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="campPaymentsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- LANDING CONFIG -->
+      <div class="view" id="view-landing-config">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">🌐 Configuración Landing</h1>
+            <p class="page-subtitle">Controla qué formularios se muestran en la página pública</p>
+          </div>
+        </div>
+
+        <div class="card" style="max-width: 600px;">
+          <h3 class="card-title" style="margin-bottom: 24px;">Formularios Activos</h3>
+          
+          <div style="display: grid; gap: 16px;">
+            <label style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: var(--bg-secondary, #f5f5f7); border-radius: 14px; cursor: pointer;">
+              <div>
+                <div style="font-weight: 700; font-size: 16px;">Formulario Academia</div>
+                <div style="font-size: 13px; color: var(--text-dim); margin-top: 4px;">Inscripción a la academia regular (mensual, por categorías de edad)</div>
+              </div>
+              <input type="checkbox" id="toggleAcademia" checked onchange="saveLandingConfig()" style="width: 24px; height: 24px; cursor: pointer;">
+            </label>
+
+            <label style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: var(--bg-secondary, #f5f5f7); border-radius: 14px; cursor: pointer;">
+              <div>
+                <div style="font-weight: 700; font-size: 16px;">Formulario Campamento</div>
+                <div style="font-size: 13px; color: var(--text-dim); margin-top: 4px;">Inscripción al campamento de verano (julio-agosto, por semanas)</div>
+              </div>
+              <input type="checkbox" id="toggleCampamento" checked onchange="saveLandingConfig()" style="width: 24px; height: 24px; cursor: pointer;">
+            </label>
+          </div>
+
+          <div id="landingConfigMsg" style="margin-top: 16px; font-size: 14px; color: var(--success);"></div>
+        </div>
+
+        <div class="card" style="max-width: 600px; margin-top: 20px;">
+          <h3 class="card-title" style="margin-bottom: 24px;">Ofertas Campamento</h3>
+          <div style="display: grid; gap: 12px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Precio por semana</label>
+                <input type="number" id="cfgPriceWeek" class="input" value="6500">
+              </div>
+              <div>
+                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Minimo semanas</label>
+                <input type="number" id="cfgMinWeeks" class="input" value="2">
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Oferta 4 semanas</label>
+                <input type="number" id="cfgPrice4" class="input" value="22000">
+              </div>
+              <div>
+                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Oferta 6 semanas</label>
+                <input type="number" id="cfgPrice6" class="input" value="33000">
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Oferta 8 semanas</label>
+                <input type="number" id="cfgPrice8" class="input" value="40000">
+              </div>
+              <div></div>
+            </div>
+            <button class="btn btn-primary" onclick="saveCampPrices()">Guardar Precios</button>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 
@@ -1791,6 +1972,67 @@
     </div>
   </div>
 
+  <!-- Modal: Pago Campamento -->
+  <div class="modal" id="campPaymentModal">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3>Registrar Pago Campamento</h3>
+        <button class="btn btn-sm" onclick="closeModal('campPaymentModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Inscripción</label>
+          <select id="campPayInscription" class="input" onchange="updateCampPayInfo()">
+            <option value="">Seleccionar inscripción...</option>
+          </select>
+        </div>
+        <div id="campPayInfo" style="background: var(--bg-secondary, #f5f5f7); border-radius: 12px; padding: 16px; margin-bottom: 16px; display: none;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="color: var(--text-dim);">Total</span>
+            <span id="campPayTotal" style="font-weight: 700;"></span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="color: var(--text-dim);">Pagado</span>
+            <span id="campPayPaid" style="font-weight: 700; color: var(--success);"></span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-dim);">Pendiente</span>
+            <span id="campPayRemaining" style="font-weight: 700; color: var(--danger);"></span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Monto</label>
+          <input type="number" id="campPayAmount" class="input" placeholder="Monto del pago">
+        </div>
+        <div class="form-group">
+          <label>Tipo de Pago</label>
+          <select id="campPayType" class="input">
+            <option value="reservacion">Reservación (20%)</option>
+            <option value="cuota">Cuota</option>
+            <option value="completo">Pago Completo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Método</label>
+          <select id="campPayMethod" class="input">
+            <option value="efectivo">Efectivo</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="tarjeta">Tarjeta</option>
+            <option value="stripe">Stripe (Online)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nota (opcional)</label>
+          <input type="text" id="campPayNote" class="input" placeholder="Nota adicional">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('campPaymentModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveCampPayment()">Registrar Pago</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = "https://daijiuqqafvjofafwqck.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWppdXFxYWZ2am9mYWZ3cWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTk0MjMsImV4cCI6MjA4ODAzNTQyM30.DtdQALhTs8mt91GiBoWSrPbW2wc2EY5cmPXf-7oSC-g";
@@ -2036,6 +2278,9 @@
       if (view === 'fees' && window.feesSystem) window.feesSystem.loadCategory();
       if (view === 'coupons' && window.couponsSystem) window.couponsSystem.load();
       if (view === 'documents') loadDocumentsAdmin();
+      if (view === 'camp-inscriptions') loadCampInscriptions();
+      if (view === 'camp-payments') loadCampPayments();
+      if (view === 'landing-config') loadLandingConfig();
     }
     
     // Exponer showView globalmente
@@ -3791,6 +4036,305 @@
     window.downloadPlayerDocs = downloadPlayerDocs;
     window.downloadDocPDF = downloadDocPDF;
     window.exportDocumentsReport = exportDocumentsReport;
+
+    // ======================================
+    // CAMPAMENTO - Inscripciones
+    // ======================================
+    
+    let campInscriptions = [];
+
+    async function loadCampInscriptions() {
+      const filter = $('campStatusFilter')?.value || 'all';
+      let query = sb.from('camp_inscriptions').select('*').order('created_at', { ascending: false });
+      if (filter !== 'all') query = query.eq('status', filter);
+      
+      const { data, error } = await query;
+      if (error) { console.error('Error cargando camp:', error); return; }
+      campInscriptions = data || [];
+      
+      // Stats
+      const allData = (await sb.from('camp_inscriptions').select('*')).data || [];
+      const pending = allData.filter(i => i.status === 'pending').length;
+      const approved = allData.filter(i => i.status === 'approved').length;
+      const totalIncome = allData.filter(i => i.status === 'approved').reduce((s, i) => s + Number(i.precio_total || 0), 0);
+      
+      if ($('campTotalInscritos')) $('campTotalInscritos').textContent = allData.length;
+      if ($('campPendientes')) $('campPendientes').textContent = pending;
+      if ($('campAprobados')) $('campAprobados').textContent = approved;
+      if ($('campIngresos')) $('campIngresos').textContent = formatMoney(totalIncome);
+      
+      renderCampTable();
+    }
+
+    function renderCampTable() {
+      const tbody = $('campInscriptionsTable');
+      if (!tbody) return;
+      
+      tbody.innerHTML = campInscriptions.map(i => {
+        const edad = i.fecha_nacimiento ? Math.floor((Date.now() - new Date(i.fecha_nacimiento).getTime()) / (365.25*24*60*60*1000)) : '-';
+        const weeksStr = (i.semanas || []).map(w => 'S' + w).join(', ');
+        const statusBadge = i.status === 'approved' ? 'success' : i.status === 'rejected' ? 'danger' : 'warning';
+        const payBadge = i.payment_status === 'paid' ? 'success' : i.payment_status === 'partial' ? 'warning' : 'danger';
+        return `<tr>
+          <td><strong>${i.jugador_nombre}</strong><br><small style="color:var(--text-dim);">${edad} años</small></td>
+          <td>${i.tutor_nombre}<br><small style="color:var(--text-dim);">${i.tutor_email || ''}</small></td>
+          <td>${i.tutor_whatsapp || '-'}</td>
+          <td><span style="font-size:12px;">${weeksStr}</span><br><small>${i.total_semanas} sem.</small></td>
+          <td>${i.talla_tshirt || '-'}</td>
+          <td><strong>${formatMoney(i.precio_total)}</strong></td>
+          <td><span class="badge badge-${payBadge}">${i.payment_status === 'paid' ? 'Pagado' : i.payment_status === 'partial' ? 'Parcial' : 'Pendiente'}</span></td>
+          <td><span class="badge badge-${statusBadge}">${i.status === 'approved' ? 'Aprobado' : i.status === 'rejected' ? 'Rechazado' : 'Pendiente'}</span></td>
+          <td style="white-space: nowrap;">
+            ${i.status === 'pending' ? `
+              <button class="btn btn-sm" style="background:var(--success);" onclick="approveCampInscription('${i.id}')" title="Aprobar">✓</button>
+              <button class="btn btn-sm" style="background:var(--danger);" onclick="rejectCampInscription('${i.id}')" title="Rechazar">✗</button>
+            ` : ''}
+            <button class="btn btn-sm" style="background:#EF4444;" onclick="deleteCampInscription('${i.id}')" title="Eliminar">🗑️</button>
+          </td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="9" style="text-align:center;">Sin inscripciones</td></tr>';
+    }
+
+    window.approveCampInscription = async function(id) {
+      if (!confirm('¿Aprobar esta inscripción?')) return;
+      const insc = campInscriptions.find(i => i.id === id);
+      
+      // Crear jugador en players vinculado al campamento
+      const { data: player } = await sb.from('players').insert({
+        nombre: insc.jugador_nombre,
+        fecha_nacimiento: insc.fecha_nacimiento,
+        tutor_nombre: insc.tutor_nombre,
+        tutor_email: insc.tutor_email,
+        tutor_whatsapp: insc.tutor_whatsapp,
+        status: 'activo'
+      }).select().single();
+      
+      await sb.from('camp_inscriptions').update({ 
+        status: 'approved',
+        player_id: player?.id || null
+      }).eq('id', id);
+      
+      // Enviar email de confirmación
+      if (window.EmailSystem && insc.tutor_email) {
+        EmailSystem.send('custom', {
+          email: insc.tutor_email,
+          subject: 'Inscripcion Aprobada - Campamento Guerrero Academy',
+          html: `<div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+            <div style="background:#1d1d1f;color:#fff;padding:30px;text-align:center;border-radius:16px 16px 0 0;">
+              <h1 style="margin:0;font-size:22px;">Guerrero Academy</h1>
+              <p style="color:#ffd700;margin:8px 0 0;font-weight:700;">CAMPAMENTO DE VERANO 2026</p>
+            </div>
+            <div style="background:#fff;padding:30px;border:1px solid #e5e5e5;">
+              <h2 style="margin:0 0 16px;">Inscripcion Aprobada</h2>
+              <p>Hola ${insc.tutor_nombre},</p>
+              <p>La inscripcion de <strong>${insc.jugador_nombre}</strong> al Campamento de Verano ha sido aprobada.</p>
+              <p><strong>Semanas:</strong> ${(insc.semanas||[]).map(w=>'Semana '+w).join(', ')}</p>
+              <p><strong>Total:</strong> RD$ ${Number(insc.precio_total).toLocaleString('es-DO')}</p>
+              <p><strong>Metodo:</strong> ${insc.metodo_pago}</p>
+              <p>Te contactaremos por WhatsApp para coordinar el pago.</p>
+            </div>
+            <div style="background:#f5f5f7;padding:20px;text-align:center;border-radius:0 0 16px 16px;">
+              <p style="color:#86868b;font-size:12px;margin:0;">Guerrero Academy | guerrerofcsd.com</p>
+            </div>
+          </div>`
+        });
+      }
+      
+      alert('Inscripción aprobada y email enviado');
+      loadCampInscriptions();
+    };
+
+    window.rejectCampInscription = async function(id) {
+      if (!confirm('¿Rechazar esta inscripción?')) return;
+      await sb.from('camp_inscriptions').update({ status: 'rejected' }).eq('id', id);
+      loadCampInscriptions();
+    };
+
+    window.deleteCampInscription = async function(id) {
+      if (!confirm('¿Eliminar esta inscripción permanentemente?')) return;
+      await sb.from('camp_inscriptions').delete().eq('id', id);
+      loadCampInscriptions();
+    };
+
+    // ======================================
+    // CAMPAMENTO - Pagos
+    // ======================================
+
+    let campPayments = [];
+
+    async function loadCampPayments() {
+      const { data } = await sb.from('camp_payments').select('*').order('created_at', { ascending: false });
+      campPayments = data || [];
+      
+      // Load inscriptions for the payment modal
+      const { data: inscs } = await sb.from('camp_inscriptions').select('*').eq('status', 'approved');
+      const select = $('campPayInscription');
+      if (select) {
+        select.innerHTML = '<option value="">Seleccionar inscripción...</option>' +
+          (inscs || []).map(i => `<option value="${i.id}" data-total="${i.precio_total}" data-paid="${i.paid_amount || 0}">${i.jugador_nombre} - ${(i.semanas||[]).length} sem. - ${formatMoney(i.precio_total)}</option>`).join('');
+      }
+      
+      // Stats
+      const totalCobrado = campPayments.reduce((s, p) => s + Number(p.amount || 0), 0);
+      const totalExpected = (inscs || []).reduce((s, i) => s + Number(i.precio_total || 0), 0);
+      const totalPaid = (inscs || []).reduce((s, i) => s + Number(i.paid_amount || 0), 0);
+      
+      if ($('campTotalCobrado')) $('campTotalCobrado').textContent = formatMoney(totalCobrado);
+      if ($('campPendienteCobrar')) $('campPendienteCobrar').textContent = formatMoney(totalExpected - totalPaid);
+      if ($('campTotalPagos')) $('campTotalPagos').textContent = campPayments.length;
+      
+      renderCampPaymentsTable();
+    }
+
+    function renderCampPaymentsTable() {
+      const tbody = $('campPaymentsTable');
+      if (!tbody) return;
+      
+      tbody.innerHTML = campPayments.map(p => `<tr>
+        <td><strong>${p.jugador_nombre || '-'}</strong></td>
+        <td>${p.tutor_nombre || '-'}</td>
+        <td><strong style="color:var(--success);">${formatMoney(p.amount)}</strong></td>
+        <td><span class="badge badge-info">${p.payment_type || '-'}</span></td>
+        <td>${p.method || '-'}</td>
+        <td>${new Date(p.created_at).toLocaleDateString('es-DO')}</td>
+        <td><button class="btn btn-sm" style="background:#EF4444;" onclick="deleteCampPayment('${p.id}')">🗑️</button></td>
+      </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;">Sin pagos registrados</td></tr>';
+    }
+
+    window.updateCampPayInfo = function() {
+      const select = $('campPayInscription');
+      const opt = select.options[select.selectedIndex];
+      const info = $('campPayInfo');
+      if (!opt.value) { info.style.display = 'none'; return; }
+      
+      const total = Number(opt.dataset.total || 0);
+      const paid = Number(opt.dataset.paid || 0);
+      $('campPayTotal').textContent = formatMoney(total);
+      $('campPayPaid').textContent = formatMoney(paid);
+      $('campPayRemaining').textContent = formatMoney(total - paid);
+      info.style.display = 'block';
+    };
+
+    window.saveCampPayment = async function() {
+      const inscId = $('campPayInscription').value;
+      if (!inscId) return alert('Selecciona una inscripción');
+      
+      const amount = Number($('campPayAmount').value);
+      if (!amount || amount <= 0) return alert('Ingresa un monto válido');
+      
+      const insc = campInscriptions.find(i => i.id === inscId) || 
+        (await sb.from('camp_inscriptions').select('*').eq('id', inscId).single()).data;
+      
+      if (!insc) return alert('Inscripción no encontrada');
+      
+      try {
+        // Guardar pago
+        await sb.from('camp_payments').insert({
+          inscription_id: inscId,
+          jugador_nombre: insc.jugador_nombre,
+          tutor_nombre: insc.tutor_nombre,
+          tutor_email: insc.tutor_email,
+          amount: amount,
+          payment_type: $('campPayType').value,
+          method: $('campPayMethod').value,
+          note: $('campPayNote').value || null,
+          registered_by: currentUser?.email || 'admin'
+        });
+        
+        // Actualizar paid_amount en inscription
+        const newPaid = Number(insc.paid_amount || 0) + amount;
+        const payStatus = newPaid >= Number(insc.precio_total) ? 'paid' : 'partial';
+        
+        await sb.from('camp_inscriptions').update({
+          paid_amount: newPaid,
+          payment_status: payStatus
+        }).eq('id', inscId);
+        
+        // Email de confirmación
+        if (window.EmailSystem && insc.tutor_email) {
+          EmailSystem.sendPaymentConfirmation({
+            email: insc.tutor_email,
+            nombre: insc.tutor_nombre,
+            playerName: insc.jugador_nombre,
+            amount: amount.toLocaleString('es-DO'),
+            method: $('campPayMethod').value,
+            month: 'Campamento Verano 2026'
+          });
+        }
+        
+        closeModal('campPaymentModal');
+        alert('Pago registrado correctamente');
+        loadCampPayments();
+        loadCampInscriptions();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    };
+
+    window.deleteCampPayment = async function(id) {
+      if (!confirm('¿Eliminar este pago?')) return;
+      const payment = campPayments.find(p => p.id === id);
+      
+      await sb.from('camp_payments').delete().eq('id', id);
+      
+      // Actualizar paid_amount
+      if (payment?.inscription_id) {
+        const { data: insc } = await sb.from('camp_inscriptions').select('*').eq('id', payment.inscription_id).single();
+        if (insc) {
+          const newPaid = Math.max(0, Number(insc.paid_amount || 0) - Number(payment.amount || 0));
+          const payStatus = newPaid >= Number(insc.precio_total) ? 'paid' : newPaid > 0 ? 'partial' : 'pending';
+          await sb.from('camp_inscriptions').update({ paid_amount: newPaid, payment_status: payStatus }).eq('id', payment.inscription_id);
+        }
+      }
+      
+      loadCampPayments();
+      loadCampInscriptions();
+    };
+
+    // ======================================
+    // LANDING CONFIG
+    // ======================================
+
+    window.saveLandingConfig = async function() {
+      const config = {
+        show_academia: $('toggleAcademia').checked,
+        show_campamento: $('toggleCampamento').checked
+      };
+      
+      await sb.from('site_config').upsert({ id: 'landing', config: config }, { onConflict: 'id' });
+      $('landingConfigMsg').textContent = 'Configuración guardada';
+      setTimeout(() => $('landingConfigMsg').textContent = '', 2000);
+    };
+
+    window.saveCampPrices = async function() {
+      const prices = {
+        per_week: Number($('cfgPriceWeek').value),
+        min_weeks: Number($('cfgMinWeeks').value),
+        offer_4: Number($('cfgPrice4').value),
+        offer_6: Number($('cfgPrice6').value),
+        offer_8: Number($('cfgPrice8').value)
+      };
+      
+      await sb.from('site_config').upsert({ id: 'camp_prices', config: prices }, { onConflict: 'id' });
+      alert('Precios guardados correctamente');
+    };
+
+    async function loadLandingConfig() {
+      const { data: landing } = await sb.from('site_config').select('config').eq('id', 'landing').single();
+      if (landing?.config) {
+        $('toggleAcademia').checked = landing.config.show_academia !== false;
+        $('toggleCampamento').checked = landing.config.show_campamento !== false;
+      }
+      
+      const { data: prices } = await sb.from('site_config').select('config').eq('id', 'camp_prices').single();
+      if (prices?.config) {
+        $('cfgPriceWeek').value = prices.config.per_week || 6500;
+        $('cfgMinWeeks').value = prices.config.min_weeks || 2;
+        $('cfgPrice4').value = prices.config.offer_4 || 22000;
+        $('cfgPrice6').value = prices.config.offer_6 || 33000;
+        $('cfgPrice8').value = prices.config.offer_8 || 40000;
+      }
+    }
 
     // ======================================
     // EMAILS - Funciones integradas
