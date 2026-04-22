@@ -1676,6 +1676,18 @@
 
         if (error) throw error;
 
+        // Send confirmation email
+        try {
+          await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'camp_inscription',
+              body: { nombre: tutor, email, jugador, semanas: weeks, totalSemanas: weeks.length, precioTotal: total, metodoPago: payMethod.value, talla, fechaNac: fechaNac }
+            })
+          });
+        } catch(e) { console.log('Email error:', e); }
+
         document.getElementById('campForm').style.display = 'none';
         document.getElementById('campSuccess').style.display = 'block';
 
