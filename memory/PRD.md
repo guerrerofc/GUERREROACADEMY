@@ -10,33 +10,35 @@
 ## Implementado
 
 ### Core
-- Login unificado, paneles por rol (super_admin, director, operativo, staff/coach, parent)
-- URLs limpias via vercel.json, firmas digitales Canvas+PDF, dashboard real
+- Login unificado, paneles por rol, URLs limpias, firmas digitales, dashboard real
 
-### Jugadores
-- CRUD, foto anual, acta nacimiento, fecha nac → edad → categoría auto
+### Jugadores Academia
+- CRUD, foto anual, acta nacimiento, edad auto → categoría auto
 
 ### Campamento 2026
-- Landing: Hero animado CAMP 2026, precios/ofertas rosado, formulario wizard 4 pasos
-- Métodos pago reactivos: Reservación 20%, Completo (+tshirt), 2 Cuotas
+- Landing: Hero animado, precios/ofertas rosado, formulario wizard 4 pasos
+- Métodos pago reactivos (reservación 20%, completo, 2 cuotas)
 - Stripe Checkout, creación auto usuario padre
-- Admin: Inscripciones, Jugadores, Pagos, Semanas (8 cards interactivas), Reportes (6 KPIs + 6 gráficos)
-- **Fotos Camp**: Subir albums por fecha/semana, preview, enviar a padres por email (todos/semana/individual), historial envíos
+- Admin: Inscripciones (aprobar/rechazar + email coherente con estado)
+- Admin: Jugadores Camp (editar perfil completo: nombre, fecha nac, talla, semanas, tutor, foto)
+- Admin: Pagos Camp (registrar, tracking)
+- Admin: Semanas (8 cards con cupos editables, ocupación, disponibles, quitar jugador de semana)
+- Admin: Fotos (albums por fecha/semana, enviar a padres)
+- Admin: Reportes (6 KPIs + 6 gráficos)
+- **Migrar a Academia** — Botón en jugadores camp para convertir a academia (seleccionar categoría, cuota, preserva historial)
 - Acuerdo de pago HTML + email
+- Emails coherentes: "Solicitud Recibida" (pendiente/en proceso) vs "Cupo Confirmado" (pagado)
+- Creación automática de usuario padre con token seguro al aprobar
 
-### Emails Premium
-- Templates rediseñados: header GUERRERO ACADEMY, cuerpo limpio, footer profesional
-- 7 tipos: welcome, announcement, payment_reminder, payment_confirmation, camp_inscription, camp_photos, custom
+### Emails Premium (Resend)
+- 7 tipos con diseño premium: header GUERRERO ACADEMY, responsive, profesional
 
 ### Admin Landing Config
-- 7 toggles para secciones, textos editables, precios campamento editables
-
-## SQLs necesarios
-- SQL_CAMP_FOTOS.sql (tabla camp_photo_albums)
-- SQL_USERS_TELEFONO.sql (columna telefono en users)
+- 7 toggles secciones, textos editables, precios campamento editables
 
 ## Backlog
-- P1: WhatsApp (Twilio) verificar
-- P2: Bug formulario inscripción academia salta pasos
-- P3: Refactoring archivos monolíticos
-- P4: Stripe webhooks
+- P1: Asistencia Campamento (por día/semana)
+- P2: Documentos Campamento (por jugador)
+- P3: WhatsApp (Twilio) verificar
+- P4: Bug formulario inscripción academia salta pasos
+- P5: Refactoring archivos monolíticos
