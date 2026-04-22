@@ -1230,26 +1230,26 @@
                 <div class="step-p">Selecciona como deseas pagar.</div>
               </div>
 
-              <div style="display: grid; gap: 10px; margin-bottom: 20px;">
-                <label style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 2px solid rgba(0,0,0,0.08); border-radius: 12px; cursor: pointer; transition: all 0.2s;" class="payment-option" onclick="selectPaymentMethod(this)">
+              <div id="campPayOptions" style="display: grid; gap: 10px; margin-bottom: 20px;">
+                <label class="payment-option" data-method="reservacion" onclick="onSelectPayMethod('reservacion')" style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 2px solid rgba(0,0,0,0.08); border-radius: 12px; cursor: pointer; transition: all 0.2s;">
                   <input type="radio" name="campPayMethod" value="reservacion" style="width: 18px; height: 18px; accent-color: #D87093;">
-                  <div>
+                  <div style="flex:1;">
                     <div style="font-weight: 600; font-size: 14px; color: #1d1d1f;">Reservacion (20%)</div>
                     <div style="font-size: 12px; color: #86868b;">Reserva tu cupo con el 20% y completa antes del inicio</div>
                     <div id="campReservaAmount" style="font-weight: 700; font-size: 16px; color: #D87093; margin-top: 4px;">RD$ 0</div>
                   </div>
                 </label>
-                <label style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 2px solid rgba(0,0,0,0.08); border-radius: 12px; cursor: pointer; transition: all 0.2s;" class="payment-option" onclick="selectPaymentMethod(this)">
+                <label class="payment-option" data-method="completo" onclick="onSelectPayMethod('completo')" style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 2px solid rgba(0,0,0,0.08); border-radius: 12px; cursor: pointer; transition: all 0.2s;">
                   <input type="radio" name="campPayMethod" value="completo" style="width: 18px; height: 18px; accent-color: #D87093;">
-                  <div>
+                  <div style="flex:1;">
                     <div style="font-weight: 600; font-size: 14px; color: #1d1d1f;">Pago Completo</div>
                     <div style="font-size: 12px; color: #34c759; font-weight: 600;">Incluye 1 T-shirt extra gratis</div>
                     <div id="campFullAmount" style="font-weight: 700; font-size: 16px; color: #D87093; margin-top: 4px;">RD$ 0</div>
                   </div>
                 </label>
-                <label style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 2px solid rgba(0,0,0,0.08); border-radius: 12px; cursor: pointer; transition: all 0.2s;" class="payment-option" onclick="selectPaymentMethod(this)">
+                <label class="payment-option" data-method="2cuotas" onclick="onSelectPayMethod('2cuotas')" style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 2px solid rgba(0,0,0,0.08); border-radius: 12px; cursor: pointer; transition: all 0.2s;">
                   <input type="radio" name="campPayMethod" value="2cuotas" style="width: 18px; height: 18px; accent-color: #D87093;">
-                  <div>
+                  <div style="flex:1;">
                     <div style="font-weight: 600; font-size: 14px; color: #1d1d1f;">Pago en 2 Cuotas</div>
                     <div style="font-size: 12px; color: #86868b;">50% al inscribir + 50% antes de la semana 5</div>
                     <div id="camp2CuotasAmount" style="font-weight: 700; font-size: 16px; color: #D87093; margin-top: 4px;">2x RD$ 0</div>
@@ -1257,12 +1257,20 @@
                 </label>
               </div>
 
-              <!-- Confirmación -->
-              <div class="confirm-card" style="margin-bottom: 20px;">
-                <div class="confirm-row"><div class="confirm-k">Tutor</div><div class="confirm-v" id="cfCampTutor">—</div></div>
-                <div class="confirm-row"><div class="confirm-k">Jugador</div><div class="confirm-v" id="cfCampJugador">—</div></div>
-                <div class="confirm-row"><div class="confirm-k">Semanas</div><div class="confirm-v" id="cfCampWeeks">—</div></div>
-                <div class="confirm-row"><div class="confirm-k">Total</div><div class="confirm-v" id="cfCampTotal" style="color: #D87093; font-weight: 700;">—</div></div>
+              <!-- Resumen dinámico -->
+              <div id="campPaySummary" style="background: #f5f5f7; border-radius: 14px; padding: 20px; margin-bottom: 20px;">
+                <div style="font-weight: 700; font-size: 15px; margin-bottom: 12px; color: #1d1d1f;">Resumen de Inscripcion</div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:#86868b;">Tutor</span><span id="cfCampTutor" style="font-weight:600;">—</span></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:#86868b;">Jugador</span><span id="cfCampJugador" style="font-weight:600;">—</span></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:#86868b;">Semanas</span><span id="cfCampWeeks" style="font-weight:600;">—</span></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:#86868b;">Total campamento</span><span id="cfCampTotal" style="font-weight:700;color:#1d1d1f;">—</span></div>
+                <div style="border-top:1px solid rgba(0,0,0,0.08);padding-top:12px;margin-top:8px;">
+                  <div id="campPayDetail" style="font-size:13px;color:#86868b;">Selecciona un metodo de pago</div>
+                  <div style="display:flex;justify-content:space-between;margin-top:8px;">
+                    <span style="font-weight:800;font-size:18px;color:#1d1d1f;">A pagar ahora</span>
+                    <span id="campPayNow" style="font-weight:800;font-size:22px;color:#D87093;">—</span>
+                  </div>
+                </div>
               </div>
 
               <div class="pro-actions two" style="flex-direction: column; gap: 10px;">
@@ -1432,12 +1440,20 @@
 
       // Fill confirmation on step 4
       if (step === 3) {
-        updateCampPrice(); // Recalcular precios al llegar a pago
+        updateCampPrice();
         document.getElementById('cfCampTutor').textContent = document.getElementById('campTutor').value;
         document.getElementById('cfCampJugador').textContent = document.getElementById('campJugador').value;
         const weeks = getSelectedWeeks();
-        document.getElementById('cfCampWeeks').textContent = weeks.map(w => 'Sem ' + w).join(', ') + ' (' + weeks.length + ')';
+        document.getElementById('cfCampWeeks').textContent = weeks.map(w => 'S' + w).join(', ') + ' (' + weeks.length + ' sem.)';
         document.getElementById('cfCampTotal').textContent = document.getElementById('campTotal').textContent;
+        // Reset payment selection
+        document.getElementById('campPayDetail').textContent = 'Selecciona un metodo de pago';
+        document.getElementById('campPayNow').textContent = '—';
+        document.querySelectorAll('#campPayOptions .payment-option').forEach(opt => {
+          opt.style.borderColor = 'rgba(0,0,0,0.08)';
+          opt.style.background = '#fff';
+        });
+        document.querySelectorAll('input[name="campPayMethod"]').forEach(r => r.checked = false);
       }
     }
 
@@ -1530,14 +1546,57 @@
       }
     }
 
-    function selectPaymentMethod(el) {
-      document.querySelectorAll('.payment-option').forEach(opt => {
-        opt.style.borderColor = 'rgba(0,0,0,0.08)';
-        opt.style.background = '#fff';
-      });
-      el.style.borderColor = '#1d1d1f';
-      el.style.background = 'rgba(29,29,31,0.03)';
+    // Track selected camp total for payment calculations
+    let campCalculatedTotal = 0;
+
+    function getCampTotal() {
+      const weeks = getSelectedWeeks();
+      const count = weeks.length;
+      const regular = count * CAMP_PRICES.perWeek;
+      let total = regular;
+      if (CAMP_PRICES.offers[count]) total = CAMP_PRICES.offers[count];
+      else {
+        const keys = Object.keys(CAMP_PRICES.offers).map(Number).sort((a,b) => b-a);
+        for (const k of keys) {
+          if (count >= k) { total = CAMP_PRICES.offers[k] + (count-k)*CAMP_PRICES.perWeek; break; }
+        }
+      }
+      campCalculatedTotal = total;
+      return total;
     }
+
+    window.onSelectPayMethod = function(method) {
+      const total = getCampTotal();
+      
+      // Visual highlight
+      document.querySelectorAll('#campPayOptions .payment-option').forEach(opt => {
+        const isSelected = opt.dataset.method === method;
+        opt.style.borderColor = isSelected ? '#D87093' : 'rgba(0,0,0,0.08)';
+        opt.style.background = isSelected ? 'rgba(216,112,147,0.05)' : '#fff';
+      });
+      
+      // Check the radio
+      const radio = document.querySelector(`input[name="campPayMethod"][value="${method}"]`);
+      if (radio) radio.checked = true;
+      
+      // Update summary based on method
+      const payDetail = document.getElementById('campPayDetail');
+      const payNow = document.getElementById('campPayNow');
+      
+      if (method === 'reservacion') {
+        const reserva = Math.round(total * 0.2);
+        const restante = total - reserva;
+        payDetail.innerHTML = `Reservacion 20% ahora. Restante <strong>RD$ ${restante.toLocaleString('es-DO')}</strong> antes del inicio del campamento.`;
+        payNow.textContent = 'RD$ ' + reserva.toLocaleString('es-DO');
+      } else if (method === 'completo') {
+        payDetail.innerHTML = 'Pago unico completo. <span style="color:#34c759;font-weight:600;">Incluye 1 T-shirt extra gratis.</span>';
+        payNow.textContent = 'RD$ ' + total.toLocaleString('es-DO');
+      } else if (method === '2cuotas') {
+        const cuota = Math.round(total / 2);
+        payDetail.innerHTML = `1ra cuota ahora: <strong>RD$ ${cuota.toLocaleString('es-DO')}</strong>. 2da cuota antes de la semana 5: <strong>RD$ ${cuota.toLocaleString('es-DO')}</strong>.`;
+        payNow.textContent = 'RD$ ' + cuota.toLocaleString('es-DO');
+      }
+    };
 
     function resetCampForm() {
       document.querySelectorAll('.week-option').forEach(label => {
@@ -1557,7 +1616,7 @@
       updateCampPrice();
     }
 
-    // Submit camp form
+    // Submit camp form (manual/WhatsApp)
     document.getElementById('campForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       
@@ -1579,16 +1638,7 @@
         return;
       }
 
-      const count = weeks.length;
-      const regular = count * CAMP_PRICES.perWeek;
-      let total = regular;
-      if (CAMP_PRICES.offers[count]) total = CAMP_PRICES.offers[count];
-      else {
-        const offerKeys = Object.keys(CAMP_PRICES.offers).map(Number).sort((a,b) => b-a);
-        for (const k of offerKeys) {
-          if (count >= k) { total = CAMP_PRICES.offers[k] + (count-k)*CAMP_PRICES.perWeek; break; }
-        }
-      }
+      const total = getCampTotal();
 
       const btn = document.getElementById('campSubmitBtn');
       btn.disabled = true;
@@ -1597,6 +1647,18 @@
       try {
         const sb = window.sb;
         
+        // 1. Crear o encontrar usuario padre
+        const { data: existingUser } = await sb.from('users').select('id').eq('email', email).single();
+        if (!existingUser) {
+          await sb.from('users').insert({
+            email: email,
+            nombre: tutor,
+            telefono: whatsapp,
+            rol: 'parent'
+          });
+        }
+        
+        // 2. Crear inscripción
         const { error } = await sb.from('camp_inscriptions').insert({
           tutor_nombre: tutor,
           tutor_email: email,
@@ -1605,7 +1667,7 @@
           fecha_nacimiento: fechaNac,
           talla_tshirt: talla,
           semanas: weeks,
-          total_semanas: count,
+          total_semanas: weeks.length,
           precio_total: total,
           metodo_pago: payMethod.value,
           status: 'pending',
@@ -1614,13 +1676,25 @@
 
         if (error) throw error;
 
+        // Send confirmation email
+        try {
+          await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'camp_inscription',
+              body: { nombre: tutor, email, jugador, semanas: weeks, totalSemanas: weeks.length, precioTotal: total, metodoPago: payMethod.value, talla, fechaNac: fechaNac }
+            })
+          });
+        } catch(e) { console.log('Email error:', e); }
+
         document.getElementById('campForm').style.display = 'none';
         document.getElementById('campSuccess').style.display = 'block';
 
       } catch (err) {
         document.getElementById('campMsg').innerHTML = '<span style="color:#ef4444;">Error: ' + err.message + '</span>';
         btn.disabled = false;
-        btn.textContent = 'Inscribir al Campamento';
+        btn.textContent = 'Inscribir (WhatsApp/Manual)';
       }
     });
 
@@ -1644,38 +1718,49 @@
       const payMethod = document.querySelector('input[name="campPayMethod"]:checked');
       if (!payMethod) { alert('Selecciona un metodo de pago'); return; }
 
-      const count = weeks.length;
-      let total = count * CAMP_PRICES.perWeek;
-      if (CAMP_PRICES.offers[count]) total = CAMP_PRICES.offers[count];
-      else {
-        const keys = Object.keys(CAMP_PRICES.offers).map(Number).sort((a,b) => b-a);
-        for (const k of keys) { if (count >= k) { total = CAMP_PRICES.offers[k] + (count-k)*CAMP_PRICES.perWeek; break; } }
-      }
+      const total = getCampTotal();
 
+      // Calculate charge based on method
       let chargeAmount = total;
-      if (payMethod.value === 'reservacion') chargeAmount = Math.round(total * 0.2);
-      else if (payMethod.value === '2cuotas') chargeAmount = Math.round(total / 2);
+      let description = 'Campamento Guerrero - ' + weeks.length + ' semanas';
+      if (payMethod.value === 'reservacion') {
+        chargeAmount = Math.round(total * 0.2);
+        description += ' (Reservacion 20%)';
+      } else if (payMethod.value === '2cuotas') {
+        chargeAmount = Math.round(total / 2);
+        description += ' (1ra Cuota)';
+      } else {
+        description += ' (Pago Completo)';
+      }
 
       const stripeBtn = document.getElementById('campStripeBtn');
       stripeBtn.disabled = true;
       stripeBtn.textContent = 'Procesando...';
 
       try {
+        // Create parent user if not exists
+        const { data: existingUser } = await window.sb.from('users').select('id').eq('email', email).single();
+        if (!existingUser) {
+          await window.sb.from('users').insert({ email, nombre: tutor, telefono: whatsapp, rol: 'parent' });
+        }
+
+        // Create inscription
         const { data: insc, error: inscError } = await window.sb.from('camp_inscriptions').insert({
           tutor_nombre: tutor, tutor_email: email, tutor_whatsapp: whatsapp,
           jugador_nombre: jugador, fecha_nacimiento: fechaNac, talla_tshirt: talla,
-          semanas: weeks, total_semanas: count, precio_total: total,
+          semanas: weeks, total_semanas: weeks.length, precio_total: total,
           metodo_pago: 'stripe_' + payMethod.value, status: 'pending'
         }).select().single();
         if (inscError) throw inscError;
 
+        // Create Stripe session
         const response = await fetch('/api/stripe-checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             inscription_id: insc.id,
             amount: chargeAmount + 0.00,
-            description: 'Campamento Guerrero - ' + count + ' semanas (' + payMethod.value + ')',
+            description: description,
             origin_url: window.location.origin,
             metadata: { jugador, tutor, email, semanas: weeks.join(','), metodo: payMethod.value }
           })

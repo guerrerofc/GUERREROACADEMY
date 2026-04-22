@@ -909,6 +909,7 @@
         <button class="nav-link" data-view="camp-inscriptions"><span class="nav-icon">🏕️</span>Inscripciones Camp.</button>
         <button class="nav-link" data-view="camp-players"><span class="nav-icon">⚽</span>Jugadores Camp.</button>
         <button class="nav-link" data-view="camp-payments"><span class="nav-icon">💳</span>Pagos Camp.</button>
+        <button class="nav-link" data-view="camp-weeks"><span class="nav-icon">📅</span>Semanas Camp.</button>
         <button class="nav-link" data-view="camp-reports"><span class="nav-icon">📊</span>Reportes Camp.</button>
 
         <div class="nav-section">Sistema</div>
@@ -1750,6 +1751,47 @@
         </div>
       </div>
 
+      <!-- CAMPAMENTO: SEMANAS -->
+      <div class="view" id="view-camp-weeks">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">📅 Semanas del Campamento</h1>
+            <p class="page-subtitle">Ocupacion, cupos y jugadores por semana</p>
+          </div>
+        </div>
+
+        <!-- Semanas Overview -->
+        <div id="campWeeksOverview" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px;"></div>
+
+        <!-- Detalle de Semana Seleccionada -->
+        <div class="card" id="campWeekDetail" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 class="card-title" id="campWeekDetailTitle">Semana 1</h3>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="campWeekSearch" class="input" placeholder="Buscar jugador..." oninput="filterCampWeekPlayers()" style="width: 200px; padding: 8px 12px; font-size: 13px;">
+              <button class="btn btn-sm" onclick="closeCampWeekDetail()">✕</button>
+            </div>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Jugador</th>
+                  <th>Edad</th>
+                  <th>Talla</th>
+                  <th>Tutor</th>
+                  <th>WhatsApp</th>
+                  <th>Total Semanas</th>
+                  <th>Pago</th>
+                </tr>
+              </thead>
+              <tbody id="campWeekPlayersTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- LANDING CONFIG -->
       <div class="view" id="view-landing-config">
         <div class="topbar">
@@ -2510,6 +2552,7 @@
       if (view === 'camp-players') loadCampPlayers();
       if (view === 'camp-payments') loadCampPayments();
       if (view === 'camp-reports') loadCampReports();
+      if (view === 'camp-weeks') loadCampWeeks();
       if (view === 'landing-config') loadLandingConfig();
     }
     
@@ -4477,6 +4520,92 @@
           </div>`;
         }).join('') + '</div>' || '<p style="color:var(--text-dim);text-align:center;">Sin datos</p>';
     }
+
+    // ======================================
+    // CAMPAMENTO - Semanas
+    // ======================================
+
+    const CAMP_WEEK_LABELS = ['Jul 6-10', 'Jul 13-17', 'Jul 20-24', 'Jul 27-31', 'Ago 3-7', 'Ago 10-14', 'Ago 17-21', 'Ago 24-28'];
+    let campWeeksData = [];
+    let selectedCampWeek = null;
+
+    async function loadCampWeeks() {
+      const { data } = await sb.from('camp_inscriptions').select('*').eq('status', 'approved');
+      campWeeksData = data || [];
+
+      const overview = $('campWeeksOverview');
+      if (!overview) return;
+
+      const weekStats = [];
+      for (let w = 1; w <= 8; w++) {
+        const players = campWeeksData.filter(i => (i.semanas || []).includes(w));
+        const paid = players.filter(p => p.payment_status === 'paid').length;
+        weekStats.push({ week: w, label: CAMP_WEEK_LABELS[w - 1], players, total: players.length, paid });
+      }
+
+      overview.innerHTML = weekStats.map(ws => {
+        const pct = ws.total > 0 ? Math.round((ws.paid / ws.total) * 100) : 0;
+        const barColor = ws.total === 0 ? '#e5e5e7' : '#D87093';
+        return `
+          <div class="card" style="cursor: pointer; transition: transform 0.2s; position: relative; overflow: hidden;" onclick="showCampWeekDetail(${ws.week})" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+            <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: ${barColor};"></div>
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-top: 4px;">
+              <div>
+                <div style="font-size: 13px; color: var(--text-dim); font-weight: 600;">SEMANA ${ws.week}</div>
+                <div style="font-size: 12px; color: var(--text-muted);">${ws.label}</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 32px; font-weight: 800; color: #1d1d1f; line-height: 1;">${ws.total}</div>
+                <div style="font-size: 11px; color: var(--text-dim);">jugadores</div>
+              </div>
+            </div>
+            <div style="margin-top: 16px;">
+              <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                <span style="color: var(--success);">Pagados: ${ws.paid}</span>
+                <span style="color: var(--danger);">Pendientes: ${ws.total - ws.paid}</span>
+              </div>
+              <div style="height: 6px; background: var(--bg-secondary, #f0f0f0); border-radius: 3px; overflow: hidden;">
+                <div style="height: 100%; width: ${pct}%; background: var(--success); border-radius: 3px; transition: width 0.3s;"></div>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    window.showCampWeekDetail = function(week) {
+      selectedCampWeek = week;
+      $('campWeekDetail').style.display = 'block';
+      $('campWeekDetailTitle').textContent = 'Semana ' + week + ' — ' + CAMP_WEEK_LABELS[week - 1];
+      $('campWeekSearch').value = '';
+      filterCampWeekPlayers();
+    };
+
+    window.closeCampWeekDetail = function() {
+      $('campWeekDetail').style.display = 'none';
+      selectedCampWeek = null;
+    };
+
+    window.filterCampWeekPlayers = function() {
+      const search = ($('campWeekSearch')?.value || '').toLowerCase();
+      const players = campWeeksData.filter(i => (i.semanas || []).includes(selectedCampWeek));
+      const filtered = search ? players.filter(p => (p.jugador_nombre || '').toLowerCase().includes(search) || (p.tutor_nombre || '').toLowerCase().includes(search)) : players;
+
+      $('campWeekPlayersTable').innerHTML = filtered.map(i => {
+        const edad = i.fecha_nacimiento ? Math.floor((Date.now() - new Date(i.fecha_nacimiento).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : '-';
+        const payBadge = i.payment_status === 'paid' ? 'success' : i.payment_status === 'partial' ? 'warning' : 'danger';
+        const paidPct = i.precio_total > 0 ? Math.round((Number(i.paid_amount || 0) / Number(i.precio_total)) * 100) : 0;
+        const allWeeks = (i.semanas || []).map(w => 'S' + w).join(', ');
+        return `<tr>
+          <td><strong>${i.jugador_nombre}</strong></td>
+          <td>${edad !== '-' ? edad + ' años' : '-'}</td>
+          <td>${i.talla_tshirt || '-'}</td>
+          <td>${i.tutor_nombre}<br><small style="color:var(--text-dim);">${i.tutor_email || ''}</small></td>
+          <td>${i.tutor_whatsapp || '-'}</td>
+          <td><span style="font-size:12px;">${allWeeks}</span> (${i.total_semanas})</td>
+          <td><span class="badge badge-${payBadge}">${paidPct}%</span><br><small>${formatMoney(i.paid_amount || 0)}/${formatMoney(i.precio_total)}</small></td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="7" style="text-align:center;">Sin jugadores en esta semana</td></tr>';
+    };
 
     // ======================================
     // CAMPAMENTO - Jugadores
