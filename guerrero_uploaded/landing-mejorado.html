@@ -1255,6 +1255,24 @@
   </script>
   <script>
     window.sb = window.sb || window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    
+    // Cargar configuración del landing para mostrar/ocultar secciones
+    (async function loadLandingVisibility() {
+      try {
+        const { data } = await window.sb.from('site_config').select('config').eq('id', 'landing').single();
+        if (data?.config) {
+          const academiaSection = document.getElementById('inscripcion');
+          const campSection = document.getElementById('campamento');
+          const campFormSection = document.getElementById('inscripcion-camp');
+          
+          if (data.config.show_academia === false && academiaSection) academiaSection.style.display = 'none';
+          if (data.config.show_campamento === false) {
+            if (campSection) campSection.style.display = 'none';
+            if (campFormSection) campFormSection.style.display = 'none';
+          }
+        }
+      } catch(e) { console.log('Config not loaded, showing all sections'); }
+    })();
   </script>
   <script src="./app.js"></script>
   <script src="solicitudes.js"></script>

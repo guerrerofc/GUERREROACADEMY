@@ -46,4 +46,56 @@ END $$;
 CREATE INDEX IF NOT EXISTS idx_camp_status ON camp_inscriptions(status);
 CREATE INDEX IF NOT EXISTS idx_camp_created ON camp_inscriptions(created_at);
 
-SELECT 'Tabla de campamento creada!' as resultado;
+-- 4. Tabla de pagos del campamento
+CREATE TABLE IF NOT EXISTS camp_payments (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  inscription_id UUID REFERENCES camp_inscriptions(id) ON DELETE SET NULL,
+  jugador_nombre VARCHAR(255),
+  tutor_nombre VARCHAR(255),
+  tutor_email VARCHAR(255),
+  amount DECIMAL(10,2) NOT NULL,
+  payment_type VARCHAR(50),
+  method VARCHAR(50),
+  note TEXT,
+  registered_by VARCHAR(255),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE camp_payments ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'camp_payments' AND policyname = 'cpay_select_all') THEN
+    EXECUTE 'CREATE POLICY cpay_select_all ON camp_payments FOR SELECT USING (true)';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'camp_payments' AND policyname = 'cpay_insert_all') THEN
+    EXECUTE 'CREATE POLICY cpay_insert_all ON camp_payments FOR INSERT WITH CHECK (true)';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'camp_payments' AND policyname = 'cpay_delete_all') THEN
+    EXECUTE 'CREATE POLICY cpay_delete_all ON camp_payments FOR DELETE USING (true)';
+  END IF;
+END $$;
+
+-- 5. Tabla de configuración del sitio
+CREATE TABLE IF NOT EXISTS site_config (
+  id VARCHAR(50) PRIMARY KEY,
+  config JSONB DEFAULT '{}',
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE site_config ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'site_config' AND policyname = 'cfg_select_all') THEN
+    EXECUTE 'CREATE POLICY cfg_select_all ON site_config FOR SELECT USING (true)';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'site_config' AND policyname = 'cfg_insert_all') THEN
+    EXECUTE 'CREATE POLICY cfg_insert_all ON site_config FOR INSERT WITH CHECK (true)';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'site_config' AND policyname = 'cfg_update_all') THEN
+    EXECUTE 'CREATE POLICY cfg_update_all ON site_config FOR UPDATE USING (true)';
+  END IF;
+END $$;
+
+SELECT 'Tablas de campamento, pagos y config creadas!' as resultado;
