@@ -1407,6 +1407,7 @@
 
       // Fill confirmation on step 4
       if (step === 3) {
+        updateCampPrice(); // Recalcular precios al llegar a pago
         document.getElementById('cfCampTutor').textContent = document.getElementById('campTutor').value;
         document.getElementById('cfCampJugador').textContent = document.getElementById('campJugador').value;
         const weeks = getSelectedWeeks();
