@@ -911,6 +911,7 @@
         <button class="nav-link" data-view="camp-payments"><span class="nav-icon">💳</span>Pagos Camp.</button>
         <button class="nav-link" data-view="camp-weeks"><span class="nav-icon">📅</span>Semanas Camp.</button>
         <button class="nav-link" data-view="camp-reports"><span class="nav-icon">📊</span>Reportes Camp.</button>
+        <button class="nav-link" data-view="camp-photos"><span class="nav-icon">📸</span>Fotos Camp.</button>
 
         <div class="nav-section">Sistema</div>
         <button class="nav-link" data-view="landing-config"><span class="nav-icon">🌐</span>Landing</button>
@@ -1751,6 +1752,63 @@
         </div>
       </div>
 
+      <!-- CAMPAMENTO: FOTOS -->
+      <div class="view" id="view-camp-photos">
+        <div class="topbar">
+          <div>
+            <button class="mobile-menu">☰</button>
+            <h1 class="page-title">📸 Fotos del Campamento</h1>
+            <p class="page-subtitle">Sube y envia fotos diarias a los padres</p>
+          </div>
+          <div>
+            <button class="btn btn-primary" onclick="openModal('uploadPhotosModal')">+ Subir Fotos</button>
+          </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="card" style="margin-bottom: 20px;">
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+            <div>
+              <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Semana</label>
+              <select id="photosWeekFilter" class="input" style="width: auto; padding: 8px 12px;" onchange="loadCampPhotos()">
+                <option value="all">Todas</option>
+                <option value="1">Semana 1</option>
+                <option value="2">Semana 2</option>
+                <option value="3">Semana 3</option>
+                <option value="4">Semana 4</option>
+                <option value="5">Semana 5</option>
+                <option value="6">Semana 6</option>
+                <option value="7">Semana 7</option>
+                <option value="8">Semana 8</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Fecha</label>
+              <input type="date" id="photosDateFilter" class="input" style="width: auto; padding: 8px 12px;" onchange="loadCampPhotos()">
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" style="margin-bottom: 20px;">
+          <div class="card stat-card">
+            <div class="stat-label">Total Fotos</div>
+            <div class="stat-value" id="photosTotal">0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Albumes</div>
+            <div class="stat-value" id="photosAlbums">0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Envios a Padres</div>
+            <div class="stat-value" id="photosSent">0</div>
+          </div>
+        </div>
+
+        <!-- Albums Grid -->
+        <div id="campPhotosGrid"></div>
+      </div>
+
       <!-- CAMPAMENTO: SEMANAS -->
       <div class="view" id="view-camp-weeks">
         <div class="topbar">
@@ -2242,6 +2300,101 @@
     </div>
   </div>
 
+  <!-- Modal: Subir Fotos Campamento -->
+  <div class="modal" id="uploadPhotosModal">
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3>Subir Fotos del Campamento</h3>
+        <button class="btn btn-sm" onclick="closeModal('uploadPhotosModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Titulo del Album</label>
+          <input type="text" id="photoAlbumTitle" class="input" placeholder="Ej: Dia 1 - Entrenamiento de calentamiento">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label>Fecha</label>
+            <input type="date" id="photoAlbumDate" class="input">
+          </div>
+          <div class="form-group">
+            <label>Semana</label>
+            <select id="photoAlbumWeek" class="input">
+              <option value="1">Semana 1 (Jul 6-10)</option>
+              <option value="2">Semana 2 (Jul 13-17)</option>
+              <option value="3">Semana 3 (Jul 20-24)</option>
+              <option value="4">Semana 4 (Jul 27-31)</option>
+              <option value="5">Semana 5 (Ago 3-7)</option>
+              <option value="6">Semana 6 (Ago 10-14)</option>
+              <option value="7">Semana 7 (Ago 17-21)</option>
+              <option value="8">Semana 8 (Ago 24-28)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Fotos (selecciona multiples)</label>
+          <input type="file" id="photoAlbumFiles" accept="image/*" multiple class="input" style="padding: 10px;" onchange="previewAlbumPhotos()">
+          <div id="photoAlbumPreview" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 10px;"></div>
+        </div>
+        <div class="form-group">
+          <label>Descripcion (opcional)</label>
+          <textarea id="photoAlbumDesc" class="input" rows="2" placeholder="Breve descripcion del dia..."></textarea>
+        </div>
+        <div id="photoUploadProgress" style="display: none; margin-top: 12px;">
+          <div style="height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden;">
+            <div id="photoProgressBar" style="height: 100%; width: 0%; background: #D87093; border-radius: 3px; transition: width 0.3s;"></div>
+          </div>
+          <div id="photoProgressText" style="font-size: 12px; color: var(--text-dim); margin-top: 6px; text-align: center;"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('uploadPhotosModal')">Cancelar</button>
+        <button class="btn btn-primary" id="btnSaveAlbum" onclick="savePhotoAlbum()">Subir Fotos</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Enviar Fotos a Padres -->
+  <div class="modal" id="sendPhotosModal">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3>Enviar Fotos por Email</h3>
+        <button class="btn btn-sm" onclick="closeModal('sendPhotosModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="sendPhotosAlbumId">
+        <p id="sendPhotosAlbumInfo" style="margin-bottom: 16px; color: var(--text-dim);"></p>
+        <div class="form-group">
+          <label>Enviar a:</label>
+          <select id="sendPhotosTarget" class="input" onchange="updateSendTarget()">
+            <option value="all">Todos los padres del campamento</option>
+            <option value="week">Padres de una semana especifica</option>
+            <option value="single">Un padre especifico</option>
+          </select>
+        </div>
+        <div id="sendPhotosWeekGroup" class="form-group" style="display: none;">
+          <label>Semana</label>
+          <select id="sendPhotosWeek" class="input">
+            <option value="1">Semana 1</option><option value="2">Semana 2</option><option value="3">Semana 3</option><option value="4">Semana 4</option>
+            <option value="5">Semana 5</option><option value="6">Semana 6</option><option value="7">Semana 7</option><option value="8">Semana 8</option>
+          </select>
+        </div>
+        <div id="sendPhotosSingleGroup" class="form-group" style="display: none;">
+          <label>Email del padre</label>
+          <input type="email" id="sendPhotosEmail" class="input" placeholder="email@ejemplo.com">
+        </div>
+        <div class="form-group">
+          <label>Mensaje personalizado (opcional)</label>
+          <textarea id="sendPhotosMessage" class="input" rows="2" placeholder="Mensaje adicional para los padres..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('sendPhotosModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="sendPhotosToParents()">Enviar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: Pago Campamento -->
   <div class="modal" id="campPaymentModal">
     <div class="modal-content" style="max-width: 500px;">
@@ -2553,6 +2706,7 @@
       if (view === 'camp-payments') loadCampPayments();
       if (view === 'camp-reports') loadCampReports();
       if (view === 'camp-weeks') loadCampWeeks();
+      if (view === 'camp-photos') loadCampPhotos();
       if (view === 'landing-config') loadLandingConfig();
     }
     
@@ -4520,6 +4674,247 @@
           </div>`;
         }).join('') + '</div>' || '<p style="color:var(--text-dim);text-align:center;">Sin datos</p>';
     }
+
+    // ======================================
+    // CAMPAMENTO - Fotos
+    // ======================================
+
+    let campAlbums = [];
+
+    async function loadCampPhotos() {
+      const weekFilter = $('photosWeekFilter')?.value || 'all';
+      const dateFilter = $('photosDateFilter')?.value || '';
+
+      let query = sb.from('camp_photo_albums').select('*').order('album_date', { ascending: false });
+      if (weekFilter !== 'all') query = query.eq('week_number', parseInt(weekFilter));
+      if (dateFilter) query = query.eq('album_date', dateFilter);
+
+      const { data } = await query;
+      campAlbums = data || [];
+
+      const totalPhotos = campAlbums.reduce((s, a) => s + (a.photo_count || 0), 0);
+      const totalSent = campAlbums.filter(a => a.sent_count > 0).length;
+
+      if ($('photosTotal')) $('photosTotal').textContent = totalPhotos;
+      if ($('photosAlbums')) $('photosAlbums').textContent = campAlbums.length;
+      if ($('photosSent')) $('photosSent').textContent = totalSent;
+
+      renderCampPhotosGrid();
+    }
+
+    function renderCampPhotosGrid() {
+      const grid = $('campPhotosGrid');
+      if (!grid) return;
+
+      if (campAlbums.length === 0) {
+        grid.innerHTML = '<div class="card" style="text-align:center;padding:40px;"><p style="color:var(--text-dim);">No hay fotos todavia. Sube el primer album.</p></div>';
+        return;
+      }
+
+      grid.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">' +
+        campAlbums.map(a => {
+          const thumbs = (a.photos || []).slice(0, 4);
+          const extra = (a.photo_count || 0) - 4;
+          return `
+          <div class="card" style="overflow:hidden;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:-20px -20px 16px;height:160px;overflow:hidden;">
+              ${thumbs.map(p => `<div style="background:url(${p}) center/cover;"></div>`).join('')}
+              ${thumbs.length === 0 ? '<div style="background:var(--bg-secondary,#f5f5f7);display:flex;align-items:center;justify-content:center;grid-column:1/-1;color:var(--text-dim);font-size:14px;">Sin fotos</div>' : ''}
+            </div>
+            <div style="padding:0 4px;">
+              <div style="display:flex;justify-content:space-between;align-items:start;">
+                <div>
+                  <h4 style="margin:0 0 4px;font-size:15px;">${a.title || 'Album'}</h4>
+                  <div style="font-size:12px;color:var(--text-dim);">Semana ${a.week_number} | ${new Date(a.album_date).toLocaleDateString('es-DO')}</div>
+                </div>
+                <span class="badge badge-info" style="font-size:11px;">${a.photo_count || 0} fotos</span>
+              </div>
+              ${a.description ? `<p style="font-size:13px;color:var(--text-dim);margin:8px 0 0;">${a.description}</p>` : ''}
+              <div style="display:flex;gap:8px;margin-top:12px;">
+                <button class="btn btn-sm btn-primary" onclick="openSendPhotos('${a.id}','${(a.title||'').replace(/'/g,'')}')" style="background:#D87093;">📧 Enviar</button>
+                <button class="btn btn-sm" onclick="viewAlbumPhotos('${a.id}')" title="Ver fotos">👁️</button>
+                <button class="btn btn-sm" style="background:#EF4444;" onclick="deleteAlbum('${a.id}')" title="Eliminar">🗑️</button>
+              </div>
+              ${a.sent_count > 0 ? `<div style="font-size:11px;color:var(--success);margin-top:8px;">Enviado ${a.sent_count} veces</div>` : ''}
+            </div>
+          </div>`;
+        }).join('') + '</div>';
+    }
+
+    window.previewAlbumPhotos = function() {
+      const files = $('photoAlbumFiles').files;
+      const preview = $('photoAlbumPreview');
+      preview.innerHTML = '';
+      for (let i = 0; i < Math.min(files.length, 12); i++) {
+        const url = URL.createObjectURL(files[i]);
+        preview.innerHTML += `<img src="${url}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;">`;
+      }
+      if (files.length > 12) preview.innerHTML += `<div style="width:80px;height:80px;border-radius:8px;background:var(--bg-secondary,#f5f5f7);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;">+${files.length - 12}</div>`;
+    };
+
+    window.savePhotoAlbum = async function() {
+      const title = $('photoAlbumTitle').value.trim();
+      const date = $('photoAlbumDate').value;
+      const week = parseInt($('photoAlbumWeek').value);
+      const desc = $('photoAlbumDesc').value.trim();
+      const files = $('photoAlbumFiles').files;
+
+      if (!title || !date) return alert('Completa titulo y fecha');
+      if (files.length === 0) return alert('Selecciona al menos una foto');
+
+      const btn = $('btnSaveAlbum');
+      btn.disabled = true;
+      btn.textContent = 'Subiendo...';
+      $('photoUploadProgress').style.display = 'block';
+
+      try {
+        const photos = [];
+        for (let i = 0; i < files.length; i++) {
+          $('photoProgressBar').style.width = Math.round(((i + 1) / files.length) * 100) + '%';
+          $('photoProgressText').textContent = `Procesando ${i + 1} de ${files.length}...`;
+
+          // Convert to base64 (compress if needed)
+          const base64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+
+            // Compress using canvas
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const maxW = 1200;
+              let w = img.width, h = img.height;
+              if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+              canvas.width = w; canvas.height = h;
+              canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+              resolve(canvas.toDataURL('image/jpeg', 0.7));
+            };
+            img.src = URL.createObjectURL(files[i]);
+          });
+          photos.push(base64);
+        }
+
+        const { error } = await sb.from('camp_photo_albums').insert({
+          title, album_date: date, week_number: week, description: desc,
+          photos, photo_count: photos.length, sent_count: 0,
+          uploaded_by: currentUser?.email || 'admin'
+        });
+
+        if (error) throw error;
+
+        closeModal('uploadPhotosModal');
+        $('photoAlbumTitle').value = '';
+        $('photoAlbumDate').value = '';
+        $('photoAlbumDesc').value = '';
+        $('photoAlbumFiles').value = '';
+        $('photoAlbumPreview').innerHTML = '';
+        $('photoUploadProgress').style.display = 'none';
+        alert('Album subido con ' + photos.length + ' fotos');
+        loadCampPhotos();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Subir Fotos';
+    };
+
+    window.openSendPhotos = function(albumId, title) {
+      $('sendPhotosAlbumId').value = albumId;
+      $('sendPhotosAlbumInfo').textContent = 'Album: ' + title;
+      $('sendPhotosTarget').value = 'all';
+      updateSendTarget();
+      openModal('sendPhotosModal');
+    };
+
+    window.updateSendTarget = function() {
+      const target = $('sendPhotosTarget').value;
+      $('sendPhotosWeekGroup').style.display = target === 'week' ? 'block' : 'none';
+      $('sendPhotosSingleGroup').style.display = target === 'single' ? 'block' : 'none';
+    };
+
+    window.sendPhotosToParents = async function() {
+      const albumId = $('sendPhotosAlbumId').value;
+      const album = campAlbums.find(a => a.id === albumId);
+      if (!album) return alert('Album no encontrado');
+
+      const target = $('sendPhotosTarget').value;
+      const message = $('sendPhotosMessage').value.trim();
+      let emails = [];
+
+      if (target === 'single') {
+        const email = $('sendPhotosEmail').value.trim();
+        if (!email) return alert('Ingresa un email');
+        emails = [email];
+      } else {
+        // Get all approved camp inscriptions
+        let query = sb.from('camp_inscriptions').select('tutor_email').eq('status', 'approved');
+        if (target === 'week') {
+          const week = parseInt($('sendPhotosWeek').value);
+          query = query.contains('semanas', [week]);
+        }
+        const { data } = await query;
+        const emailSet = new Set();
+        (data || []).forEach(i => { if (i.tutor_email) emailSet.add(i.tutor_email); });
+        emails = Array.from(emailSet);
+      }
+
+      if (emails.length === 0) return alert('No hay padres con email para enviar');
+
+      if (!confirm('Enviar fotos del album "' + album.title + '" a ' + emails.length + ' padre(s)?')) return;
+
+      try {
+        const result = await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'camp_photos',
+            body: {
+              emails,
+              title: album.title,
+              message: message || 'Aqui tienes las fotos de tu hijo/a en el campamento. Semana ' + album.week_number + '.',
+              photoCount: album.photo_count
+            }
+          })
+        });
+
+        const data = await result.json();
+        if (!result.ok) throw new Error(data.error);
+
+        // Update sent count
+        await sb.from('camp_photo_albums').update({
+          sent_count: (album.sent_count || 0) + 1
+        }).eq('id', albumId);
+
+        closeModal('sendPhotosModal');
+        alert('Fotos enviadas a ' + emails.length + ' padre(s)');
+        loadCampPhotos();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    };
+
+    window.viewAlbumPhotos = async function(albumId) {
+      const album = campAlbums.find(a => a.id === albumId);
+      if (!album || !album.photos?.length) return alert('No hay fotos en este album');
+
+      const win = window.open('', '_blank');
+      win.document.write(`<!DOCTYPE html><html><head><title>${album.title}</title>
+        <style>body{margin:0;background:#1d1d1f;font-family:-apple-system,sans-serif;padding:20px;}
+        h1{color:#fff;text-align:center;font-size:20px;margin:0 0 20px;}
+        .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;max-width:1200px;margin:0 auto;}
+        img{width:100%;border-radius:12px;}</style></head>
+        <body><h1>${album.title} — Semana ${album.week_number}</h1>
+        <div class="grid">${album.photos.map(p => '<img src="' + p + '">').join('')}</div></body></html>`);
+      win.document.close();
+    };
+
+    window.deleteAlbum = async function(id) {
+      if (!confirm('Eliminar este album y todas sus fotos?')) return;
+      await sb.from('camp_photo_albums').delete().eq('id', id);
+      loadCampPhotos();
+    };
 
     // ======================================
     // CAMPAMENTO - Semanas
