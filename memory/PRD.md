@@ -1,8 +1,8 @@
 # Guerrero Academy - PRD
 
 ## Arquitectura
-- Frontend: Vanilla HTML/CSS/JS en `/app/guerrero_uploaded/`
-- Backend API: Vercel Serverless Functions en `/app/api/`
+- Frontend: Vanilla HTML/CSS/JS (`/app/guerrero_uploaded/`)
+- Backend API: Vercel Serverless (`/app/api/`)
 - Database: Supabase PostgreSQL
 - Email: Resend (`notificaciones@guerrerofcsd.com`)
 - Pagos: Stripe
@@ -10,34 +10,33 @@
 ## Implementado
 
 ### Core
-- Login unificado, paneles por rol, URLs limpias (vercel.json)
-- Firmas digitales Canvas + PDF, Dashboard real
+- Login unificado, paneles por rol (super_admin, director, operativo, staff/coach, parent)
+- URLs limpias via vercel.json, firmas digitales Canvas+PDF, dashboard real
 
 ### Jugadores
-- CRUD, foto anual, acta nacimiento, edad auto, categoría auto
+- CRUD, foto anual, acta nacimiento, fecha nac → edad → categoría auto
 
 ### Campamento 2026
-- Landing: Hero animado, precios/ofertas, formulario wizard 4 pasos
+- Landing: Hero animado CAMP 2026, precios/ofertas rosado, formulario wizard 4 pasos
 - Métodos pago reactivos: Reservación 20%, Completo (+tshirt), 2 Cuotas
-- Stripe Checkout integrado
-- Creación automática de usuario padre al inscribir
-- Admin: Inscripciones, Jugadores, Pagos, Semanas, Reportes
-- Semanas: Vista de 8 cards con ocupación, detalle de jugadores por semana, búsqueda
-- Reportes: 6 KPIs + 6 gráficos (ocupación, pagos, tallas, edades, timeline)
-- Acuerdo de pago HTML + envío por email
+- Stripe Checkout, creación auto usuario padre
+- Admin: Inscripciones, Jugadores, Pagos, Semanas (8 cards interactivas), Reportes (6 KPIs + 6 gráficos)
+- **Fotos Camp**: Subir albums por fecha/semana, preview, enviar a padres por email (todos/semana/individual), historial envíos
+- Acuerdo de pago HTML + email
 
-### Emails Premium (Resend)
-- Templates rediseñados: header negro con logo, cuerpo blanco limpio, footer profesional
-- Tipos: welcome, announcement, payment_reminder, payment_confirmation, camp_inscription, camp_photos, custom
-- Email de inscripción campamento con datos completos del jugador, semanas, plan de pago
+### Emails Premium
+- Templates rediseñados: header GUERRERO ACADEMY, cuerpo limpio, footer profesional
+- 7 tipos: welcome, announcement, payment_reminder, payment_confirmation, camp_inscription, camp_photos, custom
 
 ### Admin Landing Config
-- 7 toggles: announcement, hero academia, hero camp, info strip, campamento, academia form, camp form
-- Textos editables: hero title, subtitle, announcement
-- Precios campamento editables
+- 7 toggles para secciones, textos editables, precios campamento editables
+
+## SQLs necesarios
+- SQL_CAMP_FOTOS.sql (tabla camp_photo_albums)
+- SQL_USERS_TELEFONO.sql (columna telefono en users)
 
 ## Backlog
-- P1: Apartado Fotos (admin, subir/organizar/enviar a padres)
-- P2: WhatsApp (Twilio) verificar
-- P3: Bug formulario inscripción academia salta pasos
-- P4: Refactoring archivos monolíticos
+- P1: WhatsApp (Twilio) verificar
+- P2: Bug formulario inscripción academia salta pasos
+- P3: Refactoring archivos monolíticos
+- P4: Stripe webhooks
