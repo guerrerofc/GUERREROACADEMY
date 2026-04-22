@@ -1614,7 +1614,7 @@
                   <th>WhatsApp</th>
                   <th>Semanas</th>
                   <th>Pago</th>
-                  <th>Estado</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody id="campPlayersTable"></tbody>
@@ -1842,6 +1842,7 @@
                   <th>WhatsApp</th>
                   <th>Total Semanas</th>
                   <th>Pago</th>
+                  <th>Accion</th>
                 </tr>
               </thead>
               <tbody id="campWeekPlayersTable"></tbody>
@@ -2296,6 +2297,108 @@
       <div class="modal-footer">
         <button class="btn" onclick="closeModal('changePasswordModal')">Cancelar</button>
         <button class="btn btn-primary" onclick="saveNewPassword()">Guardar Contraseña</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Editar Jugador Campamento -->
+  <div class="modal" id="editCampPlayerModal">
+    <div class="modal-content" style="max-width: 550px;">
+      <div class="modal-header">
+        <h3>Editar Jugador del Campamento</h3>
+        <button class="btn btn-sm" onclick="closeModal('editCampPlayerModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="ecpId">
+        <div class="form-group">
+          <label>Nombre del Jugador</label>
+          <input type="text" id="ecpNombre" class="input">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label>Fecha de Nacimiento</label>
+            <input type="date" id="ecpFechaNac" class="input">
+          </div>
+          <div class="form-group">
+            <label>Talla T-shirt</label>
+            <select id="ecpTalla" class="input">
+              <option value="YXS">Youth XS</option><option value="YS">Youth S</option><option value="YM">Youth M</option>
+              <option value="YL">Youth L</option><option value="YXL">Youth XL</option>
+              <option value="AS">Adult S</option><option value="AM">Adult M</option><option value="AL">Adult L</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Foto del Jugador</label>
+          <input type="file" id="ecpPhoto" accept="image/*" class="input" style="padding: 10px;">
+          <div id="ecpPhotoPreview" style="margin-top: 8px;"></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label>Tutor</label>
+            <input type="text" id="ecpTutor" class="input">
+          </div>
+          <div class="form-group">
+            <label>WhatsApp</label>
+            <input type="text" id="ecpWhatsapp" class="input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email Tutor</label>
+          <input type="email" id="ecpEmail" class="input">
+        </div>
+        <div class="form-group">
+          <label>Semanas Inscritas</label>
+          <div id="ecpWeeksCheckboxes" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" value="1" class="ecp-week"> S1</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" value="2" class="ecp-week"> S2</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" value="3" class="ecp-week"> S3</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" value="4" class="ecp-week"> S4</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" value="5" class="ecp-week"> S5</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" value="6" class="ecp-week"> S6</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" value="7" class="ecp-week"> S7</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" value="8" class="ecp-week"> S8</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('editCampPlayerModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveCampPlayer()">Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Migrar a Academia -->
+  <div class="modal" id="migrateModal">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3>Migrar a Academia</h3>
+        <button class="btn btn-sm" onclick="closeModal('migrateModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="migrateInscId">
+        <p style="margin-bottom: 16px; color: var(--text-dim);">Convertir a <strong id="migratePlayerName"></strong> de Campamento a Academia.</p>
+        <div style="background: var(--bg-secondary, #f5f5f7); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+          <div style="font-size: 13px; color: var(--text-dim); margin-bottom: 8px;">Esto creara:</div>
+          <ul style="font-size: 13px; margin: 0; padding-left: 20px; line-height: 1.8;">
+            <li>Jugador en el sistema de Academia</li>
+            <li>Vinculado al padre existente</li>
+            <li>Con modelo de mensualidad activo</li>
+            <li>Historial de campamento preservado</li>
+          </ul>
+        </div>
+        <div class="form-group">
+          <label>Categoria de Academia</label>
+          <select id="migrateCategory" class="input"></select>
+        </div>
+        <div class="form-group">
+          <label>Cuota Mensual (RD$)</label>
+          <input type="number" id="migrateFee" class="input" value="4000">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('migrateModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="executeMigration()" style="background: #34c759;">Migrar a Academia</button>
       </div>
     </div>
   </div>
@@ -4928,6 +5031,10 @@
       const { data } = await sb.from('camp_inscriptions').select('*').eq('status', 'approved');
       campWeeksData = data || [];
 
+      // Load cupos config
+      const { data: cuposData } = await sb.from('site_config').select('config').eq('id', 'camp_cupos').single();
+      const cupos = cuposData?.config || {};
+
       const overview = $('campWeeksOverview');
       if (!overview) return;
 
@@ -4935,12 +5042,15 @@
       for (let w = 1; w <= 8; w++) {
         const players = campWeeksData.filter(i => (i.semanas || []).includes(w));
         const paid = players.filter(p => p.payment_status === 'paid').length;
-        weekStats.push({ week: w, label: CAMP_WEEK_LABELS[w - 1], players, total: players.length, paid });
+        const maxCupo = cupos['week_' + w] || 30;
+        weekStats.push({ week: w, label: CAMP_WEEK_LABELS[w - 1], players, total: players.length, paid, maxCupo });
       }
 
       overview.innerHTML = weekStats.map(ws => {
-        const pct = ws.total > 0 ? Math.round((ws.paid / ws.total) * 100) : 0;
-        const barColor = ws.total === 0 ? '#e5e5e7' : '#D87093';
+        const occupancyPct = Math.round((ws.total / ws.maxCupo) * 100);
+        const payPct = ws.total > 0 ? Math.round((ws.paid / ws.total) * 100) : 0;
+        const barColor = ws.total === 0 ? '#e5e5e7' : occupancyPct >= 90 ? '#ef4444' : '#D87093';
+        const disponibles = Math.max(0, ws.maxCupo - ws.total);
         return `
           <div class="card" style="cursor: pointer; transition: transform 0.2s; position: relative; overflow: hidden;" onclick="showCampWeekDetail(${ws.week})" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
             <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: ${barColor};"></div>
@@ -4950,18 +5060,22 @@
                 <div style="font-size: 12px; color: var(--text-muted);">${ws.label}</div>
               </div>
               <div style="text-align: right;">
-                <div style="font-size: 32px; font-weight: 800; color: #1d1d1f; line-height: 1;">${ws.total}</div>
-                <div style="font-size: 11px; color: var(--text-dim);">jugadores</div>
+                <div style="font-size: 28px; font-weight: 800; color: #1d1d1f; line-height: 1;">${ws.total}<span style="font-size:14px;color:var(--text-dim);font-weight:500;">/${ws.maxCupo}</span></div>
+                <div style="font-size: 11px; color: ${disponibles <= 3 ? 'var(--danger)' : 'var(--text-dim)'};">${disponibles} disponibles</div>
               </div>
             </div>
-            <div style="margin-top: 16px;">
-              <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+            <div style="margin-top: 12px;">
+              <div style="height: 8px; background: var(--bg-secondary, #f0f0f0); border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+                <div style="height: 100%; width: ${occupancyPct}%; background: ${barColor}; border-radius: 4px; transition: width 0.3s;"></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 11px;">
                 <span style="color: var(--success);">Pagados: ${ws.paid}</span>
                 <span style="color: var(--danger);">Pendientes: ${ws.total - ws.paid}</span>
               </div>
-              <div style="height: 6px; background: var(--bg-secondary, #f0f0f0); border-radius: 3px; overflow: hidden;">
-                <div style="height: 100%; width: ${pct}%; background: var(--success); border-radius: 3px; transition: width 0.3s;"></div>
-              </div>
+            </div>
+            <div style="margin-top: 10px; display: flex; gap: 6px;" onclick="event.stopPropagation();">
+              <input type="number" id="cupoInput_${ws.week}" value="${ws.maxCupo}" min="1" max="100" style="width: 60px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); font-size: 12px; text-align: center;" onclick="event.stopPropagation()">
+              <button class="btn btn-sm" onclick="event.stopPropagation();saveCampWeekCupo(${ws.week})" style="font-size: 11px; padding: 4px 10px;">Cupo</button>
             </div>
           </div>`;
       }).join('');
@@ -4978,6 +5092,28 @@
     window.closeCampWeekDetail = function() {
       $('campWeekDetail').style.display = 'none';
       selectedCampWeek = null;
+    };
+
+    window.saveCampWeekCupo = async function(week) {
+      const val = parseInt(document.getElementById('cupoInput_' + week)?.value) || 30;
+      const { data: existing } = await sb.from('site_config').select('config').eq('id', 'camp_cupos').single();
+      const cupos = existing?.config || {};
+      cupos['week_' + week] = val;
+      await sb.from('site_config').upsert({ id: 'camp_cupos', config: cupos }, { onConflict: 'id' });
+      alert('Cupo de Semana ' + week + ' actualizado a ' + val);
+    };
+
+    window.removeFromWeek = async function(inscId, week) {
+      const insc = campWeeksData.find(i => i.id === inscId);
+      if (!insc) return;
+      if (!confirm('¿Quitar a ' + insc.jugador_nombre + ' de la Semana ' + week + '?')) return;
+      
+      const newWeeks = (insc.semanas || []).filter(w => w !== week);
+      if (newWeeks.length < 1) return alert('El jugador debe tener al menos 1 semana.');
+      
+      await sb.from('camp_inscriptions').update({ semanas: newWeeks, total_semanas: newWeeks.length }).eq('id', inscId);
+      loadCampWeeks();
+      showCampWeekDetail(week);
     };
 
     window.filterCampWeekPlayers = function() {
@@ -4998,8 +5134,9 @@
           <td>${i.tutor_whatsapp || '-'}</td>
           <td><span style="font-size:12px;">${allWeeks}</span> (${i.total_semanas})</td>
           <td><span class="badge badge-${payBadge}">${paidPct}%</span><br><small>${formatMoney(i.paid_amount || 0)}/${formatMoney(i.precio_total)}</small></td>
+          <td><button class="btn btn-sm" style="background:#ef4444;font-size:11px;" onclick="removeFromWeek('${i.id}',${selectedCampWeek})" title="Quitar de esta semana">✕</button></td>
         </tr>`;
-      }).join('') || '<tr><td colspan="7" style="text-align:center;">Sin jugadores en esta semana</td></tr>';
+      }).join('') || '<tr><td colspan="8" style="text-align:center;">Sin jugadores en esta semana</td></tr>';
     };
 
     // ======================================
@@ -5048,11 +5185,175 @@
           <td><span style="font-size:12px;">${weeksStr}</span></td>
           <td>
             <span class="badge badge-${payBadge}">${paidPct}%</span>
-            <br><small>${formatMoney(i.paid_amount || 0)} / ${formatMoney(i.precio_total)}</small>
+            <br><small>${formatMoney(i.paid_amount || 0)}/${formatMoney(i.precio_total)}</small>
           </td>
-          <td><span class="badge badge-success">Aprobado</span></td>
+          <td style="white-space: nowrap;">
+            <button class="btn btn-sm" onclick="editCampPlayer('${i.id}')" title="Editar">✏️</button>
+            <button class="btn btn-sm" style="background:#34c759;" onclick="openMigrateModal('${i.id}')" title="Migrar a Academia">🏫</button>
+          </td>
         </tr>`;
       }).join('') || '<tr><td colspan="8" style="text-align:center;">Sin jugadores aprobados</td></tr>';
+    };
+
+    // ======================================
+    // CAMPAMENTO - Editar Jugador + Migrar
+    // ======================================
+
+    window.editCampPlayer = function(id) {
+      const insc = campPlayers.find(i => i.id === id);
+      if (!insc) return;
+      
+      $('ecpId').value = insc.id;
+      $('ecpNombre').value = insc.jugador_nombre || '';
+      $('ecpFechaNac').value = insc.fecha_nacimiento || '';
+      $('ecpTalla').value = insc.talla_tshirt || 'YM';
+      $('ecpTutor').value = insc.tutor_nombre || '';
+      $('ecpWhatsapp').value = insc.tutor_whatsapp || '';
+      $('ecpEmail').value = insc.tutor_email || '';
+      $('ecpPhotoPreview').innerHTML = '';
+      $('ecpPhoto').value = '';
+      
+      // Set weeks checkboxes
+      document.querySelectorAll('.ecp-week').forEach(cb => {
+        cb.checked = (insc.semanas || []).includes(parseInt(cb.value));
+      });
+      
+      openModal('editCampPlayerModal');
+    };
+
+    window.saveCampPlayer = async function() {
+      const id = $('ecpId').value;
+      const semanas = Array.from(document.querySelectorAll('.ecp-week:checked')).map(cb => parseInt(cb.value));
+      
+      if (semanas.length < 2) return alert('Minimo 2 semanas');
+      
+      const updateData = {
+        jugador_nombre: $('ecpNombre').value.trim(),
+        fecha_nacimiento: $('ecpFechaNac').value || null,
+        talla_tshirt: $('ecpTalla').value,
+        tutor_nombre: $('ecpTutor').value.trim(),
+        tutor_whatsapp: $('ecpWhatsapp').value.trim(),
+        tutor_email: $('ecpEmail').value.trim(),
+        semanas: semanas,
+        total_semanas: semanas.length
+      };
+      
+      try {
+        const { error } = await sb.from('camp_inscriptions').update(updateData).eq('id', id);
+        if (error) throw error;
+        
+        // If there's a linked player, update that too
+        const insc = campPlayers.find(i => i.id === id);
+        if (insc?.player_id) {
+          await sb.from('players').update({
+            nombre: updateData.jugador_nombre,
+            fecha_nacimiento: updateData.fecha_nacimiento,
+            tutor_nombre: updateData.tutor_nombre,
+            tutor_whatsapp: updateData.tutor_whatsapp,
+            tutor_email: updateData.tutor_email
+          }).eq('id', insc.player_id);
+        }
+        
+        // Upload photo if selected
+        const photoFile = $('ecpPhoto').files[0];
+        if (photoFile && insc?.player_id) {
+          const base64 = await new Promise((res, rej) => {
+            const img = new Image();
+            img.onload = () => {
+              const c = document.createElement('canvas');
+              const max = 800;
+              let w = img.width, h = img.height;
+              if (w > max) { h = Math.round(h * max / w); w = max; }
+              c.width = w; c.height = h;
+              c.getContext('2d').drawImage(img, 0, 0, w, h);
+              res(c.toDataURL('image/jpeg', 0.7));
+            };
+            img.onerror = rej;
+            img.src = URL.createObjectURL(photoFile);
+          });
+          const year = new Date().getFullYear();
+          await sb.from('player_photos').upsert({
+            player_id: insc.player_id, photo_data: base64, year,
+            uploaded_by: currentUser?.email || 'admin'
+          }, { onConflict: 'player_id,year' });
+          await sb.from('players').update({ foto_url: base64 }).eq('id', insc.player_id);
+        }
+        
+        closeModal('editCampPlayerModal');
+        alert('Jugador actualizado');
+        loadCampPlayers();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    };
+
+    window.openMigrateModal = function(id) {
+      const insc = campPlayers.find(i => i.id === id);
+      if (!insc) return;
+      
+      $('migrateInscId').value = id;
+      $('migratePlayerName').textContent = insc.jugador_nombre;
+      
+      // Load categories
+      $('migrateCategory').innerHTML = categories.map(c => 
+        `<option value="${c.id}">${c.name}</option>`
+      ).join('');
+      
+      // Auto-select category by age
+      if (insc.fecha_nacimiento) {
+        const age = Math.floor((Date.now() - new Date(insc.fecha_nacimiento).getTime()) / (365.25*24*60*60*1000));
+        const matched = categories.find(c => c.age_min && c.age_max && age >= c.age_min && age <= c.age_max);
+        if (matched) $('migrateCategory').value = matched.id;
+      }
+      
+      openModal('migrateModal');
+    };
+
+    window.executeMigration = async function() {
+      const inscId = $('migrateInscId').value;
+      const categoryId = $('migrateCategory').value;
+      const fee = Number($('migrateFee').value) || 4000;
+      
+      if (!categoryId) return alert('Selecciona una categoria');
+      
+      const insc = campPlayers.find(i => i.id === inscId);
+      if (!insc) return alert('Inscripcion no encontrada');
+      
+      if (!confirm('¿Migrar a ' + insc.jugador_nombre + ' a la Academia? Los datos del campamento se conservaran.')) return;
+      
+      try {
+        if (insc.player_id) {
+          // Player already exists, just update category and fee
+          await sb.from('players').update({
+            category_id: categoryId,
+            agreed_monthly_fee: fee,
+            status: 'activo'
+          }).eq('id', insc.player_id);
+        } else {
+          // Create new player
+          await sb.from('players').insert({
+            nombre: insc.jugador_nombre,
+            fecha_nacimiento: insc.fecha_nacimiento,
+            tutor_nombre: insc.tutor_nombre,
+            tutor_email: insc.tutor_email,
+            tutor_whatsapp: insc.tutor_whatsapp,
+            category_id: categoryId,
+            agreed_monthly_fee: fee,
+            status: 'activo'
+          });
+        }
+        
+        // Mark inscription as migrated
+        await sb.from('camp_inscriptions').update({
+          notes: (insc.notes || '') + '\n[MIGRADO A ACADEMIA ' + new Date().toLocaleDateString('es-DO') + ']'
+        }).eq('id', inscId);
+        
+        closeModal('migrateModal');
+        alert(insc.jugador_nombre + ' migrado a Academia exitosamente. Categoria: ' + categories.find(c => c.id === categoryId)?.name);
+        loadCampPlayers();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
     };
 
     // ======================================
