@@ -1585,65 +1585,87 @@
           <div>
             <button class="mobile-menu">☰</button>
             <h1 class="page-title">🌐 Configuración Landing</h1>
-            <p class="page-subtitle">Controla qué formularios se muestran en la página pública</p>
+            <p class="page-subtitle">Controla qué se muestra en la página pública</p>
           </div>
         </div>
 
-        <div class="card" style="max-width: 600px;">
-          <h3 class="card-title" style="margin-bottom: 24px;">Formularios Activos</h3>
-          
-          <div style="display: grid; gap: 16px;">
-            <label style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: var(--bg-secondary, #f5f5f7); border-radius: 14px; cursor: pointer;">
-              <div>
-                <div style="font-weight: 700; font-size: 16px;">Formulario Academia</div>
-                <div style="font-size: 13px; color: var(--text-dim); margin-top: 4px;">Inscripción a la academia regular (mensual, por categorías de edad)</div>
-              </div>
-              <input type="checkbox" id="toggleAcademia" checked onchange="saveLandingConfig()" style="width: 24px; height: 24px; cursor: pointer;">
-            </label>
-
-            <label style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: var(--bg-secondary, #f5f5f7); border-radius: 14px; cursor: pointer;">
-              <div>
-                <div style="font-weight: 700; font-size: 16px;">Formulario Campamento</div>
-                <div style="font-size: 13px; color: var(--text-dim); margin-top: 4px;">Inscripción al campamento de verano (julio-agosto, por semanas)</div>
-              </div>
-              <input type="checkbox" id="toggleCampamento" checked onchange="saveLandingConfig()" style="width: 24px; height: 24px; cursor: pointer;">
-            </label>
+        <div style="display: grid; gap: 20px; max-width: 700px;">
+          <!-- Toggles -->
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom: 20px;">Formularios Activos</h3>
+            <div style="display: grid; gap: 16px;">
+              <label style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: var(--bg-secondary, #f5f5f7); border-radius: 14px; cursor: pointer;">
+                <div>
+                  <div style="font-weight: 700; font-size: 16px;">Formulario Academia</div>
+                  <div style="font-size: 13px; color: var(--text-dim); margin-top: 4px;">Inscripción mensual por categorías de edad</div>
+                </div>
+                <input type="checkbox" id="toggleAcademia" checked onchange="saveLandingConfig()" style="width: 24px; height: 24px; cursor: pointer;">
+              </label>
+              <label style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: var(--bg-secondary, #f5f5f7); border-radius: 14px; cursor: pointer;">
+                <div>
+                  <div style="font-weight: 700; font-size: 16px;">Sección Campamento</div>
+                  <div style="font-size: 13px; color: var(--text-dim); margin-top: 4px;">Banner + formulario del campamento de verano</div>
+                </div>
+                <input type="checkbox" id="toggleCampamento" checked onchange="saveLandingConfig()" style="width: 24px; height: 24px; cursor: pointer;">
+              </label>
+              <div id="landingConfigMsg" style="font-size: 14px; color: var(--success);"></div>
+            </div>
           </div>
 
-          <div id="landingConfigMsg" style="margin-top: 16px; font-size: 14px; color: var(--success);"></div>
-        </div>
+          <!-- Textos Editables -->
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom: 20px;">Textos del Landing</h3>
+            <div style="display: grid; gap: 16px;">
+              <div class="form-group">
+                <label>Título Principal (Hero)</label>
+                <input type="text" id="cfgHeroTitle" class="input" value="Más que una academia, una escuela de vida">
+              </div>
+              <div class="form-group">
+                <label>Subtítulo Hero</label>
+                <textarea id="cfgHeroSubtitle" class="input" rows="2" style="resize: vertical;">Entrenamiento profesional para niños y jóvenes de 8 a 17 años. Todos los sábados en Santo Domingo.</textarea>
+              </div>
+              <div class="form-group">
+                <label>Banner de Anuncio (parte superior)</label>
+                <input type="text" id="cfgAnnouncementText" class="input" value="9 de Mayo — Ven a conocernos. Inscríbete y forma parte de la familia Guerrero.">
+              </div>
+              <div class="form-group">
+                <label>Badge del Anuncio</label>
+                <input type="text" id="cfgAnnouncementBadge" class="input" value="OPEN HOUSE">
+              </div>
+              <button class="btn btn-primary" onclick="saveLandingTexts()">Guardar Textos</button>
+            </div>
+          </div>
 
-        <div class="card" style="max-width: 600px; margin-top: 20px;">
-          <h3 class="card-title" style="margin-bottom: 24px;">Ofertas Campamento</h3>
-          <div style="display: grid; gap: 12px;">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-              <div>
-                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Precio por semana</label>
-                <input type="number" id="cfgPriceWeek" class="input" value="6500">
+          <!-- Precios Campamento -->
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom: 20px;">Precios Campamento</h3>
+            <div style="display: grid; gap: 12px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                  <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Precio por semana (RD$)</label>
+                  <input type="number" id="cfgPriceWeek" class="input" value="6500">
+                </div>
+                <div>
+                  <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Minimo semanas</label>
+                  <input type="number" id="cfgMinWeeks" class="input" value="2">
+                </div>
               </div>
-              <div>
-                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Minimo semanas</label>
-                <input type="number" id="cfgMinWeeks" class="input" value="2">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                <div>
+                  <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">4 semanas</label>
+                  <input type="number" id="cfgPrice4" class="input" value="22000">
+                </div>
+                <div>
+                  <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">6 semanas</label>
+                  <input type="number" id="cfgPrice6" class="input" value="33000">
+                </div>
+                <div>
+                  <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">8 semanas</label>
+                  <input type="number" id="cfgPrice8" class="input" value="40000">
+                </div>
               </div>
+              <button class="btn btn-primary" onclick="saveCampPrices()">Guardar Precios</button>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-              <div>
-                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Oferta 4 semanas</label>
-                <input type="number" id="cfgPrice4" class="input" value="22000">
-              </div>
-              <div>
-                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Oferta 6 semanas</label>
-                <input type="number" id="cfgPrice6" class="input" value="33000">
-              </div>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-              <div>
-                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Oferta 8 semanas</label>
-                <input type="number" id="cfgPrice8" class="input" value="40000">
-              </div>
-              <div></div>
-            </div>
-            <button class="btn btn-primary" onclick="saveCampPrices()">Guardar Precios</button>
           </div>
         </div>
       </div>
@@ -4089,6 +4111,7 @@
               <button class="btn btn-sm" style="background:var(--success);" onclick="approveCampInscription('${i.id}')" title="Aprobar">✓</button>
               <button class="btn btn-sm" style="background:var(--danger);" onclick="rejectCampInscription('${i.id}')" title="Rechazar">✗</button>
             ` : ''}
+            <button class="btn btn-sm" onclick="generateAgreement('${i.id}')" title="Generar Acuerdo de Pago">📄</button>
             <button class="btn btn-sm" style="background:#EF4444;" onclick="deleteCampInscription('${i.id}')" title="Eliminar">🗑️</button>
           </td>
         </tr>`;
@@ -4154,6 +4177,52 @@
       if (!confirm('¿Eliminar esta inscripción permanentemente?')) return;
       await sb.from('camp_inscriptions').delete().eq('id', id);
       loadCampInscriptions();
+    };
+
+    window.generateAgreement = async function(id) {
+      const insc = campInscriptions.find(i => i.id === id);
+      if (!insc) return alert('Inscripción no encontrada');
+      
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = '...';
+      
+      try {
+        const response = await fetch('/api/generate-agreement', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tutor_nombre: insc.tutor_nombre,
+            tutor_email: insc.tutor_email,
+            jugador_nombre: insc.jugador_nombre,
+            semanas: insc.semanas,
+            total_semanas: insc.total_semanas,
+            precio_total: insc.precio_total,
+            metodo_pago: insc.metodo_pago,
+            fecha_nacimiento: insc.fecha_nacimiento,
+            talla_tshirt: insc.talla_tshirt
+          })
+        });
+        
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error);
+        
+        // Abrir acuerdo en nueva pestaña para imprimir
+        const win = window.open('', '_blank');
+        win.document.write(result.html);
+        win.document.close();
+        
+        if (result.email_sent) {
+          alert('Acuerdo generado y enviado por email a ' + insc.tutor_email);
+        } else {
+          alert('Acuerdo generado. Usa Ctrl+P para imprimir.');
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+      
+      btn.disabled = false;
+      btn.textContent = '📄';
     };
 
     // ======================================
@@ -4306,6 +4375,18 @@
       setTimeout(() => $('landingConfigMsg').textContent = '', 2000);
     };
 
+    window.saveLandingTexts = async function() {
+      const texts = {
+        hero_title: $('cfgHeroTitle').value,
+        hero_subtitle: $('cfgHeroSubtitle').value,
+        announcement_text: $('cfgAnnouncementText').value,
+        announcement_badge: $('cfgAnnouncementBadge').value
+      };
+      
+      await sb.from('site_config').upsert({ id: 'landing_texts', config: texts }, { onConflict: 'id' });
+      alert('Textos guardados. Se actualizarán en el landing al recargar.');
+    };
+
     window.saveCampPrices = async function() {
       const prices = {
         per_week: Number($('cfgPriceWeek').value),
@@ -4324,6 +4405,14 @@
       if (landing?.config) {
         $('toggleAcademia').checked = landing.config.show_academia !== false;
         $('toggleCampamento').checked = landing.config.show_campamento !== false;
+      }
+      
+      const { data: texts } = await sb.from('site_config').select('config').eq('id', 'landing_texts').single();
+      if (texts?.config) {
+        if (texts.config.hero_title) $('cfgHeroTitle').value = texts.config.hero_title;
+        if (texts.config.hero_subtitle) $('cfgHeroSubtitle').value = texts.config.hero_subtitle;
+        if (texts.config.announcement_text) $('cfgAnnouncementText').value = texts.config.announcement_text;
+        if (texts.config.announcement_badge) $('cfgAnnouncementBadge').value = texts.config.announcement_badge;
       }
       
       const { data: prices } = await sb.from('site_config').select('config').eq('id', 'camp_prices').single();
