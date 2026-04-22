@@ -200,22 +200,49 @@ function buildPaymentConfirmationEmail({ nombre, playerName, amount, method, mon
 
 function buildCampInscriptionEmail({ nombre, jugador, semanas, totalSemanas, precioTotal, metodoPago, talla, fechaNac }) {
   const weeksText = (semanas || []).map(w => 'Semana ' + w).join(', ');
+  const isStripe = (metodoPago || '').startsWith('stripe_');
+  const metodoClean = (metodoPago || '').replace('stripe_', '');
   let planText = 'Pago completo';
   let montoAhora = precioTotal;
-  if (metodoPago === 'reservacion' || metodoPago === 'stripe_reservacion') {
-    planText = 'Reservacion (20%)';
-    montoAhora = Math.round(precioTotal * 0.2);
-  } else if (metodoPago === '2cuotas' || metodoPago === 'stripe_2cuotas') {
-    planText = '2 Cuotas';
-    montoAhora = Math.round(precioTotal / 2);
+  if (metodoClean === 'reservacion') { planText = 'Reservacion (20%)'; montoAhora = Math.round(precioTotal * 0.2); }
+  else if (metodoClean === '2cuotas') { planText = '2 Cuotas'; montoAhora = Math.round(precioTotal / 2); }
+
+  // Status section depends on whether they paid via Stripe or manual
+  let statusSection = '';
+  if (isStripe) {
+    statusSection = `
+      <div style="background:rgba(52,199,89,0.06);border:1px solid rgba(52,199,89,0.15);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <div style="font-size:12px;color:#34c759;font-weight:600;letter-spacing:0.05em;margin-bottom:12px;">PAGO PROCESADO</div>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          ${emailInfoRow('Total', 'RD$ ' + Number(precioTotal).toLocaleString('es-DO'), true)}
+          ${emailInfoRow('Plan', planText)}
+          ${emailInfoRow('Pagado', '<strong style="color:#34c759;">RD$ ' + Number(montoAhora).toLocaleString('es-DO') + '</strong>', true)}
+          ${emailInfoRow('Via', 'Tarjeta (Stripe)')}
+        </table>
+      </div>
+      <p style="font-size:14px;color:#3d3d3f;text-align:center;line-height:1.6;">Tu pago ha sido procesado. Estamos revisando tu solicitud y te confirmaremos la aprobacion pronto.</p>
+    `;
+  } else {
+    statusSection = `
+      <div style="background:rgba(255,149,0,0.06);border:1px solid rgba(255,149,0,0.15);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <div style="font-size:12px;color:#ff9500;font-weight:600;letter-spacing:0.05em;margin-bottom:12px;">PAGO EN PROCESO</div>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          ${emailInfoRow('Total', 'RD$ ' + Number(precioTotal).toLocaleString('es-DO'), true)}
+          ${emailInfoRow('Plan', planText)}
+          ${emailInfoRow('Monto inicial', '<strong style="color:#ff9500;">RD$ ' + Number(montoAhora).toLocaleString('es-DO') + '</strong>', true)}
+          ${emailInfoRow('Estado', '<span style="color:#ff9500;font-weight:700;">Pendiente</span>')}
+        </table>
+      </div>
+      <p style="font-size:14px;color:#3d3d3f;text-align:center;line-height:1.6;">Tu solicitud ha sido recibida. Te contactaremos por WhatsApp para coordinar el pago y confirmar tu cupo.</p>
+    `;
   }
 
   return emailWrapper(`
     <div style="text-align:center;margin-bottom:24px;">
       <span style="display:inline-block;background:rgba(216,112,147,0.1);color:#D87093;padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.05em;">CAMPAMENTO DE VERANO 2026</span>
     </div>
-    <h1 style="font-size:22px;font-weight:700;color:#1d1d1f;margin:0 0 8px;text-align:center;">Inscripcion Recibida</h1>
-    <p style="font-size:15px;color:#86868b;margin:0 0 24px;text-align:center;">Hola ${nombre}, hemos recibido la inscripcion de ${jugador} al campamento.</p>
+    <h1 style="font-size:22px;font-weight:700;color:#1d1d1f;margin:0 0 8px;text-align:center;">Solicitud Recibida</h1>
+    <p style="font-size:15px;color:#86868b;margin:0 0 24px;text-align:center;">Hola ${nombre}, hemos recibido la solicitud de inscripcion de <strong>${jugador}</strong> al campamento.</p>
     
     <div style="background:#f5f5f7;border-radius:14px;padding:20px;margin-bottom:16px;">
       <div style="font-size:12px;color:#86868b;font-weight:600;letter-spacing:0.05em;margin-bottom:12px;">DATOS DEL JUGADOR</div>
@@ -237,16 +264,7 @@ function buildCampInscriptionEmail({ nombre, jugador, semanas, totalSemanas, pre
       </table>
     </div>
     
-    <div style="background:rgba(216,112,147,0.06);border:1px solid rgba(216,112,147,0.15);border-radius:14px;padding:20px;margin-bottom:24px;">
-      <div style="font-size:12px;color:#D87093;font-weight:600;letter-spacing:0.05em;margin-bottom:12px;">PLAN DE PAGO</div>
-      <table width="100%" cellpadding="0" cellspacing="0">
-        ${emailInfoRow('Total', 'RD$ ' + Number(precioTotal).toLocaleString('es-DO'), true)}
-        ${emailInfoRow('Plan', planText)}
-        ${emailInfoRow('A pagar ahora', '<strong style="font-size:18px;color:#D87093;">RD$ ' + Number(montoAhora).toLocaleString('es-DO') + '</strong>', true)}
-      </table>
-    </div>
-    
-    <p style="font-size:14px;color:#86868b;text-align:center;line-height:1.6;">Te contactaremos por WhatsApp para confirmar tu inscripcion y coordinar el pago.</p>
+    ${statusSection}
     ${emailButton('Ver Campamento', 'https://guerrerofcsd.com/landing#campamento')}
   `);
 }
