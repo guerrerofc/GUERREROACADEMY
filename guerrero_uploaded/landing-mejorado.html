@@ -661,8 +661,8 @@
     </div>
   </header>
 
-  <!-- Open House Banner -->
-  <div class="announcement-bar">
+  <!-- Open House Banner (ocultable) -->
+  <div class="announcement-bar" id="section-announcement">
     <div class="container">
       <span class="announcement-badge">OPEN HOUSE</span>
       <span class="announcement-text"><strong>9 de Mayo</strong> — Ven a conocernos. Inscríbete y forma parte de la familia Guerrero.</span>
@@ -670,8 +670,8 @@
     </div>
   </div>
 
-  <!-- Hero -->
-  <section class="hero">
+  <!-- Hero Academia (ocultable) -->
+  <section class="hero" id="section-hero-academia">
     <div class="container">
       <p class="hero-label">Academia de Fútbol Sala</p>
       <h1>Más que una academia,<br>una escuela de vida</h1>
@@ -679,6 +679,55 @@
       <div class="hero-buttons">
         <a href="#inscripcion" class="btn-dark">Inscribir ahora</a>
         <a href="https://wa.me/18296396001?text=Hola,%20quiero%20información%20sobre%20Guerrero%20Academy" target="_blank" class="btn-light">Enviar WhatsApp</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hero Campamento 2026 (ocultable) -->
+  <section id="section-hero-camp" style="background: #1d1d1f; padding: 80px 0 60px; overflow: hidden; position: relative;">
+    <!-- Animated background circles -->
+    <div style="position:absolute;top:-60px;left:-60px;width:300px;height:300px;border-radius:50%;background:rgba(216,112,147,0.08);animation:float 8s ease-in-out infinite;"></div>
+    <div style="position:absolute;bottom:-40px;right:-40px;width:250px;height:250px;border-radius:50%;background:rgba(216,112,147,0.06);animation:float 6s ease-in-out infinite reverse;"></div>
+    <div style="position:absolute;top:30%;right:15%;width:150px;height:150px;border-radius:50%;background:rgba(216,112,147,0.04);animation:float 10s ease-in-out infinite;"></div>
+
+    <style>
+      @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
+      @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+      @keyframes scaleIn { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
+      @keyframes shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
+      .camp-hero-title { animation: fadeInUp 0.8s ease both; }
+      .camp-hero-sub { animation: fadeInUp 0.8s ease 0.2s both; }
+      .camp-hero-badges { animation: fadeInUp 0.8s ease 0.4s both; }
+      .camp-hero-btn { animation: scaleIn 0.6s ease 0.6s both; }
+      .camp-shimmer {
+        background: linear-gradient(90deg, #D87093 0%, #E8A0B8 25%, #fff 50%, #E8A0B8 75%, #D87093 100%);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: shimmer 3s linear infinite;
+      }
+    </style>
+
+    <div class="container" style="text-align: center; position: relative; z-index: 1;">
+      <div class="camp-hero-title">
+        <span style="display:inline-block;background:rgba(216,112,147,0.15);color:#D87093;padding:8px 20px;border-radius:24px;font-size:14px;font-weight:700;letter-spacing:0.08em;margin-bottom:20px;">VERANO 2026</span>
+        <h1 style="font-size:clamp(36px,7vw,64px);font-weight:900;color:#fff;margin:0 0 8px;line-height:1.05;">
+          <span class="camp-shimmer">CAMP</span> <span style="color:#fff;">2026</span>
+        </h1>
+      </div>
+      <div class="camp-hero-sub">
+        <p style="font-size:clamp(16px,3vw,22px);color:rgba(255,255,255,0.7);max-width:550px;margin:0 auto 12px;">Campamento de Futbol Sala</p>
+        <p style="font-size:16px;color:rgba(255,255,255,0.5);margin:0 auto 32px;">Julio - Agosto | Lunes a Viernes | 8:00 AM - 12:00 PM</p>
+      </div>
+      <div class="camp-hero-badges" style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:36px;">
+        <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(216,112,147,0.12);border:1px solid rgba(216,112,147,0.25);color:#E8A0B8;padding:10px 18px;border-radius:24px;font-size:14px;font-weight:600;">8 Semanas</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(216,112,147,0.12);border:1px solid rgba(216,112,147,0.25);color:#E8A0B8;padding:10px 18px;border-radius:24px;font-size:14px;font-weight:600;">Colegio Loyola</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(216,112,147,0.12);border:1px solid rgba(216,112,147,0.25);color:#E8A0B8;padding:10px 18px;border-radius:24px;font-size:14px;font-weight:600;">Merienda Incluida</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(216,112,147,0.12);border:1px solid rgba(216,112,147,0.25);color:#E8A0B8;padding:10px 18px;border-radius:24px;font-size:14px;font-weight:600;">Desde RD$6,500/sem</span>
+      </div>
+      <div class="camp-hero-btn" style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
+        <a href="#inscripcion-camp" style="display:inline-block;background:#D87093;color:#fff;padding:16px 36px;border-radius:14px;font-weight:700;font-size:16px;text-decoration:none;transition:transform 0.2s,box-shadow 0.2s;box-shadow:0 4px 20px rgba(216,112,147,0.4);" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">Inscribir al Campamento</a>
+        <a href="https://wa.me/18296396001?text=Hola,%20quiero%20información%20sobre%20el%20Campamento%20de%20Verano" target="_blank" style="display:inline-block;background:transparent;color:#fff;padding:16px 36px;border-radius:14px;font-weight:700;font-size:16px;text-decoration:none;border:1px solid rgba(255,255,255,0.2);">WhatsApp</a>
       </div>
     </div>
   </section>
@@ -958,7 +1007,7 @@
     <div class="container" style="text-align: center;">
       <span style="display: inline-block; background: rgba(216,112,147,0.15); color: #D87093; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 16px;">VERANO 2026</span>
       <h2 style="font-size: clamp(28px, 5vw, 44px); font-weight: 800; margin-bottom: 16px; line-height: 1.1;">Campamento de Verano</h2>
-      <p style="font-size: 18px; color: rgba(255,255,255,0.7); max-width: 600px; margin: 0 auto 32px;">8 semanas de futbol, diversión y crecimiento. Julio y agosto, de lunes a viernes.</p>
+      <p style="font-size: 18px; color: rgba(255,255,255,0.7); max-width: 600px; margin: 0 auto 32px;">8 semanas de futbol, diversión y crecimiento. Julio y agosto, de lunes a viernes de 8:00 AM a 12:00 PM en el Colegio Loyola.</p>
       
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 900px; margin: 0 auto 40px;">
         <div style="background: rgba(216,112,147,0.08); border: 1px solid rgba(216,112,147,0.2); border-radius: 16px; padding: 24px;">
@@ -1350,23 +1399,20 @@
         // Cargar visibilidad
         const { data: cfg } = await sb.from('site_config').select('config').eq('id', 'landing').single();
         if (cfg?.config) {
-          if (cfg.config.show_academia === false) {
-            const el = document.getElementById('inscripcion');
-            if (el) el.style.display = 'none';
-          }
-          if (cfg.config.show_campamento === false) {
-            const el1 = document.getElementById('campamento');
-            const el2 = document.getElementById('inscripcion-camp');
-            if (el1) el1.style.display = 'none';
-            if (el2) el2.style.display = 'none';
-          }
+          const c = cfg.config;
+          if (c.show_announcement === false) { const el = document.getElementById('section-announcement'); if (el) el.style.display = 'none'; }
+          if (c.show_hero_academia === false) { const el = document.getElementById('section-hero-academia'); if (el) el.style.display = 'none'; }
+          if (c.show_hero_camp === false) { const el = document.getElementById('section-hero-camp'); if (el) el.style.display = 'none'; }
+          if (c.show_campamento === false) { const el = document.getElementById('campamento'); if (el) el.style.display = 'none'; }
+          if (c.show_academia === false) { const el = document.getElementById('inscripcion'); if (el) el.style.display = 'none'; }
+          if (c.show_camp_form === false) { const el = document.getElementById('inscripcion-camp'); if (el) el.style.display = 'none'; }
         }
         
         // Cargar textos editables
         const { data: txt } = await sb.from('site_config').select('config').eq('id', 'landing_texts').single();
         if (txt?.config) {
-          const heroH1 = document.querySelector('.hero h1');
-          const heroP = document.querySelector('.hero .hero-text');
+          const heroH1 = document.querySelector('#section-hero-academia h1');
+          const heroP = document.querySelector('#section-hero-academia .hero-text');
           const annText = document.querySelector('.announcement-text');
           const annBadge = document.querySelector('.announcement-badge');
           

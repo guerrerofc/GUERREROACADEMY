@@ -1681,21 +1681,49 @@
         <div style="display: grid; gap: 20px; max-width: 700px;">
           <!-- Toggles -->
           <div class="card">
-            <h3 class="card-title" style="margin-bottom: 20px;">Formularios Activos</h3>
-            <div style="display: grid; gap: 16px;">
-              <label style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: var(--bg-secondary, #f5f5f7); border-radius: 14px; cursor: pointer;">
+            <h3 class="card-title" style="margin-bottom: 20px;">Secciones del Landing</h3>
+            <div style="display: grid; gap: 12px;">
+              <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-secondary, #f5f5f7); border-radius: 14px; cursor: pointer;">
                 <div>
-                  <div style="font-weight: 700; font-size: 16px;">Formulario Academia</div>
-                  <div style="font-size: 13px; color: var(--text-dim); margin-top: 4px;">Inscripción mensual por categorías de edad</div>
+                  <div style="font-weight: 700;">Banner de Anuncio</div>
+                  <div style="font-size: 12px; color: var(--text-dim);">Open House / anuncio en barra superior</div>
                 </div>
-                <input type="checkbox" id="toggleAcademia" checked onchange="saveLandingConfig()" style="width: 24px; height: 24px; cursor: pointer;">
+                <input type="checkbox" id="toggleAnnouncement" checked onchange="saveLandingConfig()" style="width: 22px; height: 22px; cursor: pointer;">
               </label>
-              <label style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: var(--bg-secondary, #f5f5f7); border-radius: 14px; cursor: pointer;">
+              <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-secondary, #f5f5f7); border-radius: 14px; cursor: pointer;">
                 <div>
-                  <div style="font-weight: 700; font-size: 16px;">Sección Campamento</div>
-                  <div style="font-size: 13px; color: var(--text-dim); margin-top: 4px;">Banner + formulario del campamento de verano</div>
+                  <div style="font-weight: 700;">Hero Academia</div>
+                  <div style="font-size: 12px; color: var(--text-dim);">"Mas que una academia, una escuela de vida"</div>
                 </div>
-                <input type="checkbox" id="toggleCampamento" checked onchange="saveLandingConfig()" style="width: 24px; height: 24px; cursor: pointer;">
+                <input type="checkbox" id="toggleHeroAcademia" checked onchange="saveLandingConfig()" style="width: 22px; height: 22px; cursor: pointer;">
+              </label>
+              <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-secondary, #f5f5f7); border-radius: 14px; cursor: pointer;">
+                <div>
+                  <div style="font-weight: 700;">Hero Campamento 2026</div>
+                  <div style="font-size: 12px; color: var(--text-dim);">Banner animado CAMP 2026</div>
+                </div>
+                <input type="checkbox" id="toggleHeroCamp" checked onchange="saveLandingConfig()" style="width: 22px; height: 22px; cursor: pointer;">
+              </label>
+              <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-secondary, #f5f5f7); border-radius: 14px; cursor: pointer;">
+                <div>
+                  <div style="font-weight: 700;">Seccion Campamento (info + ofertas)</div>
+                  <div style="font-size: 12px; color: var(--text-dim);">Precios, semanas y detalles del campamento</div>
+                </div>
+                <input type="checkbox" id="toggleCampamento" checked onchange="saveLandingConfig()" style="width: 22px; height: 22px; cursor: pointer;">
+              </label>
+              <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-secondary, #f5f5f7); border-radius: 14px; cursor: pointer;">
+                <div>
+                  <div style="font-weight: 700;">Formulario Academia</div>
+                  <div style="font-size: 12px; color: var(--text-dim);">Inscripcion mensual por categorias de edad</div>
+                </div>
+                <input type="checkbox" id="toggleAcademia" checked onchange="saveLandingConfig()" style="width: 22px; height: 22px; cursor: pointer;">
+              </label>
+              <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-secondary, #f5f5f7); border-radius: 14px; cursor: pointer;">
+                <div>
+                  <div style="font-weight: 700;">Formulario Campamento</div>
+                  <div style="font-size: 12px; color: var(--text-dim);">Inscripcion al campamento de verano (wizard)</div>
+                </div>
+                <input type="checkbox" id="toggleCampForm" checked onchange="saveLandingConfig()" style="width: 22px; height: 22px; cursor: pointer;">
               </label>
               <div id="landingConfigMsg" style="font-size: 14px; color: var(--success);"></div>
             </div>
@@ -4561,8 +4589,12 @@
 
     window.saveLandingConfig = async function() {
       const config = {
+        show_announcement: $('toggleAnnouncement').checked,
+        show_hero_academia: $('toggleHeroAcademia').checked,
+        show_hero_camp: $('toggleHeroCamp').checked,
+        show_campamento: $('toggleCampamento').checked,
         show_academia: $('toggleAcademia').checked,
-        show_campamento: $('toggleCampamento').checked
+        show_camp_form: $('toggleCampForm').checked
       };
       
       await sb.from('site_config').upsert({ id: 'landing', config: config }, { onConflict: 'id' });
@@ -4598,8 +4630,12 @@
     async function loadLandingConfig() {
       const { data: landing } = await sb.from('site_config').select('config').eq('id', 'landing').single();
       if (landing?.config) {
-        $('toggleAcademia').checked = landing.config.show_academia !== false;
+        $('toggleAnnouncement').checked = landing.config.show_announcement !== false;
+        $('toggleHeroAcademia').checked = landing.config.show_hero_academia !== false;
+        $('toggleHeroCamp').checked = landing.config.show_hero_camp !== false;
         $('toggleCampamento').checked = landing.config.show_campamento !== false;
+        $('toggleAcademia').checked = landing.config.show_academia !== false;
+        $('toggleCampForm').checked = landing.config.show_camp_form !== false;
       }
       
       const { data: texts } = await sb.from('site_config').select('config').eq('id', 'landing_texts').single();
