@@ -769,8 +769,8 @@
     </div>
   </section>
 
-  <!-- Info Strip -->
-  <section class="info-strip">
+  <!-- Info Strip (ocultable) -->
+  <section class="info-strip" id="section-info-strip">
     <div class="container">
       <div class="info-grid">
         <div class="info-item">
@@ -1403,6 +1403,7 @@
           if (c.show_announcement === false) { const el = document.getElementById('section-announcement'); if (el) el.style.display = 'none'; }
           if (c.show_hero_academia === false) { const el = document.getElementById('section-hero-academia'); if (el) el.style.display = 'none'; }
           if (c.show_hero_camp === false) { const el = document.getElementById('section-hero-camp'); if (el) el.style.display = 'none'; }
+          if (c.show_info_strip === false) { const el = document.getElementById('section-info-strip'); if (el) el.style.display = 'none'; }
           if (c.show_campamento === false) { const el = document.getElementById('campamento'); if (el) el.style.display = 'none'; }
           if (c.show_academia === false) { const el = document.getElementById('inscripcion'); if (el) el.style.display = 'none'; }
           if (c.show_camp_form === false) { const el = document.getElementById('inscripcion-camp'); if (el) el.style.display = 'none'; }
