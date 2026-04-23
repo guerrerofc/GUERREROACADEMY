@@ -88,6 +88,17 @@
     .header-links a:hover {
       color: #000;
     }
+
+    @media (max-width: 640px) {
+      .header-links { gap: 12px; }
+      .header-links a { font-size: 12px; }
+      .logo span { font-size: 14px; }
+      .logo img { width: 36px; height: 36px; }
+    }
+    @media (max-width: 400px) {
+      .header-links { gap: 8px; }
+      .header-links a { font-size: 11px; }
+    }
     
     .btn-header {
       background: #1d1d1f;
@@ -620,9 +631,15 @@
     
     /* Mobile About */
     @media (max-width: 768px) {
+      .about-section { padding: 60px 0; }
+      .about-header { margin: 0 auto 40px; }
+      .about-header h2 { font-size: 28px; }
+      .about-header p { font-size: 15px; }
       .mv-grid {
         grid-template-columns: 1fr;
       }
+      .mv-card { padding: 28px; }
+      .mv-card p { font-size: 15px; }
       .values-grid {
         grid-template-columns: repeat(2, 1fr);
       }
@@ -653,9 +670,8 @@
         <span>Guerrero Academy</span>
       </a>
       <div class="header-links">
-        <a href="#nosotros">Quiénes Somos</a>
-        <a href="#campamento">Campamento</a>
-        <a href="#inscripcion">Inscripción</a>
+        <a href="#nosotros">Nosotros</a>
+        <a href="#inscripcion-camp">Inscripción</a>
         <a href="https://wa.me/18296396001" target="_blank">Contacto</a>
       </div>
     </div>
